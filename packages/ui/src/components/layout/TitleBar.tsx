@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Dialog } from '../primitives/Dialog';
 import { AboutView } from '../about/AboutView';
 
 const trailLogoUrl = new URL('../../assets/trail-logo.png', import.meta.url).href;
 
 export const TitleBar: React.FC = () => {
+  const { t } = useTranslation();
   const [aboutOpen, setAboutOpen] = useState(false);
 
   return (
@@ -33,14 +35,14 @@ export const TitleBar: React.FC = () => {
         <button
           type="button"
           onClick={() => setAboutOpen(true)}
-          aria-label="About Trail"
+          aria-label={t('navigation.aboutAria')}
           className="flex h-5 w-5 items-center justify-center rounded text-foreground/50 transition-smooth hover:bg-black/5 hover:text-foreground"
         >
           <Info className="h-3.5 w-3.5" strokeWidth={1.7} />
         </button>
       </div>
 
-      <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} title="About Trail">
+      <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} title={t('navigation.aboutTitle')}>
         <AboutView />
       </Dialog>
     </header>
