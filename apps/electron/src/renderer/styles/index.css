@@ -171,3 +171,100 @@ button:disabled { cursor: not-allowed; }
 [data-sonner-toaster] { --width: 360px; }
 [data-sonner-toast] { border: 1px solid var(--border) !important; background: var(--surface) !important; color: var(--foreground) !important; box-shadow: 0 12px 32px rgba(0,0,0,.14) !important; }
 @media (max-width: 900px) { .mac-titlebar { height: 2rem; flex-basis: 2rem; } }
+
+/* Open Design pilot — two presentation surfaces only. These classes keep
+   the quiet financial grammar local to Discover Results and Research. */
+.trail-pilot-shell { min-height: 100%; background: var(--background); color: var(--foreground); }
+.trail-pilot-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 0.15rem 0 0.9rem; border-bottom: 1px solid var(--border); }
+.trail-pilot-eyebrow { color: var(--foreground-muted); font-size: 0.68rem; font-weight: 700; letter-spacing: .12em; line-height: 1.4; text-transform: uppercase; }
+.trail-pilot-title { margin-top: .2rem; color: var(--foreground); font-size: 1.45rem; font-weight: 650; letter-spacing: -.025em; line-height: 1.2; }
+.trail-pilot-subtitle { margin-top: .35rem; color: var(--foreground-muted); font-size: .79rem; line-height: 1.5; }
+.trail-pilot-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .45rem; }
+.trail-pilot-toolbar-button { min-height: 2rem; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--foreground-muted); font-size: .75rem; font-weight: 600; padding: .35rem .65rem; transition: background-color .16s ease, border-color .16s ease, color .16s ease; }
+.trail-pilot-toolbar-button:hover { border-color: var(--border-strong); background: var(--surface-hover); color: var(--foreground); }
+.trail-pilot-status { border: 1px solid var(--border); border-radius: 8px; background: color-mix(in srgb, var(--surface) 72%, transparent); padding: .65rem .8rem; color: var(--foreground-muted); font-size: .75rem; line-height: 1.5; }
+.trail-pilot-status--warning { border-color: color-mix(in srgb, var(--warning) 34%, var(--border)); background: color-mix(in srgb, var(--warning) 7%, var(--surface)); }
+.trail-pilot-status--partial { border-color: color-mix(in srgb, var(--info) 24%, var(--border)); background: color-mix(in srgb, var(--info) 5%, var(--surface)); }
+.trail-pilot-table { overflow: visible; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.trail-pilot-table-header, .trail-pilot-row { display: grid; grid-template-columns: minmax(0, 1.7fr) 92px 92px 58px 148px; align-items: center; column-gap: .75rem; }
+.trail-pilot-table-header { min-height: 2.25rem; border-bottom: 1px solid var(--border); background: var(--surface-muted); padding: 0 .8rem; color: var(--foreground-muted); font-size: .67rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.trail-pilot-row { min-height: 4.7rem; border-bottom: 1px solid var(--border); padding: .7rem .8rem; transition: background-color .16s ease; }
+.trail-pilot-row:last-child { border-bottom: 0; }
+.trail-pilot-row:hover { background: var(--surface-hover); }
+.trail-pilot-identity { min-width: 0; }
+.trail-pilot-symbol-line { display: flex; align-items: baseline; gap: .5rem; min-width: 0; }
+.trail-pilot-symbol { color: var(--foreground); font-size: .84rem; font-weight: 700; letter-spacing: .01em; }
+.trail-pilot-name { overflow: hidden; color: var(--foreground-muted); font-size: .76rem; text-overflow: ellipsis; white-space: nowrap; }
+.trail-pilot-reason { overflow: hidden; margin-top: .28rem; color: var(--foreground-muted); font-size: .74rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.trail-pilot-reason::before { content: '•'; margin-right: .35rem; color: var(--accent); }
+.trail-pilot-secondary { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .28rem; }
+.trail-pilot-chip { border-radius: 5px; background: color-mix(in srgb, var(--foreground) 6%, transparent); padding: .12rem .35rem; color: var(--foreground-muted); font-size: .66rem; line-height: 1.35; }
+.trail-pilot-financial { font-variant-numeric: tabular-nums; color: var(--foreground); font-size: .8rem; font-weight: 650; text-align: right; }
+.trail-pilot-change { font-variant-numeric: tabular-nums; font-size: .8rem; font-weight: 650; text-align: right; }
+.trail-pilot-score { font-variant-numeric: tabular-nums; color: var(--accent); font-size: .8rem; font-weight: 700; text-align: right; }
+.trail-pilot-action { display: flex; align-items: center; justify-content: flex-end; gap: .35rem; }
+.trail-pilot-action > button:first-child { background: var(--primary); color: var(--primary-foreground); }
+.trail-pilot-action > button:first-child:hover { background: color-mix(in srgb, var(--primary) 88%, black); }
+
+.trail-pilot-research-header { flex: 0 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--border); padding: .85rem 1rem; }
+.trail-pilot-research-title { color: var(--foreground); font-size: 1rem; font-weight: 650; letter-spacing: -.015em; }
+.trail-pilot-research-content { min-height: 0; flex: 1; overflow-y: auto; padding: .8rem 1rem 1.4rem; }
+.trail-pilot-strategy-context { border-bottom: 1px solid var(--border); padding: .55rem 1rem .65rem; }
+.trail-pilot-strategy-context summary { cursor: pointer; color: var(--foreground-muted); font-size: .74rem; font-weight: 600; }
+.trail-pilot-strategy-context summary:hover { color: var(--foreground); }
+.trail-pilot-progress { border: 1px solid var(--border); border-radius: 9px; background: var(--surface); padding: .85rem; }
+.trail-pilot-progress-bar { height: .35rem; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--foreground) 10%, transparent); }
+.trail-pilot-progress-bar > div { height: 100%; border-radius: inherit; background: var(--accent); transition: width .2s ease; }
+.trail-pilot-stage-list { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .4rem; margin-top: .8rem; }
+.trail-pilot-stage { display: flex; align-items: center; gap: .35rem; min-width: 0; color: var(--foreground-subtle); font-size: .7rem; line-height: 1.35; }
+.trail-pilot-stage span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trail-pilot-stage-marker { display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; flex: 0 0 1rem; border: 1px solid var(--border-strong); border-radius: 999px; font-size: .62rem; }
+.trail-pilot-stage--active { color: var(--accent); font-weight: 650; }
+.trail-pilot-stage--active .trail-pilot-stage-marker { border-color: var(--accent); }
+.trail-pilot-stage--done { color: var(--positive); }
+.trail-pilot-stage--done .trail-pilot-stage-marker { border-color: var(--positive); background: color-mix(in srgb, var(--positive) 12%, transparent); }
+.trail-pilot-stage--failed { color: var(--negative); }
+.trail-pilot-stage--failed .trail-pilot-stage-marker { border-color: var(--negative); }
+.trail-pilot-report { display: flex; flex-direction: column; gap: 1.25rem; }
+.trail-pilot-verdict { border-bottom: 1px solid var(--border); padding: .15rem 0 1.1rem; }
+.trail-pilot-verdict-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.trail-pilot-verdict-label { color: var(--foreground-muted); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.trail-pilot-verdict-title { margin-top: .22rem; font-size: 1.45rem; font-weight: 700; letter-spacing: -.025em; line-height: 1.2; }
+.trail-pilot-confidence { display: flex; align-items: baseline; gap: .35rem; color: var(--foreground); font-size: 1.1rem; font-weight: 700; }
+.trail-pilot-confidence small { color: var(--foreground-muted); font-size: .68rem; font-weight: 600; }
+.trail-pilot-summary { max-width: 62rem; margin-top: .8rem; color: var(--foreground); font-size: .9rem; line-height: 1.65; }
+.trail-pilot-report-meta { display: flex; flex-wrap: wrap; gap: .35rem .65rem; margin-top: .65rem; color: var(--foreground-subtle); font-size: .7rem; line-height: 1.45; }
+.trail-pilot-report-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; }
+.trail-pilot-report-section { border-bottom: 1px solid var(--border); padding: 0 0 1rem; }
+.trail-pilot-report-section header { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+.trail-pilot-report-section h4 { color: var(--foreground); font-size: .9rem; font-weight: 700; }
+.trail-pilot-report-section p { margin-top: .4rem; color: var(--foreground-muted); font-size: .8rem; line-height: 1.6; }
+.trail-pilot-report-section-summary { margin-top: .4rem; color: var(--foreground-muted); font-size: .8rem; line-height: 1.6; }
+.trail-pilot-case { border-top: 1px solid var(--border); padding-top: 1rem; }
+.trail-pilot-case h4, .trail-pilot-evidence h4 { color: var(--foreground); font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
+.trail-pilot-case ul { display: grid; gap: .45rem; margin: .55rem 0 0; padding: 0; list-style: none; }
+.trail-pilot-case li { color: var(--foreground-muted); font-size: .8rem; line-height: 1.55; }
+.trail-pilot-case li::before { content: '•'; margin-right: .45rem; color: var(--accent); }
+.trail-pilot-evidence { border-top: 1px solid var(--border); padding-top: 1rem; }
+.trail-pilot-evidence-note { margin-top: .3rem; color: var(--foreground-subtle); font-size: .72rem; line-height: 1.5; }
+.trail-pilot-evidence-row { border-bottom: 1px solid var(--border); padding: .65rem 0; }
+.trail-pilot-evidence-row:last-child { border-bottom: 0; }
+.trail-pilot-evidence-claim { color: var(--foreground); font-size: .78rem; font-weight: 600; line-height: 1.45; }
+.trail-pilot-evidence-meta { margin-top: .2rem; color: var(--foreground-subtle); font-size: .7rem; line-height: 1.45; }
+.trail-pilot-next-action { border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border)); border-radius: 8px; background: color-mix(in srgb, var(--accent) 5%, var(--surface)); padding: .75rem .85rem; }
+.trail-pilot-symbol-entry { max-width: 32rem; margin: 2rem auto 0; border-bottom: 1px solid var(--border); padding-bottom: 1.2rem; }
+
+@media (max-width: 760px) {
+  .trail-pilot-page-header, .trail-pilot-research-header { flex-direction: column; }
+  .trail-pilot-toolbar { justify-content: flex-start; }
+  .trail-pilot-table { border-radius: 8px; }
+  .trail-pilot-table-header { display: none; }
+  .trail-pilot-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; row-gap: .55rem; }
+  .trail-pilot-row > :nth-child(2), .trail-pilot-row > :nth-child(3), .trail-pilot-row > :nth-child(4) { text-align: right; }
+  .trail-pilot-row > :nth-child(2) { grid-column: 2; grid-row: 1; }
+  .trail-pilot-row > :nth-child(3) { grid-column: 2; grid-row: 2; }
+  .trail-pilot-row > :nth-child(4) { grid-column: 1; grid-row: 2; text-align: left; }
+  .trail-pilot-row > :nth-child(5) { grid-column: 1 / -1; grid-row: 3; justify-content: flex-start; }
+  .trail-pilot-stage-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .trail-pilot-report-sections { grid-template-columns: 1fr; }
+}
