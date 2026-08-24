@@ -39,6 +39,13 @@
   --negative-rgb: 190, 64, 54;
   --warning-rgb: 190, 128, 38;
 
+  /* Motion language: preserve the existing 160ms micro interaction rhythm. */
+  --motion-fast: 120ms;
+  --motion-base: 160ms;
+  --motion-content: 220ms;
+  --motion-slow: 600ms;
+  --motion-ambient: 11s;
+
   /* Compatibility aliases for feature slices that still use the old names. */
   --mac-window: var(--background);
   --mac-titlebar: var(--surface);
@@ -586,3 +593,235 @@ button:disabled { cursor: not-allowed; }
 .trail-compare-view table th { color: #8792a3; font-size: .58rem; letter-spacing: .1em; }
 .trail-compare-view table td, .trail-compare-view table th { border-bottom-color: #edf0f4 !important; padding: .72rem .85rem !important; }
 .trail-compare-view table tbody tr:hover { background: #f8fbff; }
+
+/* -------------------------------------------------------------------------
+   Motion foundation — decorative layers only. These layers are clipped by
+   their host surfaces, never capture input, and use CSS animation rather than
+   a React render loop. The blue/neutral palette keeps the UI financial.
+   ------------------------------------------------------------------------- */
+.trail-motion-ambient,
+.trail-motion-dot-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.trail-motion-ambient {
+  opacity: 0;
+  transition: opacity var(--motion-slow) ease;
+}
+
+.trail-motion-state--thinking { opacity: .28; }
+.trail-motion-state--tool { opacity: .42; }
+.trail-motion-state--synthesizing { opacity: .5; }
+.trail-motion-state--complete { opacity: .14; }
+.trail-motion-state--partial { opacity: .25; }
+.trail-motion-state--idle,
+.trail-motion-state--error { opacity: 0; }
+
+.trail-motion-ambient__halo {
+  position: absolute;
+  inset: -35% 8% 12% 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 48%, rgba(var(--accent-rgb), .12), transparent 66%);
+  filter: blur(16px);
+  opacity: .65;
+  animation: trail-motion-halo var(--motion-ambient) ease-in-out infinite alternate;
+}
+
+.trail-motion-ambient__particle {
+  position: absolute;
+  top: var(--particle-y);
+  left: var(--particle-x);
+  height: var(--particle-size);
+  width: var(--particle-size);
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .28;
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), .18);
+  animation: trail-motion-drift var(--particle-duration) ease-in-out var(--particle-delay) infinite alternate;
+}
+
+.trail-motion-state--thinking .trail-motion-ambient__particle { opacity: .16; }
+.trail-motion-state--tool .trail-motion-ambient__particle { opacity: .24; }
+.trail-motion-state--synthesizing .trail-motion-ambient__particle { opacity: .3; }
+.trail-motion-state--complete .trail-motion-ambient__particle { opacity: .12; animation-duration: 18s; }
+.trail-motion-state--partial .trail-motion-ambient__particle { opacity: .18; animation-duration: 16s; }
+
+.trail-motion-dot-field {
+  opacity: .42;
+  transition: opacity var(--motion-content) ease;
+}
+
+.trail-motion-dot-field__dot {
+  position: absolute;
+  top: var(--dot-y);
+  left: var(--dot-x);
+  height: 3px;
+  width: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .12;
+  animation: trail-motion-dot-scan 4.8s ease-in-out var(--dot-delay) infinite;
+}
+
+.trail-motion-content-reveal {
+  animation: trail-motion-content-reveal var(--motion-content) ease both;
+}
+
+.trail-research-decision-status,
+.trail-agent-activity-surface {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.trail-research-decision-status > :not(.trail-motion-ambient),
+.trail-agent-activity-surface > :not(.trail-motion-ambient),
+.trail-agent-activity-surface > .relative {
+  position: relative;
+  z-index: 1;
+}
+
+.trail-research-decision-status .trail-motion-ambient,
+.trail-agent-activity-surface .trail-motion-ambient {
+  border-radius: inherit;
+}
+
+[data-paused='true'] * {
+  animation-play-state: paused !important;
+}
+
+@keyframes trail-motion-drift {
+  0% { transform: translate3d(-2px, 1px, 0) scale(.82); }
+  50% { transform: translate3d(3px, -3px, 0) scale(1); }
+  100% { transform: translate3d(1px, 3px, 0) scale(.88); }
+}
+
+@keyframes trail-motion-halo {
+  0% { transform: translate3d(-2%, 2%, 0) scale(.96); opacity: .36; }
+  100% { transform: translate3d(3%, -2%, 0) scale(1.02); opacity: .68; }
+}
+
+@keyframes trail-motion-dot-scan {
+  0%, 100% { opacity: .08; transform: scale(.8); }
+  45% { opacity: .24; transform: scale(1); }
+  60% { opacity: .11; transform: scale(.9); }
+}
+
+@keyframes trail-motion-content-reveal {
+  from { opacity: 0; transform: translate3d(0, 5px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trail-motion-ambient,
+  .trail-motion-dot-field,
+  .trail-motion-ambient__particle,
+  .trail-motion-ambient__halo,
+  .trail-motion-dot-field__dot {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .trail-motion-ambient,
+  .trail-motion-dot-field { opacity: .08; }
+
+  .trail-motion-content-reveal {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-reduced-motion='true'].trail-motion-ambient,
+[data-reduced-motion='true'].trail-motion-dot-field {
+  animation: none !important;
+  opacity: .08;
+}
+
+[data-reduced-motion='true'] .trail-motion-ambient__particle,
+[data-reduced-motion='true'] .trail-motion-ambient__halo,
+[data-reduced-motion='true'] .trail-motion-dot-field__dot {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* The refreshed finance surfaces below are authored as light-first overrides.
+   Keep their existing geometry in dark mode while restoring the renderer's
+   dark tokens for readable QA and normal use. */
+.dark .trail-today-view,
+.dark .trail-discover-view,
+.dark .trail-portfolio-view,
+.dark .trail-compare-view,
+.dark .trail-finance-workspace {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.dark .trail-today-hero,
+.dark .trail-today-section,
+.dark .trail-discover-view .trail-pilot-page-header,
+.dark .trail-discover-view .trail-pilot-status,
+.dark .trail-discover-view .trail-pilot-table,
+.dark .trail-discover-task,
+.dark .trail-portfolio-view .mac-stock-tile,
+.dark .trail-compare-view table {
+  border-color: var(--border) !important;
+  background: var(--surface) !important;
+  box-shadow: none;
+}
+
+.dark .trail-discover-view .trail-pilot-table-header,
+.dark .trail-compare-view table thead,
+.dark .trail-daily-brief-overview {
+  background: var(--surface-muted);
+}
+
+.dark .trail-discover-view .trail-pilot-row:hover,
+.dark .trail-daily-brief-row:hover,
+.dark .trail-compare-view table tbody tr:hover,
+.dark .trail-quick-action:hover {
+  background: var(--surface-hover) !important;
+}
+
+.dark .trail-quick-action {
+  border-color: var(--border) !important;
+  background: var(--surface-muted) !important;
+}
+
+.dark .trail-sidebar { background: var(--surface-muted); }
+.dark .trail-sidebar-rail { background: var(--background); border-right-color: var(--border); }
+.dark .trail-sidebar-logo { border-color: var(--border); box-shadow: none; }
+.dark .trail-sidebar-pane,
+.dark .trail-sidebar-pane-header,
+.dark .trail-sidebar .trail-watchlist-header { background: var(--surface); }
+.dark .trail-sidebar .trail-watchlist-row:hover { border-color: var(--border); background: var(--surface-hover); }
+.dark .trail-sidebar .trail-watchlist-row--active {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface)) !important;
+  box-shadow: inset 3px 0 0 var(--accent), 0 1px 2px rgba(var(--accent-rgb), .14);
+}
+.dark .trail-sidebar .trail-watchlist-row--active .text-foreground { color: var(--foreground); }
+
+.dark .trail-research-workspace,
+.dark .trail-research-market-main,
+.dark .trail-research-evidence-panel,
+.dark .trail-research-decision-rail,
+.dark .trail-research-decision-card,
+.dark .trail-research-chart-panel,
+.dark .trail-research-stat-strip {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.dark .trail-research-decision-card,
+.dark .trail-research-decision--neutral .trail-research-decision-card,
+.dark .trail-research-decision--empty .trail-research-decision-card {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}

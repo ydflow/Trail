@@ -14,12 +14,13 @@ import {
   Star,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Kline, ResearchReport, StaticInfo } from '@finagent/core';
+import type { Kline, ResearchReport, ResearchRunStatus, StaticInfo } from '@finagent/core';
 import { addToWatchlistAtom, quoteCacheAtomFamily, fetchQuoteAtom, removeFromWatchlistAtom, watchlistAtom } from '../../atoms';
 import { useFinagentClient } from '../../client';
 import { FinancialKLineChart } from '../chart/FinancialKLineChart';
 import { normalizeKlines, type FinancialBar } from '../chart/klineAdapter';
 import { semanticCapabilityLabelKey } from '../../lib/agentPresentation';
+import { AgentAmbientField, type AgentMotionState } from '../motion/AgentAmbientField';
 
 const PERIODS = ['1d', '1w', '1h', '15m'] as const;
 type Period = (typeof PERIODS)[number];
@@ -27,7 +28,7 @@ type Period = (typeof PERIODS)[number];
 interface ResearchMarketWorkspaceProps {
   symbol: string;
   report: ResearchReport | null;
-  activeRun: boolean;
+  activeRun: ResearchRunStatus | null;
   loading: boolean;
   onStart: () => void;
 }
@@ -147,6 +148,11 @@ export const ResearchMarketWorkspace: React.FC<ResearchMarketWorkspaceProps> = (
   const stanceLabel = report
     ? t(`research.stance.${stance}`)
     : t('research.workspace.awaitingDecision');
+  const ambientState: AgentMotionState = activeRun === 'synthesizing'
+    ? 'synthesizing'
+    : activeRun
+      ? 'tool'
+      : 'idle';
 
   return (
     <section className="trail-research-workspace" data-testid="research-market-workspace">
@@ -256,11 +262,14 @@ export const ResearchMarketWorkspace: React.FC<ResearchMarketWorkspaceProps> = (
           </div>
           <CircleHelp className="h-3.5 w-3.5" />
         </div>
-        <div className="trail-research-decision-card">
-          {report ? <ArrowUpRight className="trail-research-decision-icon h-7 w-7" /> : <Sparkles className="trail-research-decision-icon h-6 w-6" />}
-          <div>
-            <strong>{stanceLabel}</strong>
-            <p>{report ? t('research.workspace.decisionSummary') : t('research.workspace.decisionEmptyHint')}</p>
+        <div className="trail-research-decision-status">
+          {activeRun && <AgentAmbientField state={ambientState} />}
+          <div className="trail-research-decision-card">
+            {report ? <ArrowUpRight className="trail-research-decision-icon h-7 w-7" /> : <Sparkles className="trail-research-decision-icon h-6 w-6" />}
+            <div>
+              <strong>{stanceLabel}</strong>
+              <p>{report ? t('research.workspace.decisionSummary') : t('research.workspace.decisionEmptyHint')}</p>
+            </div>
           </div>
         </div>
         <div className="trail-research-confidence-row">
@@ -275,7 +284,7 @@ export const ResearchMarketWorkspace: React.FC<ResearchMarketWorkspaceProps> = (
         <DecisionRow label={t('research.workspace.keyRisk')} value={report?.risks[0] ?? '—'} multiline />
         <div id="research-thesis" className="trail-research-next-action-block">
           <div className="trail-research-next-action-label">{t('research.workspace.nextAction')}</div>
-          <button type="button" onClick={onStart} disabled={loading || activeRun || Boolean(report)} className="trail-research-next-action-button">
+          <button type="button" onClick={onStart} disabled={loading || Boolean(activeRun) || Boolean(report)} className="trail-research-next-action-button">
             <Activity className="h-4 w-4" />
             <span>
               <strong>{report ? t('research.workspace.reportReady') : activeRun ? t('research.synthesizing') : t('research.deepResearch')}</strong>
