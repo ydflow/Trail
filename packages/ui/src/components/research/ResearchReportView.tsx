@@ -95,7 +95,7 @@ export const ResearchReportView: React.FC<{
         />
       )}
 
-      <div className="trail-pilot-report-sections">
+      <div id="research-signals" className="trail-pilot-report-sections">
         {report.sections.map((section) => (
           <SectionCard key={section.key} section={section} />
         ))}
@@ -106,7 +106,7 @@ export const ResearchReportView: React.FC<{
       <CaseColumn title={t('research.catalysts')} points={report.catalysts} />
       <CaseColumn title={t('research.risks')} points={report.risks} />
 
-      <section className="trail-pilot-evidence">
+      <section id="research-evidence-detail" className="trail-pilot-evidence">
         <h4 className="trail-pilot-evidence-heading">
           {t('research.evidence')}
         </h4>

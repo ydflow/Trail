@@ -228,7 +228,7 @@ export const DiscoverView: React.FC = () => {
 
   // ── Render by mode ────────────────────────────────────────────────────────
   return (
-    <div ref={scrollRef} className="trail-pilot-shell h-full overflow-y-auto p-4" data-testid="discover-view">
+    <div ref={scrollRef} className="trail-discover-view trail-pilot-shell h-full overflow-y-auto p-4" data-testid="discover-view">
       {mode === 'browse' && (
         <>
           <div className="trail-pilot-page-header mb-4">
