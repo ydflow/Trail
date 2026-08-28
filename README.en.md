@@ -36,21 +36,31 @@ Trail is local-first: sessions, credentials, and research state stay on the devi
 </p>
 
 <p align="center">
-  <em>Today — portfolio attention items, watchlist context, and quick research actions.</em>
+  <em>Today — portfolio attention items, market pulse, events, and quick research actions.</em>
 </p>
 
 <p align="center">
   <img src="docs/screenshots/workspace.png" alt="Trail security workspace" width="49%" />
+  <img src="docs/screenshots/events.png" alt="Trail Events & Catalysts" width="49%" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/portfolio.png" alt="Trail portfolio" width="49%" />
+  <img src="docs/screenshots/profile.png" alt="Trail profile & workspace health" width="49%" />
+</p>
+
+<p align="center">
   <img src="docs/screenshots/settings.png" alt="Trail settings center" width="49%" />
-</p>
-
-<p align="center">
   <img src="docs/screenshots/evaluation.png" alt="Trail Agent evaluation settings" width="49%" />
-  <img src="docs/screenshots/skills.png" alt="Trail skills center" width="49%" />
 </p>
 
 <p align="center">
-  <em>From a quiet research workspace to skill readiness, evaluation tracing, and experiment setup, Trail keeps Agent engineering in the same desktop workflow.</em>
+  <img src="docs/screenshots/skills.png" alt="Trail skills center" width="49%" />
+  <img src="docs/screenshots/discover.png" alt="Trail discover" width="49%" />
+</p>
+
+<p align="center">
+  <em>From the security workspace, events & catalysts, and portfolio overview to settings, skill readiness, and evaluation tracing — with no services connected, every page above renders built-in sample data (badged “Sample data”).</em>
 </p>
 
 ## Key Features
