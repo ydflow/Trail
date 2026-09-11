@@ -1,0 +1,154 @@
+name: Issue Claim
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  claim:
+    if: ${{ !github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign claimed issue
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue = context.payload.issue;
+            const comment = context.payload.comment;
+
+            if (!issue || !comment || issue.state !== 'open') return;
+
+            const actor = comment.user.login;
+            const body = String(comment.body || '').trim();
+            const isClaim = /^(?:\/?claim|\/?take|\/?认领)$/i.test(body);
+            const isRelease = /^(?:\/?release|\/?unclaim|\/?释放)$/i.test(body);
+
+            if (!isClaim && !isRelease) return;
+
+            async function ensureClaimedLabel() {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: 'claimed' });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: 'claimed',
+                  color: '1d76db',
+                  description: 'Claimed by a contributor and currently in progress'
+                });
+              }
+            }
+
+            async function removeClaimedLabel() {
+              try {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name: 'claimed' });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
+            }
+
+            const { data: current } = await github.rest.issues.get({
+              owner,
+              repo,
+              issue_number: issue.number
+            });
+            const assignees = (current.assignees || []).map(a => a.login);
+
+            if (isClaim) {
+              if (assignees.includes(actor)) {
+                await ensureClaimedLabel();
+                await github.rest.issues.addLabels({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  labels: ['claimed']
+                });
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  body: `@${actor} 这个 Issue 已经分配给你。`
+                });
+                return;
+              }
+
+              if (assignees.length > 0) {
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  body: `@${actor} 这个 Issue 已经由 ${assignees.map(a => `@${a}`).join(', ')} 认领。`
+                });
+                return;
+              }
+
+              await github.rest.issues.addAssignees({
+                owner,
+                repo,
+                issue_number: issue.number,
+                assignees: [actor]
+              });
+
+              const { data: assignedIssue } = await github.rest.issues.get({
+                owner,
+                repo,
+                issue_number: issue.number
+              });
+              const assigned = (assignedIssue.assignees || []).some(a => a.login === actor);
+
+              if (!assigned) {
+                core.setFailed(`GitHub did not persist @${actor} as an assignee for issue #${issue.number}`);
+                return;
+              }
+
+              await ensureClaimedLabel();
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: issue.number,
+                labels: ['claimed']
+              });
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: `@${actor} 已认领该 Issue，并已自动设为 Assignee。提交 PR 时请在描述中写 \`Closes #${issue.number}\`。`
+              });
+              return;
+            }
+
+            const canRelease = assignees.includes(actor) || actor === owner;
+            if (!canRelease) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issue.number,
+                body: `@${actor} 只有当前 Assignee 或仓库维护者可以释放这个 Issue。`
+              });
+              return;
+            }
+
+            if (assignees.length > 0) {
+              const toRemove = actor === owner ? assignees : [actor];
+              await github.rest.issues.removeAssignees({
+                owner,
+                repo,
+                issue_number: issue.number,
+                assignees: toRemove
+              });
+            }
+
+            await removeClaimedLabel();
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issue.number,
+              body: '该 Issue 已释放，可以重新认领。'
+            });
