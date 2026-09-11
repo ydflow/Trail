@@ -26,8 +26,16 @@ jobs:
 
             const actor = comment.user.login;
             const body = String(comment.body || '').trim();
-            const isClaim = /^(?:\/?claim|\/?take|\/?认领)$/i.test(body);
-            const isRelease = /^(?:\/?release|\/?unclaim|\/?释放)$/i.test(body);
+            const firstLine = body.split(/\r?\n/, 1)[0].trim();
+
+            const commandClaim = /^(?:\/?claim|\/?take|\/?认领)$/i.test(firstLine);
+            const chineseClaim = /^(?:你好[，,！!。]?\s*)?(?:我想|我来|我要|我可以)?\s*(?:认领|接手)(?:\s*#?\d+)?(?:[（(].*)?[。！!]?$/i.test(firstLine)
+              || /^我来(?:也)?[。！!]?$/i.test(firstLine);
+            const englishClaim = /^(?:hi[,!]?\s*)?(?:i(?:'d| would)? like to|i want to|i can|i(?:'ll| will))\s+(?:take|work on|pick up)\s+(?:this|this one|it)(?:[.!])?$/i.test(firstLine)
+              || /^(?:please\s+)?assign\s+(?:this\s+)?(?:issue\s+)?to\s+me[.!]?$/i.test(firstLine);
+            const isClaim = commandClaim || chineseClaim || englishClaim;
+
+            const isRelease = /^(?:\/?release|\/?unclaim|\/?释放)$/i.test(firstLine);
 
             if (!isClaim && !isRelease) return;
 
