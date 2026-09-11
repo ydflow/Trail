@@ -92,6 +92,18 @@ interface ActiveRun {
 }
 
 /**
+ * 单个 run 的协议状态（ADR 0001 / #34）。
+ * - sequence：run 内严格单调 +1，由 RunManager 在唯一汇聚点统一重排
+ *   （runtime 与本管理器都自产事件且各自计数，会冲突在 1 上）；
+ * - messageId：该 run 对应的 assistant message 身份，message 级事件携带。
+ * 以局部对象随 run 传递，activeRun 解锁后合成 terminal 事件仍持有原状态。
+ */
+interface RunProtocol {
+  sequence: number;
+  messageId: string;
+}
+
+/**
  * Starts, observes, persists, and terminates runs.
  *
  * Each run: persists the user message and the run record, drives the runtime's
@@ -112,8 +124,6 @@ export class RunManager {
   private readonly listeners = new Set<(event: AgentEvent) => void>();
   private readonly streamListeners = new Set<(sessionId: string, event: StreamEvent) => void>();
   private activeRun: ActiveRun | null = null;
-  /** 当前 run 对应的 assistant message id（贯穿 message 级事件，见 #34 身份模型）。 */
-  private currentMessageId: string | null = null;
   /** run 级内存事件历史：为 reconnect replay 提供数据源（ADR 0001）。 */
   private readonly streamHistory = new StreamEventHistory();
 
@@ -228,17 +238,23 @@ export class RunManager {
     };
     this.activeRun = active;
     this.armWallClockBudget(active);
-    this.emit({
-      id: randomUUID(),
-      sessionId,
-      runId: run.id,
-      type: 'run_started',
-      timestamp: now,
-      sequence: 1,
-      payload: { run, userMessage },
-    });
+    // 一次 run = 一次 assistant generation（#34）：run 启动时确定稳定的
+    // assistant message id 与协议 sequence 计数器，随 run 全程传递。
+    const protocol: RunProtocol = { sequence: 0, messageId: randomUUID() };
+    this.emit(
+      {
+        id: randomUUID(),
+        sessionId,
+        runId: run.id,
+        type: 'run_started',
+        timestamp: now,
+        sequence: 1,
+        payload: { run, userMessage },
+      },
+      protocol
+    );
 
-    void this.execute(run, session, workspaceContext, locale);
+    void this.execute(run, session, workspaceContext, locale, protocol);
     return run;
   }
 
@@ -257,17 +273,13 @@ export class RunManager {
     run: Run,
     session: SessionMeta,
     workspaceContext?: WorkspaceContext,
-    locale?: SupportedLocale
+    locale?: SupportedLocale,
+    protocol: RunProtocol = { sequence: 0, messageId: randomUUID() }
   ): Promise<void> {
     let failure: ApiError | undefined;
     let answer = '';
     const toolCalls: ToolCall[] = [];
     let sawTerminal = false;
-
-    // 一次 run = 一次 assistant generation（#34）：在 run 启动时确定稳定的
-    // assistant message id，贯穿 message 级 stream 事件，并作为最终写入的
-    // assistantMessage.id（避免流中与落库两套 id）。
-    this.currentMessageId = randomUUID();
 
     try {
       await this.runtime.ensureSession({
@@ -287,7 +299,7 @@ export class RunManager {
           workspaceContext,
           locale,
         })) {
-          this.emit(event);
+          this.emit(event, protocol);
           if (event.type === 'message_delta' || event.type === 'message_completed') {
             answer = event.payload.answer;
           } else if (event.type === 'tool_completed') {
@@ -342,7 +354,7 @@ export class RunManager {
     const isInfraFailure = run.status === 'failed' && isRuntimeInfraCode(run.error?.code);
     if (!isInfraFailure) {
       const assistantMessage: Message = {
-        id: this.currentMessageId ?? randomUUID(),
+        id: protocol.messageId,
         role: 'assistant',
         content: answer || (run.status === 'failed' ? run.error?.message ?? 'Run failed.' : ''),
         timestamp: now,
@@ -364,22 +376,22 @@ export class RunManager {
 
     // The run is fully settled (persisted) only now; only then allow the next run.
     this.activeRun = null;
-    this.currentMessageId = null;
 
     // Adapters emit the terminal event themselves; synthesize it only when the
     // stream failed before producing one (e.g. runtime spawn failure), so the
-    // UI always observes a terminal event.
+    // UI always observes a terminal event. 合成事件仍持有原 run 的 protocol
+    // （sequence 续排、messageId 不丢），activeRun 解锁不影响。
     if (!sawTerminal) {
       if (stop !== undefined) {
-        this.emitRunEvent(run, 'run_failed', { error: stopError(stop) });
+        this.emitRunEvent(run, protocol, 'run_failed', { error: stopError(stop) });
       } else if (cancelled) {
-        this.emitRunEvent(run, 'run_failed', {
+        this.emitRunEvent(run, protocol, 'run_failed', {
           error: { code: 'RUN_CANCELLED', message: 'Run cancelled by user.' },
         });
       } else if (failure) {
-        this.emitRunEvent(run, 'run_failed', { error: failure });
+        this.emitRunEvent(run, protocol, 'run_failed', { error: failure });
       } else {
-        this.emitRunEvent(run, 'run_completed', { answer, toolCalls });
+        this.emitRunEvent(run, protocol, 'run_completed', { answer, toolCalls });
       }
     }
   }
@@ -491,7 +503,12 @@ export class RunManager {
     return typeof query === 'string' && query.trim() !== '' ? query : undefined;
   }
 
-  private emitRunEvent(run: Run, type: AgentEvent['type'], payload?: AgentEventPayload): void {
+  private emitRunEvent(
+    run: Run,
+    protocol: RunProtocol,
+    type: AgentEvent['type'],
+    payload?: AgentEventPayload
+  ): void {
     // Callers pair `type` with the matching payload shape.
     const event = {
       id: randomUUID(),
@@ -502,14 +519,18 @@ export class RunManager {
       sequence: 1,
       payload,
     } as AgentEvent;
-    this.emit(event);
+    this.emit(event, protocol);
   }
 
-  private emit(event: AgentEvent): void {
+  private emit(event: AgentEvent, protocol: RunProtocol): void {
+    // ADR 0001 sequence 契约：run 内严格单调 +1。Runtime 与本管理器都会
+    // 自产事件且各自计数（run_started 与 runtime 首事件会同时为 1），在
+    // 协议唯一汇聚点统一重排，保证 replay 游标与幂等键（runId+sequence）。
+    const stamped: AgentEvent = { ...event, sequence: (protocol.sequence += 1) };
     for (const listener of this.listeners) {
-      listener(event);
+      listener(stamped);
     }
-    const mapped = toStreamEvents(event, { messageId: this.currentMessageId ?? undefined });
+    const mapped = toStreamEvents(stamped, { messageId: protocol.messageId });
     // 无论是否有实时订阅者，都先记录进内存历史，保证 replay 有数据源。
     for (const streamEvent of mapped) {
       this.streamHistory.append(streamEvent);
@@ -517,7 +538,7 @@ export class RunManager {
     if (this.streamListeners.size > 0) {
       for (const streamEvent of mapped) {
         for (const listener of this.streamListeners) {
-          listener(event.sessionId, streamEvent);
+          listener(stamped.sessionId, streamEvent);
         }
       }
     }
