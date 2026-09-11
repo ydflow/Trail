@@ -73,6 +73,18 @@ export interface ProviderHealth {
   permissions?: ProviderPermission[];
   /** Last status() round-trip duration. */
   latencyMs?: number;
+  /** Stable diagnostic result from an explicit production-path probe. */
+  diagnostic?:
+    | 'missing-credential'
+    | 'authentication-failed'
+    | 'unreachable'
+    | 'rate-limited'
+    | 'partial-failure'
+    | 'healthy'
+    | 'degraded'
+    | 'unhealthy';
+  /** Safe, stable error code. Vendor responses and credentials are forbidden. */
+  diagnosticCode?: string;
 }
 
 // ── Markets / Coverage ─────────────────────────────────────────────────────
@@ -97,6 +109,10 @@ export interface ProviderCoverage {
   providerId: string;
   capabilities: CapabilityId[];
   markets: Market[];
+  /** Freshness class exposed by the provider contract. */
+  dataAccess?: 'live' | 'delayed' | 'end-of-day';
+  credentialRequirement?: 'none' | 'device-login' | 'api-key';
+  quota?: { limit: number; window: string };
 }
 
 // ── Results / Provenance / Errors ──────────────────────────────────────────

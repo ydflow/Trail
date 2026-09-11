@@ -14,6 +14,15 @@ import { ProviderRegistry, type AnyProvider } from './registry.ts';
 
 const ABORTED: ProviderError = { code: 'ABORTED', message: 'Request aborted' };
 
+export interface ProviderRuntimeResult {
+  capabilityId: CapabilityId;
+  providerId: string;
+  ok: boolean;
+  fallbackUsed: boolean;
+  at: number;
+  errorCode?: string;
+}
+
 function unsupported(capabilityId: CapabilityId): ProviderError {
   return {
     code: 'UNSUPPORTED_CAPABILITY',
@@ -51,6 +60,17 @@ function readOptions(input: unknown): unknown {
 export class ProviderRouter implements FinancialProviderRouter {
   private readonly registry = new ProviderRegistry();
   private routing: ProviderRoutingConfig = { primary: '' };
+  private readonly resolveRouting?: () => Promise<ProviderRoutingConfig>;
+  private readonly isEnabled?: (providerId: string) => Promise<boolean>;
+  private readonly recentResults = new Map<string, ProviderRuntimeResult>();
+
+  constructor(options: {
+    resolveRouting?: () => Promise<ProviderRoutingConfig>;
+    isEnabled?: (providerId: string) => Promise<boolean>;
+  } = {}) {
+    this.resolveRouting = options.resolveRouting;
+    this.isEnabled = options.isEnabled;
+  }
 
   register(provider: AnyProvider): void {
     this.registry.register(provider);
@@ -72,6 +92,11 @@ export class ProviderRouter implements FinancialProviderRouter {
     return { primary: this.routing.primary, fallback: this.routing.fallback };
   }
 
+  lastResultFor(providerId: string): ProviderRuntimeResult | undefined {
+    const result = this.recentResults.get(providerId);
+    return result ? { ...result } : undefined;
+  }
+
   coverage(): ProviderCoverage[] {
     return this.list().map((provider) => this.coverageFor(provider));
   }
@@ -85,7 +110,8 @@ export class ProviderRouter implements FinancialProviderRouter {
       return { ok: false, error: ABORTED };
     }
 
-    const order = [this.routing.primary, this.routing.fallback].filter(
+    const routing = this.resolveRouting ? await this.resolveRouting() : this.routing;
+    const order = [routing.primary, routing.fallback].filter(
       (id): id is string => typeof id === 'string' && id.length > 0
     );
 
@@ -103,11 +129,20 @@ export class ProviderRouter implements FinancialProviderRouter {
 
     let lastError: ProviderError | undefined;
     for (const id of chain) {
+      if (this.isEnabled && !(await this.isEnabled(id))) continue;
       const provider = this.get(id);
       if (!provider || !supports(provider, capabilityId)) {
         continue;
       }
       const result = await this.invoke<T>(provider, capabilityId, input, signal);
+      this.recentResults.set(id, {
+        capabilityId,
+        providerId: id,
+        ok: result.ok,
+        fallbackUsed: id !== order[0],
+        at: Date.now(),
+        errorCode: result.ok ? undefined : result.error.code,
+      });
       if (result.ok) {
         return result;
       }
@@ -129,12 +164,16 @@ export class ProviderRouter implements FinancialProviderRouter {
         providerId: provider.id,
         capabilities: provider.capabilities(),
         markets: provider.markets(),
+        dataAccess: provider.id === 'massive' ? 'end-of-day' : 'live',
+        credentialRequirement: provider.id === 'massive' ? 'api-key' : 'device-login',
+        quota: provider.id === 'massive' ? { limit: 5, window: 'minute' } : undefined,
       };
     }
     return {
       providerId: provider.id,
       capabilities: [...BROKER_CAPABILITY_IDS],
       markets: [],
+      credentialRequirement: 'device-login',
     };
   }
 

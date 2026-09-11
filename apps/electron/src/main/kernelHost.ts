@@ -188,7 +188,15 @@ interface ConnectionEntry {
   hasAccount: boolean;
   accountLabel: string | null;
   error: { code: string; message: string } | null;
+  enabled: boolean;
+  endpoint: string | null;
+  region: string | null;
+  routingRole: 'primary' | 'fallback' | null;
+  recentResult: ReturnType<ProviderRouter['lastResultFor']> | null;
 }
+
+const MASSIVE_CREDENTIAL_ID = 'financial:massive';
+const DEFAULT_PROVIDER_ROUTING = { primary: 'longbridge', fallback: 'massive' } as const;
 
 type IpcSuccess<T> = { ok: true; data: T };
 
@@ -303,16 +311,21 @@ export class AgentKernelHost {
     // (fallback) adapters. Business layers see only the neutral capability
     // surface — vendor specifics stay inside the adapters.
     this.connectionStore = new ConnectionStore(new JsonFileStore(userData));
-    this.providerRouter = new ProviderRouter();
+    this.providerRouter = new ProviderRouter({
+      resolveRouting: () => this.connectionStore.getRouting(DEFAULT_PROVIDER_ROUTING),
+      isEnabled: async (providerId) =>
+        (await this.connectionStore.getConfig(providerId))?.enabled !== false,
+    });
     const longbridgeData = new LongbridgeFinancialDataProvider();
     const longbridgeBroker = new LongbridgeBrokerAccountProvider();
     const massive = new MassiveFinancialDataProvider({
-      getApiKey: async () => (await this.connectionStore.getConfig('massive'))?.apiKey,
+      getApiKey: () => this.credentials.getCredential(MASSIVE_CREDENTIAL_ID),
+      getEndpoint: async () => (await this.connectionStore.getConfig('massive'))?.endpoint,
     });
     this.providerRouter.register(longbridgeData);
     this.providerRouter.register(longbridgeBroker);
     this.providerRouter.register(massive);
-    this.providerRouter.setRouting({ primary: 'longbridge', fallback: 'massive' });
+    this.providerRouter.setRouting(DEFAULT_PROVIDER_ROUTING);
 
     // Keep renderer IPC and agent tools on the same provider gateway.  The
     // service retains its dedicated Longbridge status probe, while market-data
@@ -1423,6 +1436,7 @@ export class AgentKernelHost {
     const coverage =
       this.providerRouter.coverage().find((c) => c.providerId === provider.id) ?? null;
     const config = await this.connectionStore.getConfig(provider.id);
+    const routing = await this.connectionStore.getRouting(DEFAULT_PROVIDER_ROUTING);
     let hasAccount = false;
     let accountLabel: string | null = null;
     if (provider.kind === 'broker-account') {
@@ -1440,14 +1454,27 @@ export class AgentKernelHost {
       providerId: provider.id,
       kind: provider.kind,
       name: provider.name,
-      status: health?.status ?? state?.status ?? 'not-connected',
+      status: state?.status ?? health?.status ?? 'not-connected',
       health,
       coverage,
       configurable: provider.id === 'massive',
-      configured: Boolean(config?.apiKey),
+      configured:
+        provider.id === 'massive'
+          ? Boolean(await this.credentials.getCredential(MASSIVE_CREDENTIAL_ID))
+          : health?.status === 'connected',
       hasAccount,
       accountLabel,
       error: state?.error ?? null,
+      enabled: config?.enabled !== false,
+      endpoint: config?.endpoint ?? null,
+      region: config?.region ?? health?.region ?? null,
+      routingRole:
+        routing.primary === provider.id
+          ? 'primary'
+          : routing.fallback === provider.id
+            ? 'fallback'
+            : null,
+      recentResult: this.providerRouter.lastResultFor(provider.id) ?? null,
     };
   }
 
@@ -1538,6 +1565,8 @@ export class AgentKernelHost {
     if (!provider) return null;
     if (providerId === 'longbridge') {
       await longbridgeLogout({ exec: executeLongBridgeCli });
+    } else if (providerId === 'massive') {
+      await this.credentials.removeCredential(MASSIVE_CREDENTIAL_ID);
     }
     await this.connectionStore.update({ providerId, status: 'not-connected', lastCheck: Date.now() });
     return this.entryFor(provider);
@@ -1547,34 +1576,137 @@ export class AgentKernelHost {
     const request = requireObject(input);
     const providerId = requireString(request.providerId, 'providerId');
     if (providerId === 'longbridge') {
-      return longbridgeTestConnection({ exec: executeLongBridgeCli });
+      const health = await longbridgeTestConnection({ exec: executeLongBridgeCli });
+      const diagnostic: ProviderHealth['diagnostic'] =
+        health.status === 'connected'
+          ? 'healthy'
+          : health.status === 'permission-limited'
+            ? 'partial-failure'
+            : health.status === 'not-connected'
+              ? 'missing-credential'
+              : 'unhealthy';
+      const result = { ...health, diagnostic };
+      await this.persistProviderHealth(providerId, result);
+      return result;
     }
     const provider = this.providerRouter.get(providerId);
     if (!provider) throw createCodeError('UNKNOWN_PROVIDER', 'Unknown provider.');
-    return (await this.providerHealth(provider)) ?? {
-      status: 'error',
-      lastCheck: Date.now(),
-      message: 'Provider did not answer a health probe.',
-    };
+    const startedAt = Date.now();
+    if (provider.kind !== 'financial-data') {
+      throw createCodeError('CONFIG_UNSUPPORTED', 'This provider uses the Longbridge connection test.');
+    }
+    const probe = await provider.execute(
+      'market.quote',
+      { symbol: 'AAPL.US' },
+      AbortSignal.timeout(10_000)
+    );
+    const health: ProviderHealth = probe.ok
+      ? {
+          status: 'connected',
+          diagnostic: 'healthy',
+          lastCheck: Date.now(),
+          latencyMs: Date.now() - startedAt,
+          message: 'Production data request succeeded.',
+        }
+      : this.healthFromProviderError(probe.error, startedAt);
+    await this.persistProviderHealth(providerId, health);
+    return health;
   }
 
   async setProviderConfig(input: unknown): Promise<ConnectionEntry> {
     const request = requireObject(input);
     const providerId = requireString(request.providerId, 'providerId');
     const config = requireObject(request.config);
-    if (providerId !== 'massive') {
-      throw createCodeError('CONFIG_UNSUPPORTED', 'Only API-key providers accept config.');
+    const provider = this.providerRouter.get(providerId);
+    if (!provider) throw createCodeError('UNKNOWN_PROVIDER', 'Unknown provider.');
+    const existing = await this.connectionStore.getConfig(providerId);
+    const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : undefined;
+    if (apiKey !== undefined) {
+      if (providerId !== 'massive') {
+        throw createCodeError('CONFIG_UNSUPPORTED', 'This provider does not accept API keys.');
+      }
+      if (!apiKey) throw createCodeError('INVALID_ARGUMENT', 'An API key is required.');
+      await this.credentials.setCredential(MASSIVE_CREDENTIAL_ID, apiKey);
     }
-    const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : '';
-    if (!apiKey) {
-      throw createCodeError('INVALID_ARGUMENT', 'An API key is required.');
+    const enabled = typeof config.enabled === 'boolean' ? config.enabled : existing?.enabled;
+    const endpoint =
+      typeof config.endpoint === 'string'
+        ? config.endpoint.trim() || undefined
+        : existing?.endpoint;
+    const region =
+      typeof config.region === 'string' ? config.region.trim() || undefined : existing?.region;
+    if (endpoint && !endpoint.startsWith('https://')) {
+      throw createCodeError('INVALID_ARGUMENT', 'Provider endpoint must use HTTPS.');
     }
-    await this.connectionStore.setConfig(providerId, { apiKey });
+    await this.connectionStore.setConfig(providerId, { enabled, endpoint, region });
+    const routingRole = config.routingRole;
+    if (routingRole === 'primary' || routingRole === 'fallback') {
+      const current = await this.connectionStore.getRouting(DEFAULT_PROVIDER_ROUTING);
+      const next =
+        routingRole === 'primary'
+          ? {
+              primary: providerId,
+              fallback: current.primary === providerId ? current.fallback : current.primary,
+            }
+          : {
+              primary:
+                current.primary === providerId ? (current.fallback ?? providerId) : current.primary,
+              fallback: providerId,
+            };
+      await this.connectionStore.setRouting(next);
+      this.providerRouter.setRouting(next);
+    }
+    await this.connectionStore.update({ providerId, status: 'not-connected', lastCheck: Date.now() });
     const massive = this.providerRouter.get('massive');
     if (massive instanceof MassiveFinancialDataProvider) {
       massive.clearCache();
     }
-    return this.entryFor(this.providerRouter.get(providerId)!);
+    return this.entryFor(provider);
+  }
+
+  private healthFromProviderError(error: { code: string; message: string }, startedAt: number): ProviderHealth {
+    const diagnostic =
+      error.code === 'CONFIG_MISSING'
+        ? 'missing-credential'
+        : error.code === 'AUTH_EXPIRED'
+          ? 'authentication-failed'
+          : error.code === 'RATE_LIMITED'
+            ? 'rate-limited'
+            : error.code === 'ACCESS_DENIED'
+              ? 'partial-failure'
+              : error.code === 'TIMEOUT' || error.code === 'UNKNOWN'
+                ? 'unreachable'
+                : 'unhealthy';
+    return {
+      status:
+        error.code === 'AUTH_EXPIRED'
+          ? 'expired'
+          : error.code === 'ACCESS_DENIED'
+            ? 'permission-limited'
+            : 'error',
+      diagnostic,
+      diagnosticCode: error.code,
+      lastCheck: Date.now(),
+      latencyMs: Date.now() - startedAt,
+      message: redactSecrets(error.message),
+    };
+  }
+
+  private async persistProviderHealth(providerId: string, health: ProviderHealth): Promise<void> {
+    await this.connectionStore.update({
+      providerId,
+      status: health.status,
+      lastCheck: health.lastCheck,
+      connectedAt: health.status === 'connected' ? health.lastCheck : undefined,
+      error:
+        health.diagnosticCode && health.status !== 'connected'
+          ? {
+              code: health.diagnosticCode,
+              message: redactSecrets(health.message ?? 'Provider check failed.'),
+            }
+          : undefined,
+    });
+    void this.pushConnections();
   }
 
   async coverageMatrix(): Promise<ProviderCoverage[]> {

@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+interface ProviderSettingsInput {
+  apiKey?: string;
+  enabled?: boolean;
+  endpoint?: string;
+  region?: string;
+  routingRole?: 'primary' | 'fallback';
+}
+
 export interface ElectronAPI {
   window: {
     minimize: () => Promise<void>;
@@ -108,7 +116,7 @@ export interface ElectronAPI {
     cancelConnect: (input: { providerId: string }) => Promise<unknown>;
     disconnect: (input: { providerId: string }) => Promise<unknown>;
     test: (input: { providerId: string }) => Promise<unknown>;
-    setConfig: (input: { providerId: string; config: { apiKey?: string } }) => Promise<unknown>;
+    setConfig: (input: { providerId: string; config: ProviderSettingsInput }) => Promise<unknown>;
     coverage: () => Promise<unknown>;
     onChanged: (callback: (entries: unknown) => void) => () => void;
   };
@@ -302,7 +310,7 @@ const electronAPI: ElectronAPI = {
     cancelConnect: (input: { providerId: string }) => ipcRenderer.invoke('connections:cancelConnect', input),
     disconnect: (input: { providerId: string }) => ipcRenderer.invoke('connections:disconnect', input),
     test: (input: { providerId: string }) => ipcRenderer.invoke('connections:test', input),
-    setConfig: (input: { providerId: string; config: { apiKey?: string } }) =>
+    setConfig: (input: { providerId: string; config: ProviderSettingsInput }) =>
       ipcRenderer.invoke('connections:setConfig', input),
     coverage: () => ipcRenderer.invoke('connections:coverage'),
     onChanged: (callback: (entries: unknown) => void) => {
