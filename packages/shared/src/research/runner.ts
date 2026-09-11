@@ -1,14 +1,15 @@
-import type {
-  CapabilityRunStatus,
-  CapabilityRunSummary,
-  EvidenceRef,
-  ResearchReport,
-  ResearchRunStatus,
-  ResearchRunSummary,
-  ResearchSection,
-  ResearchSynthesis,
-  ResearchSynthesizer,
-  StrategyId,
+import {
+  readInstrumentId,
+  type CapabilityRunStatus,
+  type CapabilityRunSummary,
+  type EvidenceRef,
+  type ResearchReport,
+  type ResearchRunStatus,
+  type ResearchRunSummary,
+  type ResearchSection,
+  type ResearchSynthesis,
+  type ResearchSynthesizer,
+  type StrategyId,
 } from '@finagent/core';
 import { i18nCurrentLocale } from '@finagent/i18n';
 import type { SupportedLocale } from '@finagent/core';
@@ -237,12 +238,15 @@ function assembleReport(args: {
     const outcome = outcomeByCapability.get(section.key);
     const evidence: EvidenceRef[] = [];
     if (outcome && outcome.record.status === 'success') {
+      const instrumentId =
+        outcome.result?.provenance?.instrumentId ?? readInstrumentId(outcome.result?.data);
       evidence.push({
         capabilityId: outcome.record.capabilityId,
         runId: outcome.record.id,
         claim: section.summary,
         fetchedAt: outcome.record.provenance?.fetchedAt ?? generatedAt,
         summary: outcome.result?.summary,
+        ...(instrumentId ? { instrumentId } : {}),
       });
     }
     return { ...section, evidence };
@@ -273,9 +277,14 @@ function assembleReport(args: {
     .filter((o) => o.record.status === 'success')
     .map((o) => o.record.capabilityId);
 
+  const instrumentId = outcomes
+    .map((outcome) => outcome.result?.provenance?.instrumentId ?? readInstrumentId(outcome.result?.data))
+    .find((id): id is string => typeof id === 'string' && id.length > 0);
+
   return {
     id: `report-${runId}`,
     symbol,
+    ...(instrumentId ? { instrumentId } : {}),
     ...(strategyId ? { strategyId } : {}),
     generatedAt,
     // Stamp the generating locale so the report records which language produced
