@@ -49,6 +49,7 @@ export const agent = {
     analyzedSources_one: 'Analyzed {{count}} source',
     analyzedSources_other: 'Analyzed {{count}} sources',
     statusRunning: 'running',
+    failed: 'Tool failed',
     label: 'Tool: {{name}}',
     calls: 'Tool calls',
     names: {
