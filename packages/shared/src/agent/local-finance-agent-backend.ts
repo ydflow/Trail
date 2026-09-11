@@ -95,7 +95,7 @@ export class LocalFinanceAgentBackend implements AgentBackend {
       if (routed.symbol) {
         rememberSymbol(session, routed.symbol);
       }
-      toolCall.result = structuredResult(result.details, result.provenance);
+      toolCall.result = structuredResult(result.details, result.provenance, result.evidence);
       const response = composeToolResponse(toolName, result, toolCall, session);
       const enriched = await this.enrichWithAnswerBlocks(
         response,
@@ -167,7 +167,7 @@ export class LocalFinanceAgentBackend implements AgentBackend {
         const result = await this.registry.execute({ name: toolName, args });
         toolCall.status = 'success';
         toolCall.completedAt = this.now();
-        toolCall.result = structuredResult(result.details, result.provenance);
+        toolCall.result = structuredResult(result.details, result.provenance, result.evidence);
         return result.details;
       } catch (error) {
         const apiError = toApiError(error);
@@ -396,9 +396,13 @@ function rememberSymbol(session: AgentSessionSnapshot, symbol: string) {
   ].slice(0, 5);
 }
 
-function structuredResult(details: unknown, provenance?: { provider: string; fetchedAt: number }) {
+function structuredResult(
+  details: unknown,
+  provenance?: { provider: string; fetchedAt: number },
+  evidence?: unknown
+) {
   if (!provenance) return details;
-  return { data: details, provenance };
+  return { data: details, provenance, ...(evidence ? { evidence } : {}) };
 }
 
 function isQuoteDetails(value: unknown): value is Quote {

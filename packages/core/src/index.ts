@@ -1,6 +1,7 @@
 // Core type definitions for Finagent
 
 import type { SupportedLocale } from './locale.ts';
+import type { FinancialEvidenceEnvelope } from './financial-evidence.ts';
 
 export type { SupportedLocale, LocalePreference } from './locale.ts';
 
@@ -143,6 +144,8 @@ export interface Message {
   toolName?: string;
   toolCalls?: ToolCallRecord[];
   trace?: AgentTraceEvent[];
+  /** Persisted structured financial facts produced by this assistant turn. */
+  financialEvidence?: FinancialEvidenceEnvelope[];
 }
 
 export type RunStatus = 'running' | 'completed' | 'failed' | 'cancelled';
@@ -576,3 +579,4 @@ export * from './trace.ts';
 export * from './trace-projection.ts';
 export * from './instrument.ts';
 export * from './instrument-catalog.ts';
+export * from './financial-evidence.ts';

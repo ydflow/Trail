@@ -1,4 +1,5 @@
 import type { TSchema } from '@sinclair/typebox';
+import type { FinancialEvidenceMetadata } from './financial-evidence.ts';
 
 /**
  * Finance Capability domain — the single source of truth for every piece of
@@ -49,6 +50,8 @@ export interface CapabilityResult<T> {
   data: T;
   provenance: CapabilityProvenance;
   summary?: string;
+  /** Adapter-supplied raw-to-normalized lineage; secrets and full responses are forbidden. */
+  evidence?: FinancialEvidenceMetadata;
 }
 
 export type CapabilityRunStatus = 'success' | 'failed' | 'unavailable' | 'cancelled';

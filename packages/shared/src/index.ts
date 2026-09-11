@@ -153,4 +153,5 @@ export * from './performance/index.ts';
 export * from './calibration/index.ts';
 export * from './pulse/index.ts';
 export * from './export/index.ts';
+export * from './evidence/index.ts';
 export * from './evaluation/index.ts';
