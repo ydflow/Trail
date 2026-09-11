@@ -56,21 +56,50 @@ PR 描述至少包含：
 
 ## 5. 测试与 CI
 
+**每个准备进入正式审核的 PR 都必须提交可复现的测试报告。仅写“已测试”“unit tests cover …”“本地通过”等描述，不视为测试报告。缺少测试报告的 PR 不会被批准。**
+
+测试报告最低需要包含：
+
+- **环境**：至少说明 Bun 版本与操作系统；
+- **实际执行命令**：列出真实运行过的 test / typecheck / smoke 命令；
+- **结果**：明确 pass / fail / skipped 数量，或给出可核对的关键输出；
+- **失败说明**：如果存在失败，说明是否能在当前 `main` 复现，是否属于已知 baseline / 平台差异；
+- **与改动对应的验证**：至少有一组测试真正覆盖本 PR 的核心行为。
+
+推荐格式：
+
+```text
+环境：Bun 1.4.2 / macOS 15.x
+
+bun test packages/shared/src/foo.test.ts
+→ 12 passed / 0 failed
+
+bun run typecheck
+→ core/shared/ui/electron 全部 exit 0
+
+bun test --isolate
+→ 1211 passed / 5 failed
+→ 5 项均可在 origin/main 复现，为 Windows 路径/符号链接基线问题
+```
+
 PR 默认关注高信号检查：
 
 - Typecheck；
 - 与本次改动工作区相关的 Focused tests；
 - Secret scan。
 
-全仓 Unit tests 在 PR 中主要作为提示信号；如果失败来自已知 baseline、平台差异或与本 PR 无关的问题，请在 PR 中说明。未知的新回归仍应修复。
+全仓 Unit tests 在 PR 中主要作为提示信号；如果失败来自已知 baseline、平台差异或与本 PR 无关的问题，请在测试报告中说明。未知的新回归仍应修复。
 
-涉及以下内容时，请提供更强的验证：
+涉及以下内容时，请提供更强的验证证据：
 
 - 金融计算与数据正确性；
 - Secret / 隐私 / 权限边界；
 - 数据迁移或持久化；
 - Provider / 外部 API 的真实接线；
+- Agent / Eval / Tool Calling 的关键执行路径；
 - 会导致数据丢失或不可逆行为的修改。
+
+这类 PR 不一定要求大型完整 E2E，但应至少提供能验证真实边界或关键集成路径的 smoke / integration 结果。
 
 ## 6. 保持改动可合并
 
