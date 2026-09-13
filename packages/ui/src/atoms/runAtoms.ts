@@ -37,6 +37,50 @@ export const lastRunSummaryAtom = atom<LastRunSummary | null>(null);
 
 export const runViewAtom = atom<RunView | null>(null);
 
+/** Codes the run-budget guard sets on `run_failed` (#17): a guard stop is not an error. */
+const GUARD_STOP_CODES = new Set(['BUDGET_EXHAUSTED', 'LOOP_DETECTED', 'RETRY_STORM']);
+
+/**
+ * One line explaining a guard stop, plus the numbers the runtime attached to it.
+ * Returns undefined for ordinary failures, which keep the raw error message.
+ */
+export function describeGuardStop(error: ApiError): string | undefined {
+  if (!GUARD_STOP_CODES.has(error.code)) return undefined;
+  const reason =
+    error.code === 'BUDGET_EXHAUSTED'
+      ? 'the run budget was used up'
+      : error.code === 'LOOP_DETECTED'
+        ? 'a repeating loop was detected'
+        : 'the run retried too often in a row';
+  return `Stopped early: ${reason}${describeGuardDetail(parseGuardDetail(error.message))}. The messages above are what it completed.`;
+}
+
+/** The detail JSON the kernel appends to a guard stop message, when it parses. */
+function parseGuardDetail(message: string): Record<string, unknown> | undefined {
+  const start = message.indexOf('{');
+  if (start < 0) return undefined;
+  try {
+    const parsed = JSON.parse(message.slice(start)) as unknown;
+    return typeof parsed === 'object' && parsed !== null
+      ? (parsed as Record<string, unknown>)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Render the two shapes a guard detail takes: a budget key, or a repeated signal. */
+function describeGuardDetail(detail: Record<string, unknown> | undefined): string {
+  if (detail === undefined) return '';
+  if (typeof detail.key === 'string') {
+    return ` (${detail.key} ${String(detail.used)}/${String(detail.limit)})`;
+  }
+  if (typeof detail.tool === 'string' && typeof detail.count === 'number') {
+    return ` (${detail.tool} repeated ${detail.count}×)`;
+  }
+  return '';
+}
+
 // ---------------------------------------------------------------------------
 // Agent event reducer: the kernel is the source of truth; the atoms below are
 // pure projections of the `agent:event` stream.
@@ -174,12 +218,15 @@ export const applyAgentEventAtom = atom(
         return;
       }
 
+      const guardStop = describeGuardStop(error);
       const assistantMessage: Message = {
         id: `assistant-${event.runId}`,
         role: 'assistant',
         content: cancelled
           ? (run.answer || '(run stopped)')
-          : `Error: ${error.message}`,
+          : guardStop === undefined
+            ? `Error: ${error.message}`
+            : [run.answer, guardStop].filter((part) => part !== '').join('\n\n'),
         timestamp: event.timestamp,
         toolCalls: run.toolCalls.map((toolCall) => ({
           id: toolCall.id,
