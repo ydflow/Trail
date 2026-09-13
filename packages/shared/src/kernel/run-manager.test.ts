@@ -457,6 +457,57 @@ describe('RunManager budgets and runaway detection (#17)', () => {
     expect(persisted).toMatchObject({ status: 'completed', answer: 'Answer' });
     expect(persisted?.stopReason).toBeUndefined();
   });
+
+  it('accounts provider-reported tokens and cost into the budget (#17)', async () => {
+    const { sessions, runs, runtime } = makeKernel(
+      async function* (input) {
+        yield event(
+          input.sessionId,
+          input.runId,
+          'message_completed',
+          { answer: 'done', usage: { inputTokens: 1200, outputTokens: 300, costUsd: 0.05 } },
+          1
+        );
+        yield event(input.sessionId, input.runId, 'run_completed', { answer: 'done', toolCalls: [] }, 2);
+      },
+      { budgets: { defaults: { costUsd: 0.01 } } }
+    );
+    const session = await sessions.createSession('Usage');
+
+    const run = await runs.startRun(session.id, 'q');
+    await waitFor(async () => !runs.isRunning());
+
+    expect(runtime.cancelCalls).toHaveLength(1);
+    expect(await sessions.getRun(session.id, run.id)).toMatchObject({
+      stopReason: 'budget_exhausted',
+      stopDetail: { key: 'costUsd', limit: 0.01, used: 0.05 },
+    });
+  });
+
+  it('budgets input tokens the same way', async () => {
+    const { sessions, runs } = makeKernel(
+      async function* (input) {
+        yield event(
+          input.sessionId,
+          input.runId,
+          'message_completed',
+          { answer: 'done', usage: { inputTokens: 900, outputTokens: 10 } },
+          1
+        );
+        yield event(input.sessionId, input.runId, 'run_completed', { answer: 'done', toolCalls: [] }, 2);
+      },
+      { budgets: { defaults: { inputTokens: 800 } } }
+    );
+    const session = await sessions.createSession('Tokens');
+
+    const run = await runs.startRun(session.id, 'q');
+    await waitFor(async () => !runs.isRunning());
+
+    expect(await sessions.getRun(session.id, run.id)).toMatchObject({
+      stopReason: 'budget_exhausted',
+      stopDetail: { key: 'inputTokens', limit: 800, used: 900 },
+    });
+  });
 });
 
 async function waitFor(predicate: () => Promise<boolean>, timeoutMs = 2000) {

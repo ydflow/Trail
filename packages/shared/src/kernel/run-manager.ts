@@ -7,6 +7,7 @@ import type {
   Message,
   Run,
   SessionMeta,
+  TokenUsage,
   ToolCall,
   ToolCallRecord,
   WorkspaceContext,
@@ -334,7 +335,10 @@ export class RunManager {
     if (!active) return false;
 
     let usage = active.usage;
-    if (event.type === 'message_completed') usage = addUsage(usage, { modelCalls: 1 });
+    if (event.type === 'message_completed') {
+      usage = addUsage(usage, { modelCalls: 1 });
+      usage = addUsage(usage, reportedUsageDelta(event.payload.usage));
+    }
     if (event.type === 'tool_completed') usage = addUsage(usage, { toolCalls: 1 });
 
     const searchQuery =
@@ -414,6 +418,26 @@ export class RunManager {
  * @param stop - the stop recorded on the run.
  * @returns an ApiError describing why the run stopped.
  */
+/**
+ * The budget delta a provider-reported usage contributes. Values that are
+ * missing or unusable are skipped on purpose: a provider that cannot report
+ * tokens or cost must not fail an otherwise normal run (#17 acceptance).
+ * @param usage - usage the runtime attached to a completed message.
+ * @returns the delta to add to the run's usage.
+ */
+function reportedUsageDelta(usage: TokenUsage | undefined): Partial<RunBudgetUsage> {
+  if (usage === undefined) return {};
+  const delta: Partial<RunBudgetUsage> = {};
+  if (isNonNegative(usage.inputTokens)) delta.inputTokens = usage.inputTokens;
+  if (isNonNegative(usage.outputTokens)) delta.outputTokens = usage.outputTokens;
+  if (usage.costUsd !== undefined && isNonNegative(usage.costUsd)) delta.costUsd = usage.costUsd;
+  return delta;
+}
+
+function isNonNegative(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
 function stopError(stop: RunStop): ApiError {
   const code =
     stop.stopReason === 'budget_exhausted'

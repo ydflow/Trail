@@ -257,8 +257,24 @@ export interface ToolCompletedPayload {
   toolCall: ToolCall;
 }
 
+/**
+ * Token — and, when the provider reports it, cost — usage of one model call.
+ * Providers shape this differently, so the runtime adapter normalizes it before
+ * it reaches the event stream.
+ */
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  /** Provider-reported cost in USD, when available. */
+  costUsd?: number;
+}
+
 export interface MessageCompletedPayload {
   answer: string;
+  /** Present when the runtime reports usage for this model call; absent otherwise. */
+  usage?: TokenUsage;
 }
 
 export interface RunCompletedPayload {

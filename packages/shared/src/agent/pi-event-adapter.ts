@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import type { AgentEvent, AgentEventPayload, ApiError, ToolCall } from '@finagent/core';
+import type { AgentEvent, AgentEventPayload, ApiError, TokenUsage, ToolCall } from '@finagent/core';
+import { toFiniteNumber } from '../guards.ts';
 
 export interface PiEventAdapterOptions {
   sessionId: string;
@@ -79,7 +80,10 @@ export class PiEventAdapter {
         this.messageStarted = true;
         events.push(this.emit('message_started'));
       }
-      events.push(this.emit('message_completed', { answer: this.answer }));
+      const usage = extractProviderUsage(event);
+      events.push(
+        this.emit('message_completed', usage === undefined ? { answer: this.answer } : { answer: this.answer, usage })
+      );
       events.push(this.emit('run_completed', { answer: this.answer, toolCalls: this.snapshotToolCalls() }));
       return events;
     }
@@ -226,6 +230,39 @@ function flattenTextContent(content: unknown): string {
   });
 
   return texts.join('').trim();
+}
+
+/**
+ * Normalize provider usage into {@link TokenUsage}. Pi reports it per assistant
+ * message as `usage.input/output/cacheRead/cacheWrite/cost`; a runtime may also
+ * report it on the event itself, and other providers use longer field names.
+ * Returns undefined when nothing usable is reported, so a provider that omits
+ * usage never turns into a failed run.
+ */
+function extractProviderUsage(event: Record<string, unknown>): TokenUsage | undefined {
+  const record = readRecord(readRecord(event).usage ?? lastAssistantUsage(event));
+  const input = toFiniteNumber(record.input ?? record.inputTokens ?? record.promptTokens);
+  const output = toFiniteNumber(record.output ?? record.outputTokens ?? record.completionTokens);
+  if (input === undefined && output === undefined) return undefined;
+
+  const usage: TokenUsage = { inputTokens: input ?? 0, outputTokens: output ?? 0 };
+  const cacheRead = toFiniteNumber(record.cacheRead ?? record.cacheReadTokens);
+  if (cacheRead !== undefined) usage.cacheReadTokens = cacheRead;
+  const cacheWrite = toFiniteNumber(record.cacheWrite ?? record.cacheWriteTokens);
+  if (cacheWrite !== undefined) usage.cacheWriteTokens = cacheWrite;
+  const cost = toFiniteNumber(record.cost ?? record.costUsd);
+  if (cost !== undefined) usage.costUsd = cost;
+  return usage;
+}
+
+/** Usage of the last assistant message a Pi run reported, when it carries one. */
+function lastAssistantUsage(event: Record<string, unknown>): unknown {
+  const messages = Array.isArray(event.messages) ? event.messages : [];
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = readRecord(messages[index]);
+    if (message.role === 'assistant' && message.usage !== undefined) return message.usage;
+  }
+  return undefined;
 }
 
 function readRecord(value: unknown): Record<string, unknown> {

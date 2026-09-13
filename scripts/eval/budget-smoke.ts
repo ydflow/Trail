@@ -26,6 +26,10 @@ interface CliOptions {
   maxModelCalls?: number;
   maxToolCalls?: number;
   wallClockMs?: number;
+  /** Budget on provider-reported cost, in USD. */
+  maxCostUsd?: number;
+  /** Budget on provider-reported input tokens. */
+  maxInputTokens?: number;
   loopThreshold?: number;
   searchTools: string[];
   expect: string;
@@ -42,6 +46,8 @@ const USAGE = `Usage: bun scripts/eval/budget-smoke.ts [flags]
   --max-model-calls <n>     model-call budget for the run
   --max-tool-calls <n>      tool-call budget for the run
   --wall-clock-ms <n>       wall-clock budget for the run
+  --max-cost-usd <n>        cost budget (provider-reported USD) for the run
+  --max-input-tokens <n>    input-token budget (provider-reported) for the run
   --loop-threshold <n>      repeated identical tool calls that stop the run
   --search-tools <a,b>      tool-name patterns whose query feeds the search detector
   --expect <reason>         expected stop reason (default: any non-completed stop)
@@ -91,6 +97,12 @@ function parseFlags(argv: string[]): CliOptions {
         break;
       case '--wall-clock-ms':
         options.wallClockMs = takeNumber();
+        break;
+      case '--max-cost-usd':
+        options.maxCostUsd = takeNumber();
+        break;
+      case '--max-input-tokens':
+        options.maxInputTokens = takeNumber();
         break;
       case '--loop-threshold':
         options.loopThreshold = takeNumber();
@@ -144,8 +156,10 @@ async function main(): Promise<number> {
         modelCalls: options.maxModelCalls,
         toolCalls: options.maxToolCalls,
         wallClockMs: options.wallClockMs,
+        costUsd: options.maxCostUsd,
+        inputTokens: options.maxInputTokens,
       },
-      ceiling: { modelCalls: 25, toolCalls: 25, wallClockMs: 15 * 60_000 },
+      ceiling: { modelCalls: 25, toolCalls: 25, wallClockMs: 15 * 60_000, costUsd: 5 },
     },
     runaway: options.loopThreshold === undefined ? {} : { repeatedToolCallThreshold: options.loopThreshold },
     searchTools: options.searchTools,
@@ -168,8 +182,22 @@ async function main(): Promise<number> {
 
   const toolNames: string[] = [];
   let modelCalls = 0;
+  const usageTotals = { inputTokens: 0, outputTokens: 0, costUsd: 0 };
   const unsubscribe = kernel.runs.subscribe((event: AgentEvent) => {
-    if (event.type === 'message_completed') modelCalls += 1;
+    if (event.type === 'message_completed') {
+      modelCalls += 1;
+      const usage = event.payload.usage;
+      if (usage !== undefined) {
+        usageTotals.inputTokens += usage.inputTokens;
+        usageTotals.outputTokens += usage.outputTokens;
+        usageTotals.costUsd += usage.costUsd ?? 0;
+        console.log(
+          `  usage: input=${usage.inputTokens} output=${usage.outputTokens}` +
+            `${usage.cacheReadTokens === undefined ? '' : ` cacheRead=${usage.cacheReadTokens}`}` +
+            `${usage.costUsd === undefined ? '' : ` cost=$${usage.costUsd}`}`
+        );
+      }
+    }
     if (event.type === 'tool_completed') {
       toolNames.push(event.payload.toolCall.toolName);
       console.log(`  tool: ${event.payload.toolCall.toolName} ${JSON.stringify(event.payload.toolCall.args).slice(0, 120)}`);
@@ -207,6 +235,7 @@ async function main(): Promise<number> {
     stopReason: persisted?.stopReason,
     stopDetail: persisted?.stopDetail,
     modelCalls,
+    providerUsage: usageTotals,
     toolCalls: toolNames,
     elapsedMs,
     partialAnswer: (persisted?.answer ?? '').slice(0, 400),
