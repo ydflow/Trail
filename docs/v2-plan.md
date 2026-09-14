@@ -1,4 +1,4 @@
-# Trail V2 — AI-native Finance Workbench: Internal Plan
+# Trail V2 — AI-native Finance Workbench: Historical Plan (superseded)
 
 ## Research findings (verified against real installs)
 
