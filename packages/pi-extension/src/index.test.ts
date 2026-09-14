@@ -18,22 +18,23 @@ describe('pi extension registration', () => {
     expect(registered).toEqual(tools.map((tool) => tool.name));
   });
 
-  it('overrides anthropic baseUrl for MiniMax-compatible runtimes', () => {
+  it('does not point anthropic at a vendor relay when nothing is configured', () => {
+    const previous = process.env.ANTHROPIC_BASE_URL;
+    delete process.env.ANTHROPIC_BASE_URL;
     const calls: Array<{ name: string; config: { baseUrl?: string } }> = [];
 
-    registerProviderOverrides({
-      registerTool: () => undefined,
-      registerProvider: (name, config) => {
-        calls.push({ name, config });
-      },
-    });
+    try {
+      registerProviderOverrides({
+        registerTool: () => undefined,
+        registerProvider: (name, config) => {
+          calls.push({ name, config });
+        },
+      });
+    } finally {
+      if (previous !== undefined) process.env.ANTHROPIC_BASE_URL = previous;
+    }
 
-    expect(calls).toEqual([
-      {
-        name: 'anthropic',
-        config: { baseUrl: 'https://api.minimaxi.com/anthropic' },
-      },
-    ]);
+    expect(calls).toEqual([]);
   });
 
   it('prefers ANTHROPIC_BASE_URL from the environment', () => {

@@ -186,13 +186,15 @@ function readProviderOverrides(): ProviderOverride[] {
 export function registerProviderOverrides(agent: AgentApi) {
   if (typeof agent.registerProvider !== 'function') return;
 
-  // Legacy static override: keep the historical Anthropic base URL behavior
-  // unless Trail supplies explicit overrides for anthropic.
+  // The Anthropic base-URL override is opt-in: apply it only when the user
+  // configures ANTHROPIC_BASE_URL (or an explicit anthropic override below).
+  // With nothing configured the provider's own standard endpoint is used,
+  // rather than silently pointing every install at a vendor relay.
   const overrides = readProviderOverrides();
   const hasAnthropicOverride = overrides.some((entry) => entry.provider === 'anthropic');
-  if (!hasAnthropicOverride) {
+  if (!hasAnthropicOverride && process.env.ANTHROPIC_BASE_URL) {
     agent.registerProvider('anthropic', {
-      baseUrl: process.env.ANTHROPIC_BASE_URL ?? 'https://api.minimaxi.com/anthropic',
+      baseUrl: process.env.ANTHROPIC_BASE_URL,
     });
   }
 
