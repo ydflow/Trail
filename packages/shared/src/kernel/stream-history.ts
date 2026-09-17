@@ -5,6 +5,10 @@
 // - append 时按 run 累积（每 run 上限 MAX_EVENTS_PER_RUN，超出截断最旧）；
 // - replay(runId, lastSequence) 只补发“连续且已存在”的段；
 // - 截断/未知 run/段不连续 → recoverable=false，调用方应呈现明确失败。
+//
+// issue #75 review：磁盘恢复（restore）与实时追加（append）必须是两条路径。
+// 恢复只装入内存、绝不回写日志，否则每次启动都会把刚读出的历史再写一遍
+// （[1,2] → [1,2,1,2] → …），第二次重启起 replay 连续性检查即失败。
 
 import type { StreamEvent } from '@finagent/core';
 import type { StreamEventLog } from './stream-event-log.ts';
@@ -15,7 +19,7 @@ const MAX_RUNS = 32;
 const MAX_EVENTS_PER_RUN = 2000;
 
 export interface StreamEventHistoryOptions {
-  /** 磁盘恢复的事件（issue #75：跨重启补齐历史）。 */
+  /** 磁盘恢复的事件（issue #75：跨重启补齐历史）。只装入内存，不落盘。 */
   persisted?: Iterable<StreamEvent>;
   /** 挂载的持久化日志：append 时与内存并行落盘。 */
   log?: StreamEventLog;
@@ -40,21 +44,43 @@ export class StreamEventHistory {
 
   constructor(options: StreamEventHistoryOptions = {}) {
     this.log = options.log;
+    // 恢复路径：只装入内存，不触发任何磁盘写入（见文件头说明）。
     for (const event of options.persisted ?? []) {
-      this.append(event);
+      this.restore(event);
     }
   }
 
-  append(event: StreamEvent): void {
+  /** 装入一条已持久化的历史事件；不落盘（启动恢复专用）。 */
+  restore(event: StreamEvent): void {
+    this.push(event);
+  }
+
+  /**
+   * 追加一条实时事件：先入内存，成功后再落盘（内存是事实来源，磁盘跟随）。
+   * @returns true 表示已接受；false 表示被幂等去重拒绝（同 run 非递增 seq）。
+   */
+  append(event: StreamEvent): boolean {
+    if (!this.push(event)) return false;
     // 与内存缓冲并行持久化；磁盘失败由 log 自吞（降级内存-only）。
     this.log?.append(event);
+    return true;
+  }
+
+  /**
+   * 写入内存缓冲。同一 run 内只接受严格递增的 sequence：重复/倒退的
+   * seq（例如旧版本恢复时写回的重复行）被幂等拒绝，避免 replay 的
+   * 连续性检查被重复记录破坏。
+   */
+  private push(event: StreamEvent): boolean {
     const list = this.runs.get(event.runId);
     if (list) {
+      const last = list[list.length - 1];
+      if (event.sequence <= last.sequence) return false;
       list.push(event);
       if (list.length > MAX_EVENTS_PER_RUN) {
         list.splice(0, list.length - MAX_EVENTS_PER_RUN);
       }
-      return;
+      return true;
     }
     this.runs.set(event.runId, [event]);
     this.order.push(event.runId);
@@ -62,6 +88,7 @@ export class StreamEventHistory {
       const evicted = this.order.shift();
       if (evicted) this.runs.delete(evicted);
     }
+    return true;
   }
 
   /** 从 lastSequence 之后的位置补发；段缺失/未知 run 判为不可恢复。 */

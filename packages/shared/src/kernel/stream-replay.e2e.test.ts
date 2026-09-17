@@ -9,6 +9,7 @@
 //   4. 取消路径产生显式 cancelled 事件且可补发（atEnd=true）；
 //   5. message/run 双身份：message 级事件带 messageId，run 级不带（#34）。
 
+import { readFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -141,13 +142,14 @@ describe('Stream Event replay E2E（真实 runtime 全链路）', () => {
     expect(replay.events.length).toBeGreaterThanOrEqual(5);
   });
 
-  it('跨进程重启：磁盘日志恢复历史，replay 对重启前的 run 仍可用', async () => {
+  it('仓储重载：磁盘日志恢复历史，replay 对重载前的 run 仍可用', async () => {
     const first = makeStack();
     const session = await first.sessions.createSession('restart me');
     const run = await first.runs.startRun(session.id, '你好，随便聊聊');
     await waitFor(async () => !first.runs.isRunning());
 
-    // 模拟进程重启：同一 storageDir 新建一整套 kernel（不保留原 RunManager 内存状态）。
+    // 模拟重启：同一 storageDir 新建一整套 kernel（不保留原 RunManager 内存状态）。
+    // 说明：这是重载集成测试（重建仓储/RunManager 实例），不是启动多个 OS 进程。
     const second = makeStack();
     const replay = second.runs.replayStream(run.id, 0);
     expect(replay.recoverable).toBe(true);
@@ -165,6 +167,38 @@ describe('Stream Event replay E2E（真实 runtime 全链路）', () => {
     expect(tail.recoverable).toBe(true);
     expect(tail.events[0]?.sequence).toBe(3);
     expect(tail.atEnd).toBe(true);
+  });
+
+  it('连续 3 次仓储重载：只恢复不写回，文件不增长且 replay 保持连续', async () => {
+    const first = makeStack();
+    const session = await first.sessions.createSession('restart x3');
+    const run = await first.runs.startRun(session.id, '你好，随便聊聊');
+    await waitFor(async () => !first.runs.isRunning());
+
+    const file = join(dir, 'stream-events', 'stream-events.jsonl');
+    const lineCount = () =>
+      readFileSync(file, 'utf8')
+        .split('\n')
+        .filter((line) => line.trim() !== '').length;
+    const before = lineCount();
+    expect(before).toBeGreaterThanOrEqual(5);
+
+    // 连续 3 次重载（每次新建 RunManager，不发任何新事件）：历史不得回写。
+    for (let restart = 0; restart < 3; restart += 1) {
+      const next = makeStack();
+      const full = next.runs.replayStream(run.id, 0);
+      expect(full.recoverable).toBe(true);
+      expectStrictSequence(full.events);
+      expect(full.atEnd).toBe(true);
+      expect(full.events.length).toBe(before);
+
+      const tail = next.runs.replayStream(run.id, 2);
+      expect(tail.recoverable).toBe(true);
+      expect(tail.events[0]?.sequence).toBe(3);
+      expect(tail.atEnd).toBe(true);
+
+      expect(lineCount()).toBe(before);
+    }
   });
 
   it('中途断线：按已收 lastSequence 补发剩余段，拼接与全量一致', async () => {

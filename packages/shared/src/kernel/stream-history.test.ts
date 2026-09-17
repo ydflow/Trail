@@ -53,6 +53,19 @@ describe('StreamEventHistory', () => {
     expect(result.events).toEqual([]);
   });
 
+  it('append 幂等：同 run 重复/倒退的 seq 被拒绝，replay 连续性不受破坏', () => {
+    const h = new StreamEventHistory();
+    fill(h, 'run-1', 1, 2);
+    expect(h.append(make('run-1', 2, 'text_delta'))).toBe(false);
+    expect(h.append(make('run-1', 1, 'text_delta'))).toBe(false);
+    expect(h.append(make('run-1', 3, 'run_completed'))).toBe(true);
+
+    const result = h.replay('run-1', 0);
+    expect(result.recoverable).toBe(true);
+    expect(result.events.map((e) => e.sequence)).toEqual([1, 2, 3]);
+    expect(result.atEnd).toBe(true);
+  });
+
   it('缺失段（客户端断在 5，历史只剩 ≥99）→ 明确不可恢复', () => {
     const h = new StreamEventHistory();
     fill(h, 'run-1', 99, 102);
