@@ -23,10 +23,12 @@ import type {
   ToolCall,
   ToolCallRecord,
 } from '@finagent/core';
-import { LocalEvaluationBackend } from './backend.ts';
+import { LocalEvaluationBackend, type EvaluationBackend } from './backend.ts';
 import { TraceCorrelationService } from './correlation.ts';
 import { ExperimentService, type ExperimentKernel } from './experiment-service.ts';
 import { createJudgeClient, type JudgeClient } from './judge-client.ts';
+import { normalizeModelSelection } from './model-selection.ts';
+import { LangfuseEvaluationBackend } from './langfuse/backend.ts';
 import { EvaluationStore } from './store.ts';
 import { JsonFileStore } from '../storage/json-file-store.ts';
 
@@ -96,7 +98,40 @@ class FakeKernel implements ExperimentKernel {
   private readonly listeners = new Set<(event: AgentEvent) => void>();
   private readonly sessionTitles = new Map<string, string>();
   private readonly scripts = new Map<string, ScriptedRun>();
-  private readonly api = { getState: async () => ({ sessionId: 'pi-thread-1' }) };
+
+  // ── #114: observable LLM control surface ─────────────────────────────────
+  /** Every control call and run start, in order (ordering assertions). */
+  readonly llmCalls: string[] = [];
+  llmEnabled = true;
+  llmState: { sessionId?: string; model?: { id: string; provider: string } | null; thinkingLevel?: string } = {
+    sessionId: 'pi-thread-1',
+    model: null,
+    thinkingLevel: 'off',
+  };
+  /** setModel throws (unsupported provider/model). */
+  failSetModel = false;
+  /** setModel succeeds but the runtime state keeps a DIFFERENT model. */
+  mismatchSetModel = false;
+  /** setThinkingLevel succeeds but the readback keeps the old level. */
+  mismatchSetThinking = false;
+
+  private readonly api = {
+    getState: async (): Promise<{ sessionId?: string; model?: { id: string; provider: string } | null; thinkingLevel?: string }> => {
+      this.llmCalls.push('getState');
+      return this.llmState;
+    },
+    setModel: async (provider: string, modelId: string): Promise<unknown> => {
+      this.llmCalls.push(`setModel:${provider}/${modelId}`);
+      if (this.failSetModel) throw new Error(`Model ${provider}/${modelId} is not available.`);
+      if (!this.mismatchSetModel) this.llmState.model = { id: modelId, provider };
+      return this.llmState;
+    },
+    setThinkingLevel: async (level: string): Promise<unknown> => {
+      this.llmCalls.push(`setThinkingLevel:${level}`);
+      if (!this.mismatchSetThinking) this.llmState.thinkingLevel = level;
+      return this.llmState;
+    },
+  };
 
   script(caseId: string, script: ScriptedRun): void {
     this.scripts.set(caseId, script);
@@ -122,6 +157,7 @@ class FakeKernel implements ExperimentKernel {
     },
     startRun: async (sessionId: string, content: string): Promise<Run> => {
       this.startedRuns += 1;
+      this.llmCalls.push('startRun');
       const runId = `run-${this.startedRuns}`;
       const title = this.sessionTitles.get(sessionId) ?? '';
       const script = this.scripts.get(title) ?? { status: 'completed', answer: 'fallback answer' };
@@ -157,7 +193,7 @@ class FakeKernel implements ExperimentKernel {
   };
 
   getLlmApi() {
-    return this.api;
+    return this.llmEnabled ? this.api : undefined;
   }
 }
 
@@ -190,9 +226,9 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-function createService(kernel: FakeKernel): ExperimentService {
-  const correlation = new TraceCorrelationService({ backend, store });
-  return new ExperimentService({ store, kernel, backend, correlation });
+function createService(kernel: FakeKernel, evalBackend: EvaluationBackend = backend): ExperimentService {
+  const correlation = new TraceCorrelationService({ backend: evalBackend, store });
+  return new ExperimentService({ store, kernel, backend: evalBackend, correlation });
 }
 
 /** Script a healthy quote run for the case id. */
@@ -558,6 +594,271 @@ describe('ExperimentService.runExperiment', () => {
     await expect(
       service.runExperiment({ dataset: makeDataset([makeCase('x')]), config: makeConfig(), baselineId: 'missing' })
     ).rejects.toThrow('Baseline missing not found');
+  });
+});
+
+describe('#114 requested vs effective config', () => {
+  it('applies model+provider BEFORE startRun and records the readback-confirmed effective config', async () => {
+    const dataset = makeDataset([makeCase('cfg-ok')]);
+    const kernel = new FakeKernel();
+    scriptSuccess(kernel, 'cfg-ok');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'live', model: 'm1', provider: 'provA' }),
+    });
+
+    // The control call must land before the run starts — not after, not never.
+    const setModelAt = kernel.llmCalls.indexOf('setModel:provA/m1');
+    const startRunAt = kernel.llmCalls.indexOf('startRun');
+    expect(setModelAt).toBeGreaterThanOrEqual(0);
+    expect(startRunAt).toBeGreaterThan(setModelAt);
+
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].status).toBe('completed');
+    expect(runs[0].effectiveConfig).toMatchObject({ model: 'm1', provider: 'provA' });
+    expect(runs[0].effectiveConfig?.confirmedAt).toBeTypeOf('number');
+  });
+
+  it('blocks the run with CONFIG_APPLY_FAILED when the readback shows a different model', async () => {
+    const dataset = makeDataset([makeCase('cfg-mismatch')]);
+    const kernel = new FakeKernel();
+    kernel.mismatchSetModel = true; // setModel "succeeds" but state keeps another model
+    scriptSuccess(kernel, 'cfg-mismatch');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'live', model: 'm1', provider: 'provA' }),
+    });
+
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].status).toBe('failed');
+    expect(runs[0].error?.code).toBe('CONFIG_APPLY_FAILED');
+    expect(runs[0].failureModes).toContain('runtime_error');
+    expect(kernel.startedRuns).toBe(0); // never executed under the wrong model
+    expect(experiment.summary?.passRate).toBe(0);
+  });
+
+  it('fails explicitly when the runtime cannot switch to the requested provider/model', async () => {
+    const dataset = makeDataset([makeCase('cfg-unsupported')]);
+    const kernel = new FakeKernel();
+    kernel.failSetModel = true;
+    scriptSuccess(kernel, 'cfg-unsupported');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'live', model: 'missing-model', provider: 'provA' }),
+    });
+
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].status).toBe('failed');
+    expect(runs[0].error?.code).toBe('CONFIG_APPLY_FAILED');
+    expect(runs[0].error?.message).toContain('provA/missing-model');
+    expect(kernel.startedRuns).toBe(0);
+  });
+
+  it('does not leak configuration between consecutive experiments', async () => {
+    const kernel = new FakeKernel();
+    const service = createService(kernel);
+    const dataset1 = makeDataset([makeCase('e1-case')]);
+    scriptSuccess(kernel, 'e1-case');
+    const experiment1 = await service.runExperiment({
+      dataset: dataset1,
+      config: makeConfig({ mode: 'live', model: 'm1', provider: 'provA' }),
+    });
+    const dataset2 = makeDataset([makeCase('e2-case')]);
+    scriptSuccess(kernel, 'e2-case');
+    const experiment2 = await service.runExperiment({
+      dataset: dataset2,
+      config: makeConfig({ mode: 'live', model: 'm2', provider: 'provA' }),
+    });
+
+    // Each experiment re-applied its own request, in order.
+    expect(kernel.llmCalls.filter((call) => call.startsWith('setModel:'))).toEqual([
+      'setModel:provA/m1',
+      'setModel:provA/m2',
+    ]);
+    const runs1 = await store.listRuns(experiment1.id);
+    const runs2 = await store.listRuns(experiment2.id);
+    expect(runs1[0].effectiveConfig?.model).toBe('m1');
+    expect(runs2[0].effectiveConfig?.model).toBe('m2');
+  });
+
+  it('marks requested dimensions unapplied in fixture mode instead of passing them silently', async () => {
+    const dataset = makeDataset([makeCase('cfg-fixture')]);
+    const kernel = new FakeKernel();
+    kernel.llmEnabled = false; // local/fixture runtime: no control surface
+    scriptSuccess(kernel, 'cfg-fixture');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'fixture', model: 'm1', provider: 'provA' }),
+    });
+
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].status).toBe('completed'); // runs on the deterministic local runtime
+    const unappliedKeys = (runs[0].effectiveConfig?.unapplied ?? []).map((item) => item.key);
+    expect(unappliedKeys).toContain('model');
+    expect(unappliedKeys).toContain('provider');
+    expect(runs[0].effectiveConfig?.model).toBeUndefined(); // never claims the requested model
+  });
+
+  it('records the runtime readback as effective when no model was requested', async () => {
+    const dataset = makeDataset([makeCase('cfg-readback')]);
+    const kernel = new FakeKernel();
+    kernel.llmState.model = { id: 'default-m', provider: 'provD' };
+    scriptSuccess(kernel, 'cfg-readback');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({ dataset, config: makeConfig() });
+
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].effectiveConfig).toMatchObject({ model: 'default-m', provider: 'provD' });
+  });
+
+  it('records strategyId as unapplied — there is no runtime control surface for strategies', async () => {
+    const dataset = makeDataset([makeCase('cfg-strategy')]);
+    const kernel = new FakeKernel();
+    scriptSuccess(kernel, 'cfg-strategy');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'live', model: 'm1', provider: 'provA', strategyId: 's1' }),
+    });
+
+    const runs = await store.listRuns(experiment.id);
+    const strategy = runs[0].effectiveConfig?.unapplied?.find((item) => item.key === 'strategyId');
+    expect(strategy?.reason).toContain('no runtime control surface');
+    expect(runs[0].effectiveConfig?.model).toBe('m1'); // model still applied + verified
+  });
+
+  it('applies and verifies the thinking level, and blocks on readback mismatch', async () => {
+    const dataset = makeDataset([makeCase('cfg-thinking')]);
+    const kernel = new FakeKernel();
+    scriptSuccess(kernel, 'cfg-thinking');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'live', model: 'm1', provider: 'provA', thinkingLevel: 'high' }),
+    });
+
+    const thinkingAt = kernel.llmCalls.indexOf('setThinkingLevel:high');
+    const startRunAt = kernel.llmCalls.indexOf('startRun');
+    expect(thinkingAt).toBeGreaterThanOrEqual(0);
+    expect(startRunAt).toBeGreaterThan(thinkingAt);
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].effectiveConfig?.thinkingLevel).toBe('high');
+
+    // Mismatch: the runtime keeps the old level → the run must not execute.
+    const kernel2 = new FakeKernel();
+    kernel2.mismatchSetThinking = true;
+    scriptSuccess(kernel2, 'cfg-thinking');
+    const service2 = createService(kernel2);
+    const experiment2 = await service2.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'live', model: 'm1', provider: 'provA', thinkingLevel: 'high' }),
+    });
+    const runs2 = await store.listRuns(experiment2.id);
+    expect(runs2[0].status).toBe('failed');
+    expect(runs2[0].error?.code).toBe('CONFIG_APPLY_FAILED');
+    expect(kernel2.startedRuns).toBe(0);
+  });
+});
+
+describe('#114 CLI model shorthand → runtime control → run metadata', () => {
+  it('splits provider + bare model id at the CLI boundary before the control call', async () => {
+    // What `--model provA/m1` means.
+    expect(normalizeModelSelection('provA/m1')).toEqual({ model: 'm1', provider: 'provA' });
+    // Only the FIRST segment is the provider — model ids may keep further `/`.
+    expect(normalizeModelSelection('openrouter/anthropic/claude-sonnet-4-5')).toEqual({
+      model: 'anthropic/claude-sonnet-4-5',
+      provider: 'openrouter',
+    });
+    expect(normalizeModelSelection('m1')).toEqual({ model: 'm1', provider: undefined });
+    expect(normalizeModelSelection('m1', 'provB')).toEqual({ model: 'm1', provider: 'provB' });
+    // An explicit --provider wins over the prefix.
+    expect(normalizeModelSelection('provA/m1', 'provB')).toEqual({ model: 'm1', provider: 'provB' });
+    // A trailing separator is not a shorthand: left intact for the runtime to reject.
+    expect(normalizeModelSelection('provA/').model).toBe('provA/');
+    expect(normalizeModelSelection('provA/').provider).toBeUndefined();
+
+    const dataset = makeDataset([makeCase('cli-shorthand')]);
+    const kernel = new FakeKernel();
+    scriptSuccess(kernel, 'cli-shorthand');
+    const service = createService(kernel);
+
+    const experiment = await service.runExperiment({
+      dataset,
+      config: makeConfig({ mode: 'live', ...normalizeModelSelection('provA/m1') }),
+    });
+
+    // The control surface receives the bare id — never `provA/provA/m1`.
+    expect(kernel.llmCalls).toContain('setModel:provA/m1');
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].effectiveConfig).toMatchObject({ model: 'm1', provider: 'provA' });
+    // Run metadata carries the same normalized pair, not the raw CLI string.
+    expect(experiment.metadata.providerConfiguration).toMatchObject({ model: 'm1', provider: 'provA' });
+  });
+
+  it('labels the trace with the confirmed model only, never with an unapplied request', async () => {
+    const ingests: Array<Array<{ type: string; body: Record<string, unknown> }>> = [];
+    const langfuse = new LangfuseEvaluationBackend({
+      publicKey: 'pk-test',
+      secretKey: 'sk-test',
+      host: 'https://langfuse.test',
+      fetchImpl: async (_input, init) => {
+        const parsed = typeof init?.body === 'string' ? (JSON.parse(init.body) as { batch?: [] }) : {};
+        ingests.push(parsed.batch ?? []);
+        return Response.json({ successes: [], errors: [] });
+      },
+    });
+    const traceMetadata = (): Record<string, unknown> | undefined => {
+      const trace = ingests.flat().find((event) => event.type === 'trace-create');
+      return trace?.body.metadata as Record<string, unknown> | undefined;
+    };
+
+    // No control surface (fixture/local runtime): the request is recorded as a
+    // request, the model that actually ran stays unknown.
+    const kernel = new FakeKernel();
+    kernel.llmEnabled = false;
+    scriptSuccess(kernel, 'trace-unknown');
+    const service = createService(kernel, langfuse);
+    const experiment = await service.runExperiment({
+      dataset: makeDataset([makeCase('trace-unknown')]),
+      config: makeConfig({ mode: 'fixture', ...normalizeModelSelection('provA/m1') }),
+    });
+
+    const runs = await store.listRuns(experiment.id);
+    expect(runs[0].effectiveConfig?.model).toBeUndefined();
+    const unknownMeta = traceMetadata();
+    expect(unknownMeta?.requestedModel).toBe('m1');
+    expect(unknownMeta?.requestedProvider).toBe('provA');
+    // Never promoted to an actual label…
+    expect(unknownMeta).not.toHaveProperty('model');
+    expect(unknownMeta).not.toHaveProperty('provider');
+    // …and no generation span claims a model either.
+    expect(ingests.flat().some((event) => event.type === 'generation-create')).toBe(false);
+
+    // Readback confirmed: the trace carries the effective pair under its own key.
+    ingests.length = 0;
+    const liveKernel = new FakeKernel();
+    scriptSuccess(liveKernel, 'trace-confirmed');
+    const liveService = createService(liveKernel, langfuse);
+    await liveService.runExperiment({
+      dataset: makeDataset([makeCase('trace-confirmed')]),
+      config: makeConfig({ mode: 'live', ...normalizeModelSelection('provA/m1') }),
+    });
+
+    const confirmedMeta = traceMetadata();
+    expect(confirmedMeta?.model).toBe('m1');
+    expect(confirmedMeta?.provider).toBe('provA');
+    expect(confirmedMeta?.requestedModel).toBe('m1');
   });
 });
 

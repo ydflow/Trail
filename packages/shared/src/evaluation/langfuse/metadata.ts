@@ -19,8 +19,16 @@ export interface TrailLangfuseMetadata {
   goldCaseId?: string;
   datasetId?: string;
   datasetVersion?: string;
+  /** Readback-confirmed model/provider; absent when the runtime stayed unknown (#114). */
   model?: string;
   provider?: string;
+  /**
+   * Requested model/provider (#114). Kept under their own names so an
+   * unapplied request can never be read back as the model that actually ran;
+   * they deliberately do not become `model:`/`provider:` tags.
+   */
+  requestedModel?: string;
+  requestedProvider?: string;
   agentVersion?: string;
   trailVersion?: string;
   promptVersion?: string;
@@ -75,6 +83,8 @@ export function langfuseMetadataRecord(meta: TrailLangfuseMetadata): Record<stri
   if (meta.datasetVersion) record.datasetVersion = meta.datasetVersion;
   if (meta.model) record.model = meta.model;
   if (meta.provider) record.provider = meta.provider;
+  if (meta.requestedModel) record.requestedModel = meta.requestedModel;
+  if (meta.requestedProvider) record.requestedProvider = meta.requestedProvider;
   if (meta.agentVersion) record.agentVersion = meta.agentVersion;
   if (meta.trailVersion) record.trailVersion = meta.trailVersion;
   if (meta.promptVersion) record.promptVersion = meta.promptVersion;

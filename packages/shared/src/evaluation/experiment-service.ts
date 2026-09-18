@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import type {
   AgentEvent,
   ApiError,
+  EffectiveRuntimeConfig,
   EvaluationBaseline,
   EvaluationCase,
   EvaluationDataset,
@@ -35,6 +36,7 @@ import type {
   SupportedLocale,
   ToolCall,
   ToolCallRecord,
+  UnappliedConfigItem,
   WorkspaceContext,
 } from '@finagent/core';
 import type { EvaluationBackend } from './backend.ts';
@@ -55,6 +57,22 @@ import { EvaluationStore } from './store.ts';
 import { LangfuseEvaluationBackend } from './langfuse/backend.ts';
 import { scoresFromEvaluation } from './langfuse/scores.ts';
 
+/**
+ * LLM control surface the runner needs to apply + verify experiment config
+ * (#114). Structural subset of `LlmRuntimeApi` (Pi adapter) so fakes stay
+ * minimal; `setModel`/`setThinkingLevel` are optional so a control surface
+ * that cannot switch models is representable (→ explicit unapplied/error).
+ */
+export interface ExperimentLlmControl {
+  getState(): Promise<{
+    sessionId?: string;
+    model?: { id?: string; provider?: string } | null;
+    thinkingLevel?: string;
+  }>;
+  setModel?(provider: string, modelId: string): Promise<unknown>;
+  setThinkingLevel?(level: string): Promise<unknown>;
+}
+
 /** The kernel surface the runner depends on (AgentKernel satisfies it). */
 export interface ExperimentKernel {
   sessions: {
@@ -74,7 +92,7 @@ export interface ExperimentKernel {
     cancelRun?(sessionId: string, runId: string): Promise<void> | void;
   };
   deleteSession(sessionId: string): Promise<void>;
-  getLlmApi?(): { getState(): Promise<{ sessionId?: string }> } | undefined;
+  getLlmApi?(): ExperimentLlmControl | undefined;
 }
 
 export interface ExperimentServiceOptions {
@@ -121,6 +139,17 @@ const RUNTIME_TEARDOWN_MS = 10_000;
 /** Mapped by the runner: rpc timeout → run status `timeout` (spec §44). */
 const TIMEOUT_ERROR_CODE = 'PI_REQUEST_TIMEOUT';
 const CANCELLED_ERROR_CODE = 'RUN_CANCELLED';
+
+/**
+ * Requested experiment config that could not be applied to the runtime (#114).
+ * The run fails with this code instead of silently executing under the
+ * runtime's previous/default model — a mislabeled A/B is worse than no run.
+ */
+const CONFIG_APPLY_ERROR_CODE = 'CONFIG_APPLY_FAILED';
+
+function configApplyError(message: string): ApiError {
+  return { code: CONFIG_APPLY_ERROR_CODE, message };
+}
 
 function toToolCallRecord(toolCall: ToolCall): ToolCallRecord {
   return {
@@ -358,6 +387,117 @@ export class ExperimentService {
     return cases;
   }
 
+  /**
+   * Apply the experiment's requested model/provider/thinking to the runtime
+   * BEFORE the case session runs, then confirm by readback (#114).
+   *
+   * Semantics:
+   * - model+provider requested → must apply via the runtime control surface
+   *   and read back the SAME model; application failure or readback mismatch
+   *   returns an error (the caller fails the run — never a silent fallback).
+   * - Nothing (or partially) requested → the runtime's current state is read
+   *   back so the run records what will actually execute, not what was hoped.
+   * - Dimensions with no runtime control surface (strategyId; everything in
+   *   fixture mode) are recorded as `unapplied` with a reason — explicitly
+   *   marked, never presented as if they were in effect.
+   * - Called once per case so consecutive experiments cannot inherit each
+   *   other's configuration.
+   */
+  private async applyRequestedConfig(config: ExperimentConfig): Promise<{ effective?: EffectiveRuntimeConfig; error?: ApiError }> {
+    const llm = this.kernel.getLlmApi?.();
+    const unapplied: UnappliedConfigItem[] = [];
+    if (config.strategyId) {
+      unapplied.push({ key: 'strategyId', reason: 'no runtime control surface for strategy loading' });
+    }
+
+    // Local/fixture runtime: nothing can be applied. Requested dimensions are
+    // explicitly marked unapplied; the deterministic local runtime is the
+    // honest record of what ran.
+    if (!llm) {
+      const reason = 'runtime exposes no LLM control surface (local/fixture mode)';
+      if (config.model) unapplied.push({ key: 'model', reason });
+      if (config.provider) unapplied.push({ key: 'provider', reason });
+      if (config.thinkingLevel) unapplied.push({ key: 'thinkingLevel', reason });
+      return unapplied.length > 0 ? { effective: { unapplied, confirmedAt: this.now() } } : {};
+    }
+
+    try {
+      let appliedModel: { id?: string; provider?: string } | undefined;
+      let appliedThinking: string | undefined;
+
+      if (config.model && config.provider) {
+        if (!llm.setModel) {
+          return {
+            error: configApplyError(
+              `Runtime LLM control does not support setModel; cannot honor requested model ${config.provider}/${config.model}.`
+            ),
+          };
+        }
+        await llm.setModel(config.provider, config.model);
+        const state = await llm.getState();
+        const actual = state.model;
+        if (!actual || actual.id !== config.model || actual.provider !== config.provider) {
+          return {
+            error: configApplyError(
+              `Runtime readback shows ${actual ? `${actual.provider}/${actual.id}` : 'no model'} after setModel(${config.provider}/${config.model}); blocking the run instead of recording a mislabeled comparison.`
+            ),
+          };
+        }
+        appliedModel = { id: actual.id, provider: actual.provider };
+      } else {
+        if (config.model) {
+          unapplied.push({
+            key: 'model',
+            reason: 'no provider resolved for the requested model; setModel requires an explicit provider',
+          });
+        }
+        if (config.provider) {
+          unapplied.push({
+            key: 'provider',
+            reason: 'no model id requested; a provider override alone cannot be applied',
+          });
+        }
+        // Nothing to apply for the model: read back what the runtime will
+        // actually use, so the run metadata reflects reality.
+        const state = await llm.getState();
+        appliedModel = state.model ? { id: state.model.id, provider: state.model.provider } : undefined;
+      }
+
+      if (config.thinkingLevel) {
+        if (!llm.setThinkingLevel) {
+          unapplied.push({ key: 'thinkingLevel', reason: 'runtime LLM control does not expose setThinkingLevel' });
+        } else {
+          await llm.setThinkingLevel(config.thinkingLevel);
+          const state = await llm.getState();
+          if (state.thinkingLevel !== config.thinkingLevel) {
+            return {
+              error: configApplyError(
+                `Runtime readback shows thinkingLevel '${state.thinkingLevel}' after setThinkingLevel('${config.thinkingLevel}'); blocking the run instead of recording a mislabeled dimension.`
+              ),
+            };
+          }
+          appliedThinking = state.thinkingLevel;
+        }
+      }
+
+      const effective: EffectiveRuntimeConfig = {
+        ...(appliedModel?.id ? { model: appliedModel.id } : {}),
+        ...(appliedModel?.provider ? { provider: appliedModel.provider } : {}),
+        ...(appliedThinking ? { thinkingLevel: appliedThinking } : {}),
+        ...(unapplied.length > 0 ? { unapplied } : {}),
+        confirmedAt: this.now(),
+      };
+      return { effective };
+    } catch (error) {
+      return {
+        error: {
+          code: CONFIG_APPLY_ERROR_CODE,
+          message: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
   /** Run one case: fresh session → run → collect → evaluate → persist. */
   private async runCase(
     caseItem: EvaluationCase,
@@ -370,6 +510,29 @@ export class ExperimentService {
     const session = await this.kernel.sessions.createSession(caseItem.id);
     const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     const startedAt = this.now();
+
+    // #114: apply + verify the requested config BEFORE anything runs. A
+    // failure here is terminal for the case: the run is recorded as failed
+    // with CONFIG_APPLY_FAILED rather than executing under whatever model the
+    // runtime happened to still be on.
+    const applied = await this.applyRequestedConfig(config);
+    if (applied.error) {
+      const failedRun: EvaluationRun = {
+        id: `run-${randomSuffix(8)}`,
+        experimentId: experiment.id,
+        caseId: caseItem.id,
+        datasetId: dataset.id,
+        status: 'failed',
+        startedAt,
+        completedAt: this.now(),
+        failureModes: ['runtime_error'],
+        error: applied.error,
+        toolCalls: [],
+      };
+      await this.traceRun(failedRun, session.id, caseItem.locale);
+      await this.kernel.deleteSession(session.id).catch(() => undefined);
+      return { run: failedRun, aborted: false };
+    }
 
     const collected: AgentEvent[] = [];
     let runId: string | undefined;
@@ -471,6 +634,7 @@ export class ExperimentService {
         toolCalls: outcome.toolCalls,
         failureModes: outcome.failureModes,
         error: outcome.error,
+        ...(applied.effective ? { effectiveConfig: applied.effective } : {}),
       };
       if (!idle) {
         // The runtime ignored cancellation (or never settled): isolate it.
@@ -488,8 +652,14 @@ export class ExperimentService {
         datasetId: dataset.id,
         datasetVersion: dataset.version,
         goldCaseId: caseItem.id,
-        model: config.model,
-        provider: config.provider,
+        // Readback-confirmed values ONLY (#114). A dimension the runtime never
+        // confirmed (no control surface, or recorded as unapplied) stays
+        // unknown in the trace — the requested value is recorded under its own
+        // name and is never promoted to the actual model label.
+        ...(evalRun.effectiveConfig?.model ? { model: evalRun.effectiveConfig.model } : {}),
+        ...(evalRun.effectiveConfig?.provider ? { provider: evalRun.effectiveConfig.provider } : {}),
+        requestedModel: config.model,
+        requestedProvider: config.provider,
       });
       evalRun.traceRef = traceRef;
       if (idle) {
@@ -593,8 +763,15 @@ export class ExperimentService {
       datasetId?: string;
       datasetVersion?: string;
       goldCaseId?: string;
+      /**
+       * Runtime config confirmed by READBACK (#114) — omit the key entirely
+       * when the runtime state is unknown. Never pass a requested value here.
+       */
       model?: string;
       provider?: string;
+      /** Requested values, recorded under their own names (never as actuals). */
+      requestedModel?: string;
+      requestedProvider?: string;
     }
   ): Promise<EvaluationRun['traceRef']> {
     try {
@@ -619,6 +796,8 @@ export class ExperimentService {
             datasetVersion: extras?.datasetVersion,
             model: extras?.model,
             provider: extras?.provider,
+            requestedModel: extras?.requestedModel,
+            requestedProvider: extras?.requestedProvider,
             trailVersion: currentTrailVersion(),
             locale,
           },
