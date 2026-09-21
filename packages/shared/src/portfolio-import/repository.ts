@@ -17,10 +17,6 @@ export interface ManualPortfolioInput {
   holdings: Holding[]
 }
 
-interface ManualPortfoliosFile {
-  portfolios: ManualPortfolio[]
-}
-
 /**
  * Confirmation contract: create/update are the ONLY paths that persist a
  * manual portfolio. Parsing and drafts (parsers.ts, draft.ts) stay side-effect
@@ -36,16 +32,19 @@ export class ManualPortfolioRepository {
   }
 
   async list(): Promise<ManualPortfolio[]> {
-    let file: ManualPortfoliosFile
+    let file: unknown
     try {
-      file = await this.store.read<ManualPortfoliosFile>(ManualPortfolioRepository.FILE, {
+      file = await this.store.read<unknown>(ManualPortfolioRepository.FILE, {
         portfolios: [],
       })
     } catch {
       // Corrupt / unreadable file — degrade to empty, never crash.
       return []
     }
-    return file.portfolios
+
+    if (file === null || typeof file !== 'object') return []
+    const portfolios = (file as { portfolios?: unknown }).portfolios
+    return Array.isArray(portfolios) ? (portfolios as ManualPortfolio[]) : []
   }
 
   async get(id: string): Promise<ManualPortfolio | undefined> {

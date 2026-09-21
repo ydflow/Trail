@@ -121,6 +121,30 @@ describe('ManualPortfolioRepository', () => {
     expect(created.id).toBeTruthy()
   })
 
+  for (const [description, contents] of [
+    ['a null root', 'null'],
+    ['an empty object', '{}'],
+    ['a missing portfolios field', '{"other":[]}'],
+    ['a null portfolios field', '{"portfolios":null}'],
+    ['a non-array portfolios field', '{"portfolios":{}}'],
+  ] as const) {
+    it(`treats ${description} as empty and allows a new portfolio to be created`, async () => {
+      const dir = mkdtempSync(join(tmpdir(), 'trail-manual-portfolios-'))
+      writeFileSync(join(dir, 'manual-portfolios.json'), contents)
+      const repository = new ManualPortfolioRepository(new JsonFileStore(dir))
+
+      expect(await repository.list()).toEqual([])
+
+      const created = await repository.create(INPUT)
+
+      expect(await repository.list()).toEqual([created])
+      const stored = JSON.parse(readFileSync(join(dir, 'manual-portfolios.json'), 'utf8')) as {
+        portfolios: ManualPortfolio[]
+      }
+      expect(stored.portfolios).toEqual([created])
+    })
+  }
+
   it('omits currency in the file when the input has none', async () => {
     const store = tempStore()
     const repository = new ManualPortfolioRepository(store)
