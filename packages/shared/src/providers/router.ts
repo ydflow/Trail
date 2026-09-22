@@ -306,6 +306,38 @@ export class ProviderRouter implements FinancialProviderRouter {
     return { ok: false, error: unsupported(capabilityId) };
   }
 
+  async executeAll<T>(
+    capabilityId: CapabilityId,
+    input: unknown,
+    signal?: AbortSignal
+  ): Promise<ProviderResult<T>[]> {
+    if (signal?.aborted) return [{ ok: false, error: ABORTED }];
+    const capabilityOverride = this.capabilityRouting.get(capabilityId);
+    const routing = capabilityOverride
+      ? capabilityOverride
+      : this.resolveRouting
+        ? await this.resolveRouting()
+        : this.routing;
+    const order = [routing.primary, routing.fallback].filter(
+      (id): id is string => typeof id === 'string' && id.length > 0
+    );
+    for (const provider of this.registry.list()) {
+      if (!order.includes(provider.id) && supports(provider, capabilityId)) order.push(provider.id);
+    }
+    const results: ProviderResult<T>[] = [];
+    for (const id of order) {
+      const provider = this.get(id);
+      if (!provider || !supports(provider, capabilityId)) continue;
+      if (this.isEnabled && !(await this.isEnabled(id))) continue;
+      const outcome = await runWithRetry<T>(
+        () => this.invokeWithTimeout<T>(provider, capabilityId, input, signal),
+        this.retryOptions
+      );
+      results.push(outcome.result);
+    }
+    return results;
+  }
+
   // ── internals ──────────────────────────────────────────────────────────
 
   private attachTrail(provenance: ProviderProvenance, trail: ProviderFailoverStep[]): ProviderProvenance {

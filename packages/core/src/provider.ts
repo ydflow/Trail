@@ -279,6 +279,12 @@ export interface FinancialProviderRouter {
     input: unknown,
     signal?: AbortSignal
   ): Promise<ProviderResult<T>>;
+  /** Collect all provider results for reconciliation and audit flows. */
+  executeAll<T>(
+    capabilityId: CapabilityId,
+    input: unknown,
+    signal?: AbortSignal
+  ): Promise<ProviderResult<T>[]>;
 }
 
 /** The global router instance id — never re-create per request. */

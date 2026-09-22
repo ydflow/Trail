@@ -163,6 +163,28 @@ describe('ProviderRouter.execute', () => {
     expect(second.ok && second.provenance.providerId).toBe('fallback');
   });
 
+  it('collects every supporting provider for reconciliation', async () => {
+    const router = new ProviderRouter();
+    router.register(
+      new FakeFinancialDataProvider('primary', 'Primary', ['company.financials'], async () =>
+        success('primary', 'Primary', { value: 100 })
+      )
+    );
+    router.register(
+      new FakeFinancialDataProvider('fallback', 'Fallback', ['company.financials'], async () =>
+        success('fallback', 'Fallback', { value: 130 })
+      )
+    );
+    router.setRouting({ primary: 'primary', fallback: 'fallback' });
+
+    const results = await router.executeAll<{ value: number }>('company.financials', {});
+    expect(results).toHaveLength(2);
+    expect(results.filter((result) => result.ok).map((result) => result.ok && result.provenance.providerId)).toEqual([
+      'primary',
+      'fallback',
+    ]);
+  });
+
   it('returns the primary result on success', async () => {
     const router = new ProviderRouter();
     let fallbackCalls = 0;

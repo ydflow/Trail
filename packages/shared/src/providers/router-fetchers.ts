@@ -82,6 +82,11 @@ export interface RouterCapabilityFetchers {
     kind?: 'IS' | 'BS' | 'CF' | 'ALL',
     report?: string
   ) => Promise<FinancialReport>;
+  getFinancialReportCandidates: (
+    symbol: string,
+    kind?: 'IS' | 'BS' | 'CF' | 'ALL',
+    report?: string
+  ) => Promise<ProviderResult<FinancialReport>[]>;
   getInstitutionRating: (symbol: string) => Promise<InstitutionRating>;
   getDividends: (symbol: string) => Promise<DividendRecord[]>;
   getEpsForecasts: (symbol: string) => Promise<EpsForecast[]>;
@@ -181,6 +186,8 @@ export function createRouterFetchers(
     getMarketTemperature: (market) => fetch(router, 'market.sentiment', { market }),
     getFinancialReport: (symbol, kind, report) =>
       fetch(router, 'company.financials', bindSymbolInput(symbol, { kind, report }, resolve)),
+    getFinancialReportCandidates: (symbol, kind, report) =>
+      router.executeAll<FinancialReport>('company.financials', bindSymbolInput(symbol, { kind, report }, resolve)),
     getInstitutionRating: (symbol) =>
       fetch(router, 'company.ratings', bindSymbolInput(symbol, {}, resolve)),
     getDividends: (symbol) =>
