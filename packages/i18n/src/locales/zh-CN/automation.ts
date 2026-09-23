@@ -23,6 +23,11 @@ export const automation = {
     running: '运行中…',
     noRunsYet: '尚无运行记录',
     lastRun: '上次运行 {{when}} · 评估 {{evaluated}} 项，其中 {{material}} 项重要变化',
+    outcome: {
+      materialUpdate: '发现实质变化',
+      noMaterialUpdate: '未发现实质变化',
+      incomplete: '运行未完成',
+    },
   },
   schedule: {
     daily: '每日',

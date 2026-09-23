@@ -180,6 +180,71 @@ describe('runAutomation scope resolution', () => {
     ).toBe(1)
   })
 
+  it('records a complete no-material-change run against the captured portfolio scope', async () => {
+    const { context, researchCalls, notifications } = makeContext({
+      quotes: { 'AAPL.US': quote(100, 100), 'MSFT.US': quote(50, 50) },
+    })
+    context.portfolioSnapshot = async () => ({
+      symbols: ['aapl.us', 'MSFT.US', 'AAPL.US', '  '],
+      fetchedAt: 1_699_999_000_000,
+    })
+
+    const run = await runAutomation(rule({ type: 'portfolio-daily-brief' }), context)
+
+    expect(run.outcome).toBe('no_material_update')
+    expect(run.scopeSnapshot).toEqual({
+      kind: 'portfolio',
+      symbols: ['AAPL.US', 'MSFT.US'],
+      capturedAt: 1_700_000_000_000,
+      sourceFetchedAt: 1_699_999_000_000,
+    })
+    expect(run.evaluated).toBe(2)
+    expect(run.failures).toEqual([])
+    expect(researchCalls).toEqual([])
+    expect(notifications).toEqual([])
+  })
+
+  it('marks a run incomplete when the captured portfolio cannot be fully evaluated', async () => {
+    const { context } = makeContext({ quotes: { 'AAPL.US': quote(100, 100) } })
+    context.portfolioSnapshot = async () => ({
+      symbols: ['AAPL.US', 'MSFT.US'],
+      fetchedAt: 1_699_999_000_000,
+    })
+
+    const run = await runAutomation(rule({ type: 'portfolio-daily-brief' }), context)
+
+    expect(run.outcome).toBe('incomplete')
+    expect(run.evaluated).toBe(1)
+    expect(run.failures).toEqual(['MSFT.US: quote unavailable'])
+    expect(run.scopeSnapshot?.symbols).toEqual(['AAPL.US', 'MSFT.US'])
+  })
+
+  it('keeps an unavailable portfolio snapshot out of the no-change path', async () => {
+    const { context } = makeContext({})
+    context.portfolioSnapshot = async () => null
+
+    const run = await runAutomation(rule({ type: 'portfolio-daily-brief' }), context)
+
+    expect(run.outcome).toBe('incomplete')
+    expect(run.failures).toEqual(['portfolio snapshot unavailable'])
+    expect(run.scopeSnapshot).toMatchObject({ kind: 'portfolio', symbols: [] })
+  })
+
+  it('does not report no material change without a valid previous close', async () => {
+    const noBaseline = { ...quote(100, 100), prevClose: 0 }
+    const { context } = makeContext({ quotes: { 'AAPL.US': noBaseline } })
+    context.portfolioSnapshot = async () => ({
+      symbols: ['AAPL.US'],
+      fetchedAt: 1_699_999_000_000,
+    })
+
+    const run = await runAutomation(rule({ type: 'portfolio-daily-brief' }), context)
+
+    expect(run.evaluated).toBe(1)
+    expect(run.outcome).toBe('incomplete')
+    expect(run.failures).toEqual(['AAPL.US: previous close unavailable'])
+  })
+
   it('prefers rule.symbols over the type provider', async () => {
     const { context } = makeContext({ quotes: { 'AAPL.US': quote(100, 100) } })
     context.watchlistSymbols = async () => ['MSFT.US']
@@ -204,6 +269,7 @@ describe('runAutomation scope resolution', () => {
     const { context } = makeContext({ quotes: { 'AAPL.US': quote(100, 100) } })
     const run = await runAutomation(rule({}), context)
     expect(run.evaluated).toBe(0)
+    expect(run.outcome).toBe('incomplete')
     expect(run.failures).toEqual(['no symbols in scope for watchlist-daily-review'])
   })
 })
@@ -330,6 +396,7 @@ describe('runAutomation material filter', () => {
     expect(run.evaluated).toBe(1)
     expect(run.materialChanges).toBe(1)
     expect(run.failures).toEqual(['MSFT.US: quote unavailable'])
+    expect(run.outcome).toBe('incomplete')
     expect(researchCalls).toEqual(['AAPL.US'])
   })
 
@@ -383,6 +450,7 @@ describe('runAutomation notify semantics', () => {
     const run = await runAutomation(rule({ notify: 'all' }), context)
     expect(run.notified).toBe(true)
     expect(run.materialChanges).toBe(0)
+    expect(run.outcome).toBe('no_material_update')
     expect(researchCalls).toEqual([])
     expect(notifications.map((n) => n.severity)).toEqual(['info', 'info'])
     expect(notifications.map((n) => n.symbol)).toEqual(['AAPL.US', 'MSFT.US'])

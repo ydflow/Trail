@@ -190,4 +190,55 @@ describe('buildBrief', () => {
     )
     expect(brief.items).toEqual([])
   })
+
+  it('counts the frozen scope of today’s no-material run as quiet without adding an attention item', () => {
+    const now = 1_700_000_000_000
+    const noMaterialRun: AutomationRun = {
+      ...run('quiet-run', 0, false, 2),
+      ranAt: now,
+      outcome: 'no_material_update',
+      scopeSnapshot: {
+        kind: 'portfolio',
+        symbols: ['AAPL.US', 'MSFT.US'],
+        capturedAt: now,
+        sourceFetchedAt: now - 1_000,
+      },
+    }
+
+    const brief = buildBrief(inputs({ runs: [noMaterialRun] }), now)
+
+    expect(brief.items).toEqual([])
+    expect(brief.quiet).toEqual({
+      count: 2,
+      message: '2 monitored securities: no material change',
+    })
+  })
+
+  it('uses only the latest run per rule for today’s quiet scope', () => {
+    const now = 1_700_000_000_000
+    const earlierNoMaterialRun: AutomationRun = {
+      ...run('earlier', 0, false, 1),
+      ranAt: now,
+      outcome: 'no_material_update',
+      scopeSnapshot: {
+        kind: 'portfolio',
+        symbols: ['AAPL.US'],
+        capturedAt: now,
+      },
+    }
+    const latestIncompleteRun: AutomationRun = {
+      ...run('latest', 0, false, 1),
+      ranAt: now + 1,
+      outcome: 'incomplete',
+      scopeSnapshot: {
+        kind: 'portfolio',
+        symbols: ['MSFT.US'],
+        capturedAt: now + 1,
+      },
+    }
+
+    const brief = buildBrief(inputs({ runs: [earlierNoMaterialRun, latestIncompleteRun] }), now + 1)
+
+    expect(brief.quiet).toEqual({ count: 0, message: 'No monitored securities.' })
+  })
 })

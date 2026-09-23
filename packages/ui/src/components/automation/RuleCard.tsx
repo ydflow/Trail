@@ -78,6 +78,13 @@ export const RuleCard: React.FC<RuleCardProps> = ({
 }) => {
   const { t } = useTranslation()
   const label = t(AUTOMATION_TYPE_KEYS[rule.type])
+  const outcomeKey = lastRun?.outcome === 'material_update'
+    ? 'automation.run.outcome.materialUpdate'
+    : lastRun?.outcome === 'no_material_update'
+      ? 'automation.run.outcome.noMaterialUpdate'
+      : lastRun?.outcome === 'incomplete'
+        ? 'automation.run.outcome.incomplete'
+        : null
   return (
     <div className={`rounded-[10px] border bg-surface-raised p-3.5 transition-colors ${rule.enabled ? 'border-border' : 'border-border/70 bg-surface-muted/55'}`}>
       <div className="flex items-start justify-between gap-3">
@@ -124,11 +131,14 @@ export const RuleCard: React.FC<RuleCardProps> = ({
       <div className="mt-3 flex items-center justify-between gap-3 border-t border-border/70 pt-2.5">
         <div className="text-[11px] text-foreground/42">
           {lastRun !== undefined
-            ? t('automation.run.lastRun', {
-                when: formatWhen(lastRun.ranAt, t),
-                evaluated: lastRun.evaluated,
-                material: lastRun.materialChanges,
-              })
+            ? <>
+                {t('automation.run.lastRun', {
+                  when: formatWhen(lastRun.ranAt, t),
+                  evaluated: lastRun.evaluated,
+                  material: lastRun.materialChanges,
+                })}
+                {outcomeKey !== null && <span className="ml-1">· {t(outcomeKey)}</span>}
+              </>
             : t('automation.run.noRunsYet')}
         </div>
         <button

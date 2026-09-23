@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto'
 import type {
   AutomationRule,
   AutomationRun,
+  AutomationScopeKind,
+  AutomationScopeSnapshot,
   CalendarEvent,
   CapabilityRegistry,
   NotificationEvent,
@@ -59,6 +61,8 @@ export interface AutomationRunContext {
   /** Scope providers — the kernel host wires these (UI atoms / stored scope). */
   watchlistSymbols?: () => string[] | Promise<string[]>
   portfolioSymbols?: () => string[] | Promise<string[]>
+  /** A portfolio scope plus the timestamp of the source snapshot it came from. */
+  portfolioSnapshot?: () => Promise<{ symbols: string[]; fetchedAt: number } | null>
   thesisSymbols?: () => string[] | Promise<string[]>
   /** Earnings-event hook scope for pre/post-earnings rules. */
   symbols?: string[]
@@ -77,11 +81,13 @@ export async function runAutomation(
 ): Promise<AutomationRun> {
   const ranAt = ctx.now?.() ?? Date.now()
   const id = ctx.idGen?.() ?? randomUUID()
-  const symbols = await resolveScope(rule, ctx)
+  const resolvedScope = await resolveScope(rule, ctx, ranAt)
+  const symbols = resolvedScope.snapshot.symbols
 
   const failures: string[] = []
+  if (resolvedScope.failure !== undefined) failures.push(resolvedScope.failure)
   if (symbols.length === 0) {
-    failures.push(`no symbols in scope for ${rule.type}`)
+    if (resolvedScope.failure === undefined) failures.push(`no symbols in scope for ${rule.type}`)
   }
 
   let evaluated = 0
@@ -91,19 +97,24 @@ export async function runAutomation(
 
   for (const raw of symbols) {
     const symbol = raw.trim().toUpperCase()
-    const outcome = await evaluateSymbol(symbol, ctx)
-    if (outcome === null) {
+    let evaluation: { signals: MaterialSignals; quote: Quote } | null
+    try {
+      evaluation = await evaluateSymbol(symbol, ctx)
+    } catch {
+      failures.push(`${symbol}: evaluation failed`)
+      continue
+    }
+    if (evaluation === null) {
       failures.push(`${symbol}: quote unavailable`)
       continue
     }
     evaluated += 1
-    const material = signalsAreMaterial(outcome.signals)
+    if (evaluation.signals.priceMovePct === undefined) {
+      failures.push(`${symbol}: previous close unavailable`)
+    }
+    const material = signalsAreMaterial(evaluation.signals)
     if (material) {
       materialChanges += 1
-      // A failing analysis or notification is recorded and degraded, exactly
-      // like the quote/calendar probes: it must never abort the whole rule
-      // (which would also drop the AutomationRun record) or skip the
-      // remaining symbols.
       try {
         await ctx.researchStart(symbol, rule.strategyId)
         analyzed += 1
@@ -113,13 +124,20 @@ export async function runAutomation(
     }
     if (rule.notify === 'all' || material) {
       try {
-        await ctx.notify?.(notificationFor(rule, symbol, material, outcome.signals, ranAt, ctx.locale))
+        await ctx.notify?.(notificationFor(rule, symbol, material, evaluation.signals, ranAt, ctx.locale))
         notified = true
       } catch {
         failures.push(`${symbol}: notification failed`)
       }
     }
   }
+
+  const complete = symbols.length > 0 && evaluated === symbols.length && failures.length === 0
+  const outcome: AutomationRun['outcome'] = complete
+    ? materialChanges > 0
+      ? 'material_update'
+      : 'no_material_update'
+    : 'incomplete'
 
   return {
     id,
@@ -130,22 +148,83 @@ export async function runAutomation(
     analyzed,
     notified,
     failures,
+    outcome,
+    scopeSnapshot: resolvedScope.snapshot,
   }
 }
 
 /** Symbols the rule monitors: rule override → hook scope → type providers. */
-async function resolveScope(rule: AutomationRule, ctx: AutomationRunContext): Promise<string[]> {
-  if (rule.symbols !== undefined && rule.symbols.length > 0) return rule.symbols
-  if (ctx.symbols !== undefined && ctx.symbols.length > 0) return ctx.symbols
+async function resolveScope(
+  rule: AutomationRule,
+  ctx: AutomationRunContext,
+  capturedAt: number
+): Promise<{ snapshot: AutomationScopeSnapshot; failure?: string }> {
+  if (rule.symbols !== undefined && rule.symbols.length > 0) {
+    return { snapshot: makeScopeSnapshot('rule', rule.symbols, capturedAt) }
+  }
+  if (ctx.symbols !== undefined && ctx.symbols.length > 0) {
+    return { snapshot: makeScopeSnapshot('hook', ctx.symbols, capturedAt) }
+  }
   switch (rule.type) {
     case 'watchlist-daily-review':
-      return (await ctx.watchlistSymbols?.()) ?? []
-    case 'portfolio-daily-brief':
-      return (await ctx.portfolioSymbols?.()) ?? []
+      return resolveProviderScope('watchlist', ctx.watchlistSymbols, capturedAt)
+    case 'portfolio-daily-brief': {
+      if (ctx.portfolioSnapshot !== undefined) {
+        try {
+          const portfolio = await ctx.portfolioSnapshot()
+          if (portfolio === null || !Number.isFinite(portfolio.fetchedAt)) {
+            return {
+              snapshot: makeScopeSnapshot('portfolio', [], capturedAt),
+              failure: 'portfolio snapshot unavailable',
+            }
+          }
+          return {
+            snapshot: makeScopeSnapshot('portfolio', portfolio.symbols, capturedAt, portfolio.fetchedAt),
+          }
+        } catch {
+          return {
+            snapshot: makeScopeSnapshot('portfolio', [], capturedAt),
+            failure: 'portfolio snapshot unavailable',
+          }
+        }
+      }
+      return resolveProviderScope('portfolio', ctx.portfolioSymbols, capturedAt)
+    }
     case 'weekly-thesis-review':
-      return (await ctx.thesisSymbols?.()) ?? []
+      return resolveProviderScope('thesis', ctx.thesisSymbols, capturedAt)
     default:
-      return []
+      return { snapshot: makeScopeSnapshot('hook', [], capturedAt) }
+  }
+}
+
+function resolveProviderScope(
+  kind: AutomationScopeKind,
+  provider: (() => string[] | Promise<string[]>) | undefined,
+  capturedAt: number
+): Promise<{ snapshot: AutomationScopeSnapshot; failure?: string }> {
+  return Promise.resolve()
+    .then(() => provider?.() ?? [])
+    .then((symbols) => ({ snapshot: makeScopeSnapshot(kind, symbols, capturedAt) }))
+    .catch(() => ({
+      snapshot: makeScopeSnapshot(kind, [], capturedAt),
+      failure: `${kind} scope unavailable`,
+    }))
+}
+
+function makeScopeSnapshot(
+  kind: AutomationScopeKind,
+  symbols: string[],
+  capturedAt: number,
+  sourceFetchedAt?: number
+): AutomationScopeSnapshot {
+  const normalizedSymbols = [
+    ...new Set(symbols.map((symbol) => symbol.trim().toUpperCase()).filter(Boolean)),
+  ].sort()
+  return {
+    kind,
+    symbols: normalizedSymbols,
+    capturedAt,
+    ...(sourceFetchedAt !== undefined ? { sourceFetchedAt } : {}),
   }
 }
 

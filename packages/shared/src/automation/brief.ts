@@ -98,7 +98,14 @@ export function buildBrief(inputs: BriefInputs, now: number = Date.now()): Daily
   ]
   items.sort(compareItems)
 
-  const monitored = union([...inputs.movers.map((m) => m.symbol), ...inputs.diffs.map((d) => d.symbol)])
+  const noMaterialRunSymbols = latestRunsForCurrentDay(inputs.runs, now)
+    .filter((run) => run.outcome === 'no_material_update')
+    .flatMap((run) => run.scopeSnapshot?.symbols ?? [])
+  const monitored = union([
+    ...inputs.movers.map((m) => m.symbol),
+    ...inputs.diffs.map((d) => d.symbol),
+    ...noMaterialRunSymbols,
+  ])
   const materialSymbols = union([
     ...inputs.movers
       .filter((m) => Math.abs(m.changePercent) >= MATERIAL_PRICE_MOVE_PCT)
@@ -209,6 +216,20 @@ function automationItems(inputs: BriefInputs): BriefItem[] {
         failures: run.failures,
       },
     }))
+}
+
+/** Use only the latest successful run per rule on the brief's local calendar day. */
+function latestRunsForCurrentDay(runs: AutomationRun[], now: number): AutomationRun[] {
+  const today = new Date(now).toDateString()
+  const sorted = runs
+    .filter((run) => new Date(run.ranAt).toDateString() === today)
+    .slice()
+    .sort((a, b) => b.ranAt - a.ranAt || a.id.localeCompare(b.id))
+  const latestByRule = new Map<string, AutomationRun>()
+  for (const run of sorted) {
+    if (!latestByRule.has(run.ruleId)) latestByRule.set(run.ruleId, run)
+  }
+  return [...latestByRule.values()]
 }
 
 function compareItems(a: BriefItem, b: BriefItem): number {

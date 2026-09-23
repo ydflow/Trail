@@ -22,6 +22,11 @@ export const automation = {
     running: 'Running…',
     noRunsYet: 'No runs yet',
     lastRun: 'Last run {{when}} · {{evaluated}} evaluated, {{material}} material',
+    outcome: {
+      materialUpdate: 'Material changes found',
+      noMaterialUpdate: 'No material changes',
+      incomplete: 'Run incomplete',
+    },
   },
   schedule: {
     daily: 'Daily',

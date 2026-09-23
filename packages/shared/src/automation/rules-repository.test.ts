@@ -100,4 +100,26 @@ describe('AutomationRunRepository', () => {
     expect((await repo.listByRule('r2')).map((r) => r.id)).toEqual(['run-2'])
     expect(await repo.listByRule('r3')).toEqual([])
   })
+
+  it('persists the no-material outcome and captured portfolio scope across restarts', async () => {
+    const noMaterialRun: AutomationRun = {
+      ...run('run-quiet', 'portfolio-rule', 1_700_000_000_000),
+      evaluated: 2,
+      materialChanges: 0,
+      analyzed: 0,
+      notified: false,
+      outcome: 'no_material_update',
+      scopeSnapshot: {
+        kind: 'portfolio',
+        symbols: ['AAPL.US', 'MSFT.US'],
+        capturedAt: 1_700_000_000_000,
+        sourceFetchedAt: 1_699_999_000_000,
+      },
+    }
+    await new AutomationRunRepository(store).record(noMaterialRun)
+
+    const fresh = new AutomationRunRepository(new JsonFileStore(dir))
+
+    expect(await fresh.listByRule('portfolio-rule')).toEqual([noMaterialRun])
+  })
 })

@@ -2378,12 +2378,15 @@ export class AgentKernelHost {
       locale: await this.effectiveRunLocale(),
       researchStart: async (symbol, strategyId) => this.researchService.start(symbol, strategyId, await this.effectiveRunLocale()),
       notify: (event) => void this.dispatchNotification(event),
-      portfolioSymbols: async () => {
+      portfolioSnapshot: async () => {
         try {
           const snapshot = await this.marketData.getPortfolio();
-          return (snapshot.holdings ?? []).map((holding) => holding.symbol);
+          return {
+            symbols: (snapshot.holdings ?? []).map((holding) => holding.symbol),
+            fetchedAt: snapshot.fetchedAt,
+          };
         } catch {
-          return [];
+          return null;
         }
       },
       thesisSymbols: async () => {

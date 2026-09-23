@@ -32,6 +32,20 @@ export interface AutomationRule {
 }
 
 /** One execution of an automation rule. */
+export type AutomationRunOutcome = 'material_update' | 'no_material_update' | 'incomplete';
+
+export type AutomationScopeKind = 'rule' | 'hook' | 'watchlist' | 'portfolio' | 'thesis';
+
+/** Minimal, immutable record of the securities a run evaluated. */
+export interface AutomationScopeSnapshot {
+  kind: AutomationScopeKind;
+  symbols: string[];
+  /** When this run captured the scope. */
+  capturedAt: number;
+  /** Source snapshot timestamp, when supplied by the portfolio provider. */
+  sourceFetchedAt?: number;
+}
+
 export interface AutomationRun {
   id: string;
   ruleId: string;
@@ -44,6 +58,10 @@ export interface AutomationRun {
   analyzed: number;
   notified: boolean;
   failures: string[];
+  /** Older persisted runs omit this field. */
+  outcome?: AutomationRunOutcome;
+  /** The scope is frozen at execution time; older runs omit this field. */
+  scopeSnapshot?: AutomationScopeSnapshot;
 }
 
 /** Material-change signals, first version (spec §25) — deterministic, never LLM-per-minute. */

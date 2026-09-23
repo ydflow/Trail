@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { join } from 'node:path';
-import type { AgentEvent } from '@finagent/core';
+import type { AgentEvent, AutomationRule } from '@finagent/core';
 
 let lastKernelOptions: Record<string, unknown> | null = null;
 let lastMarketData: FakeMarketDataService | null = null;
+let lastAutomationContext: unknown = null;
 let forwardedEvents: unknown[] = [];
 const routerFetchers = { getQuote: async () => ({ symbol: 'AAPL.US' }) };
 
@@ -21,7 +22,13 @@ class FakeMarketDataService {
   }
 
   async getPortfolio() {
-    return { totalValue: 1000, cash: 100, positions: [] };
+    return {
+      totalAssets: 1000,
+      cash: 100,
+      accounts: [],
+      holdings: [{ symbol: 'AAPL.US', name: 'Apple Inc.' }],
+      fetchedAt: 1_700_000_000_000,
+    };
   }
 
   async getLongBridgeStatus() {
@@ -242,16 +249,19 @@ mock.module('@finagent/shared', () => ({
     summary: '',
     quiet: { count: 0, message: '' },
   }),
-  runAutomation: async () => ({
-    id: 'run',
-    ruleId: 'rule',
-    ranAt: 0,
-    evaluated: 0,
-    materialChanges: 0,
-    analyzed: 0,
-    notified: false,
-    failures: [],
-  }),
+  runAutomation: async (_rule: unknown, context: unknown) => {
+    lastAutomationContext = context;
+    return {
+      id: 'run',
+      ruleId: 'rule',
+      ranAt: 0,
+      evaluated: 0,
+      materialChanges: 0,
+      analyzed: 0,
+      notified: false,
+      failures: [],
+    };
+  },
   runDue: () => [],
   DEFAULT_BRIEF_HOUR: 16.5,
   THESIS_REVIEW_DAY: 0,
@@ -340,6 +350,7 @@ const originalPiExtension = process.env.FINAGENT_PI_EXTENSION;
 beforeEach(() => {
   lastKernelOptions = null;
   lastMarketData = null;
+  lastAutomationContext = null;
   forwardedEvents = [];
 });
 
@@ -471,6 +482,32 @@ describe('AgentKernelHost', () => {
     const host = new AgentKernelHost();
 
     expect(lastMarketData?.options?.fetchers).toBe(routerFetchers);
+    host.dispose();
+  });
+
+  it('passes the fetched portfolio scope and timestamp to the automation runner', async () => {
+    const host = new AgentKernelHost();
+    const rule: AutomationRule = {
+      id: 'portfolio-rule',
+      type: 'portfolio-daily-brief',
+      enabled: true,
+      notify: 'material-only',
+      createdAt: 1_700_000_000_000,
+    };
+    const executeAutomation = (
+      host as unknown as { executeAutomation: (automationRule: AutomationRule) => Promise<unknown> }
+    ).executeAutomation.bind(host);
+
+    await executeAutomation(rule);
+
+    const context = lastAutomationContext as {
+      portfolioSnapshot?: () => Promise<{ symbols: string[]; fetchedAt: number } | null>;
+    } | null;
+    expect(context?.portfolioSnapshot).toBeFunction();
+    await expect(context?.portfolioSnapshot?.()).resolves.toEqual({
+      symbols: ['AAPL.US'],
+      fetchedAt: 1_700_000_000_000,
+    });
     host.dispose();
   });
 
