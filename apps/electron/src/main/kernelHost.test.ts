@@ -1,14 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { join } from 'node:path';
 import type { AgentEvent, AutomationRule } from '@finagent/core';
+import type { AnyProvider, ConnectionState } from '@finagent/shared';
+import type { LoginOutcome, StartLoginOptions } from '../../../../packages/shared/src/providers/longbridge/auth.ts';
 
 let lastKernelOptions: Record<string, unknown> | null = null;
 let lastMarketData: FakeMarketDataService | null = null;
 let lastAutomationContext: unknown = null;
 let forwardedEvents: unknown[] = [];
+let loginHandler: (options: StartLoginOptions) => Promise<LoginOutcome> = async () => ({ status: 'cancelled' });
+let connectionUpdates: Array<Record<string, unknown>> = [];
+let listedProviders: AnyProvider[] = [];
+let storedConnection: ConnectionState | undefined;
 const routerFetchers = { getQuote: async () => ({ symbol: 'AAPL.US' }) };
 
 class FakeMarketDataService {
+  clear() {}
   quoteSymbols: string[] = [];
   constructor(readonly options?: { fetchers?: unknown }) {}
 
@@ -177,14 +184,16 @@ mock.module('@finagent/shared', () => ({
     register = () => undefined;
     setRouting = () => undefined;
     get = () => undefined;
-    list = () => [];
+    list = () => listedProviders;
     coverage = () => [];
+    lastResultFor = () => undefined;
   },
   ConnectionStore: class {
     list = async () => [];
-    get = async () => undefined;
+    get = async (providerId: string) => storedConnection?.providerId === providerId ? storedConnection : undefined;
     getConfig = async () => undefined;
-    update = async () => undefined;
+    getRouting = async (fallback: unknown) => fallback;
+    update = async (state: Record<string, unknown>) => { connectionUpdates.push(state); };
     setConfig = async () => undefined;
     subscribe = () => () => undefined;
   },
@@ -341,6 +350,11 @@ mock.module('@finagent/skill-hub', () => ({
   skillCapabilityMap: {},
 }));
 
+const longbridgeProviders = await import('@finagent/shared/providers/longbridge');
+mock.module('@finagent/shared/providers/longbridge', () => ({
+  ...longbridgeProviders,
+  startLogin: (options: StartLoginOptions) => loginHandler(options),
+}));
 const { AgentKernelHost } = await import('./kernelHost.ts');
 
 // The constructor sets FINAGENT_PI_EXTENSION as a process-wide side effect;
@@ -352,6 +366,10 @@ beforeEach(() => {
   lastMarketData = null;
   lastAutomationContext = null;
   forwardedEvents = [];
+  connectionUpdates = [];
+  listedProviders = [];
+  storedConnection = undefined;
+  loginHandler = async () => ({ status: 'cancelled' });
 });
 
 afterEach(() => {
@@ -363,6 +381,68 @@ afterEach(() => {
 });
 
 describe('AgentKernelHost', () => {
+  it('shows Connect after installation despite a persisted not-installed result', async () => {
+    const host = new AgentKernelHost();
+    storedConnection = {
+      providerId: 'longbridge', status: 'not-installed', lastCheck: 1,
+      error: { code: 'LONGBRIDGE_NOT_INSTALLED', message: 'Old missing CLI result' },
+    };
+    listedProviders = [new longbridgeProviders.LongbridgeFinancialDataProvider({
+      exec: async (args) => args[0] === '--version' ? 'longbridge 0.30.0'
+        : JSON.stringify({ token: { status: 'not_found' } }),
+    })];
+    const entries = await host.listConnections();
+    expect(entries[0]).toMatchObject({ status: 'not-connected', error: null });
+    host.dispose();
+  });
+
+  it('ends a failed login startup and persists not-installed instead of connecting', async () => {
+    const host = new AgentKernelHost();
+    loginHandler = async () => ({ status: 'error', error: {
+      code: 'LONGBRIDGE_NOT_INSTALLED', message: 'CLI not found',
+    } });
+    await expect(host.connectProvider({ providerId: 'longbridge' })).rejects.toMatchObject({
+      code: 'LONGBRIDGE_NOT_INSTALLED',
+    });
+    expect(connectionUpdates.at(-1)).toMatchObject({ status: 'not-installed' });
+    // The failed attempt must release the in-memory login lock too.
+    loginHandler = async () => ({ status: 'connected' });
+    await expect(host.connectProvider({ providerId: 'longbridge' })).resolves.toEqual({ status: 'connected' });
+    host.dispose();
+  });
+
+  it('cancels authorization while waiting for the first URL', async () => {
+    const host = new AgentKernelHost();
+    let started!: () => void;
+    const ready = new Promise<void>((resolve) => { started = resolve; });
+    loginHandler = async ({ signal }) => {
+      started();
+      return new Promise((resolve) => signal?.addEventListener('abort', () => resolve({ status: 'cancelled' }), { once: true }));
+    };
+    const pending = host.connectProvider({ providerId: 'longbridge' });
+    await ready;
+    await host.cancelConnectProvider({ providerId: 'longbridge' });
+    await expect(pending).rejects.toMatchObject({ code: 'LOGIN_CANCELLED' });
+    expect(connectionUpdates.at(-1)).toMatchObject({ status: 'not-connected' });
+    host.dispose();
+  });
+
+  it('returns the manual URL while the device flow continues, then cancels it', async () => {
+    const host = new AgentKernelHost();
+    let finished!: (outcome: LoginOutcome) => void;
+    loginHandler = async ({ onVerificationUri }) => {
+      onVerificationUri?.('https://example.test/authorize');
+      return new Promise((resolve) => { finished = resolve; });
+    };
+    await expect(host.connectProvider({ providerId: 'longbridge' })).resolves.toEqual({
+      status: 'connecting', verificationUrl: 'https://example.test/authorize',
+    });
+    finished({ status: 'cancelled' });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(connectionUpdates.at(-1)).toMatchObject({ status: 'not-connected' });
+    host.dispose();
+  });
+
   it('builds the kernel on the electron userData store', () => {
     const host = new AgentKernelHost();
 

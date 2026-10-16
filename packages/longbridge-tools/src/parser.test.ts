@@ -25,6 +25,13 @@ function quote(overrides: Record<string, unknown> = {}): string {
 }
 
 describe('parseQuoteResponse empty-value markers', () => {
+  it('keeps a real CLI 0.30 quote with no source timestamp without inventing one', () => {
+    const parsed = parseQuoteResponse(JSON.stringify({ symbol: 'AAPL.US', last: '342.000', prev_close: '342.960', volume: 1234 }));
+    expect(parsed.lastPrice).toBe(342);
+    expect(parsed.timestamp).toBe(0);
+    expect(parsed.change).toBeCloseTo(-0.96);
+  });
+
   it('fails a blank last price instead of reporting 0', () => {
     expect(() => parseQuoteResponse(quote({ last_price: '', last: '' }))).toThrow(LongBridgeError);
     expect(() => parseQuoteResponse(quote({ last_price: '   ' }))).toThrow(LongBridgeError);

@@ -82,6 +82,28 @@ async function readFileOrNull(path: string) {
 }
 
 describe('PiRpcClient', () => {
+  for (const eventType of ['message_end', 'agent_end']) {
+    it(`rejects a model error inside ${eventType} instead of completing an empty answer`, async () => {
+      const client = new PiRpcClient({ spawnProcess: createSpawn(() => new FakePiProcess((line, proc) => {
+        if (line.type !== 'prompt') return;
+        const failed = { role: 'assistant', stopReason: 'error', errorMessage: "Cannot read properties of undefined (reading 'includes')", content: [] };
+        proc.writeEvent({ id: line.id, type: eventType, ...(eventType === 'agent_end' ? { messages: [failed] } : { message: failed }) });
+        proc.writeEvent({ id: line.id, type: 'agent_end', messages: [failed] });
+      })) });
+      try {
+        await expect(client.prompt('hello')).rejects.toMatchObject({ code: 'PI_MODEL_ERROR', message: expect.stringContaining('includes') });
+      } finally { await client.dispose(); }
+    });
+  }
+
+  it('reports a genuinely empty final answer as a visible failure', async () => {
+    const client = new PiRpcClient({ spawnProcess: createSpawn(() => new FakePiProcess((line, proc) => {
+      if (line.type === 'prompt') proc.writeEvent({ id: line.id, type: 'agent_end', messages: [{ role: 'assistant', content: [] }] });
+    })) });
+    try { await expect(client.prompt('hello')).rejects.toMatchObject({ code: 'PI_EMPTY_RESPONSE' }); }
+    finally { await client.dispose(); }
+  });
+
   it('uses the project default pi runtime command and args', () => {
     process.env.ANTHROPIC_MODEL = 'MiniMax-M2.7';
 

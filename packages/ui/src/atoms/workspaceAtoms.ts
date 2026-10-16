@@ -16,6 +16,8 @@ export const activeSymbolAtom = atom<string | null>(null);
 
 /** Which workspace view is visible: security views or app sections. */
 export const activeViewAtom = atom<WorkspaceView>('overview');
+/** Re-fetch the visible read-only security view without reloading the app. */
+export const workspaceRefreshAtom = atom(0);
 
 /** Selected portfolio position (portfolio view). */
 export const selectedPositionAtom = atom<string | null>(null);

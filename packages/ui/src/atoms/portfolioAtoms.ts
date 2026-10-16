@@ -30,12 +30,14 @@ export const portfolioCacheAtom = atom<PortfolioCache>({
 export const fetchPortfolioAtom = atom(
   null,
   async (_get, set, client: FinagentClient) => {
+    let requestFailure: PortfolioFailure | null = null;
     set(portfolioCacheAtom, (cache) => ({ ...cache, loading: true, error: null }));
 
     try {
       const result = await client.market.getPortfolio();
       if (!result.ok) {
         const failure = portfolioFailureFromError(result.error);
+        requestFailure = failure;
         set(portfolioCacheAtom, (cache) => ({
           ...cache,
           loading: false,
@@ -54,7 +56,7 @@ export const fetchPortfolioAtom = atom(
         const demo = demoPortfolioSnapshot();
         set(portfolioCacheAtom, {
           data: demo,
-          failure: null,
+          failure,
           isDemo: true,
           timestamp: Date.now(),
           loading: false,
@@ -78,7 +80,7 @@ export const fetchPortfolioAtom = atom(
       const demo = demoPortfolioSnapshot();
       set(portfolioCacheAtom, {
         data: demo,
-        failure: null,
+        failure: requestFailure ?? portfolioFailureFromError(error),
         isDemo: true,
         timestamp: Date.now(),
         loading: false,

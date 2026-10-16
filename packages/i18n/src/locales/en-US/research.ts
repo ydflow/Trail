@@ -10,6 +10,10 @@ export const research = {
   deepResearch: 'Deep Research',
   workspace: {
     title: 'Research',
+    currencyLabel: 'Currency',
+    currencyHint: 'Quote currency for the selected security. Informational; currency conversion is not available.',
+    providerQuote: 'Provider quote',
+    quoteTimeUnknown: 'Price received; the provider did not supply a quote timestamp.',
     searchPlaceholder: 'Search securities, topics, or notes',
     addToWatchlist: 'Add to watchlist',
     inWatchlist: 'In watchlist',

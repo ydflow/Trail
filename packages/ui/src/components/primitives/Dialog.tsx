@@ -24,7 +24,7 @@ export const Dialog: React.FC<DialogProps> = ({
       <DialogPrimitive.Content
           className={cn(
             'fixed left-1/2 top-1/2 z-(--z-index-modal) w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-[4px] border border-border bg-surface p-5 text-foreground shadow-[0_16px_40px_rgba(15,23,42,.14)]',
-            'focus:outline-none',
+            'max-h-[calc(100dvh-3rem)] overflow-y-auto rounded-[var(--radius)] focus:outline-none',
             className
           )}
         >

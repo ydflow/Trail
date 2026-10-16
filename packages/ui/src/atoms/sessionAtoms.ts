@@ -47,15 +47,23 @@ export const hydrateSessionsAtom = atom(
 
 export const loadMessagesAtom = atom(
   null,
-  async (_get, set, client: FinagentClient, sessionId: string) => {
-    const result = await client.kernel.getMessages(sessionId);
-    if (!result.ok) return;
-    set(messagesAtomFamily(sessionId), result.data);
-    set(loadedSessionIdsAtom, (loaded) => {
-      const next = new Set(loaded);
-      next.add(sessionId);
-      return next;
-    });
+  async (get, set, client: FinagentClient, sessionId: string, minimumCount: number = 0) => {
+    // The terminal event can precede transcript persistence. Keep the complete
+    // live turn until the saved answer (including its evidence) is available.
+    // Ordinary hydration remains a single read; only completion refreshes poll.
+    for (let attempt = 0; attempt < (minimumCount > 0 ? 8 : 1); attempt += 1) {
+      const result = await client.kernel.getMessages(sessionId);
+      if (!result.ok) return;
+      const requiredCount = minimumCount > 0
+        ? Math.max(minimumCount, get(messagesAtomFamily(sessionId)).length)
+        : 0;
+      if (result.data.length >= requiredCount) {
+        set(messagesAtomFamily(sessionId), result.data);
+        set(loadedSessionIdsAtom, (loaded) => new Set([...loaded, sessionId]));
+        return;
+      }
+      if (attempt < 7) await new Promise((resolve) => setTimeout(resolve, 75));
+    }
   }
 );
 

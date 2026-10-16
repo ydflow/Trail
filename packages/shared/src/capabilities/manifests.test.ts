@@ -57,6 +57,14 @@ function fetchers(overrides: Partial<CapabilityFetchers> = {}): CapabilityFetche
 }
 
 describe('market.quote manifest', () => {
+  it('marks an unknown source time without emitting a false 1970 market date', async () => {
+    const result = await createMarketQuoteCapability(fetchers({ getQuote: async () => ({ ...quote, timestamp: 0 }) })).execute({ symbol: 'AAPL.US' }, {});
+    expect(result.provenance.marketTime).toBeUndefined();
+    expect(result.provenance.stale).toBe(true);
+    expect(result.summary).toContain('Not supplied by the provider');
+    expect(result.summary).not.toContain('1970');
+  });
+
   it('validates input via TypeBox and returns provenance + summary', async () => {
     const cap = createMarketQuoteCapability(fetchers());
 

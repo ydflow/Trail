@@ -161,7 +161,7 @@ export const ResearchMarketWorkspace: React.FC<ResearchMarketWorkspaceProps> = (
           <div className="trail-research-asset-copy min-w-0">
             <div className="trail-research-asset-overline">
               <span className="trail-research-market-dot" aria-hidden="true" />
-              <span>{currency} · {quote ? t('research.workspace.live') : t('research.workspace.marketStatus')}</span>
+              <span>{currency} · {quoteCache.isDemo ? t('demo.badge') : quote ? t('research.workspace.providerQuote') : t('research.workspace.marketStatus')}</span>
             </div>
             <div className="trail-research-asset-identity">
               <h1 className="trail-research-symbol">{symbol}</h1>
@@ -176,7 +176,7 @@ export const ResearchMarketWorkspace: React.FC<ResearchMarketWorkspaceProps> = (
             <p className="trail-research-market-meta">
               {quote?.timestamp
                 ? `${t('research.workspace.lastUpdated')} ${new Date(quote.timestamp * 1000).toLocaleString()}`
-                : t('research.workspace.marketDataUnavailable')}
+                : quote && !quoteCache.isDemo ? t('research.workspace.quoteTimeUnknown') : t('research.workspace.marketDataUnavailable')}
             </p>
           </div>
           <div className="trail-research-asset-actions">
@@ -247,7 +247,7 @@ export const ResearchMarketWorkspace: React.FC<ResearchMarketWorkspaceProps> = (
             <ResearchStat label={t('research.workspace.low')} value={formatPrice(quote?.low, currency)} />
             <ResearchStat label={t('research.workspace.prevClose')} value={formatPrice(quote?.prevClose, currency)} />
             <ResearchStat label={t('research.workspace.volume')} value={formatCompact(quote?.volume)} />
-            <ResearchStat label={t('research.workspace.marketStatus')} value={quote ? t('research.workspace.live') : '—'} />
+            <ResearchStat label={t('research.workspace.marketStatus')} value={quoteCache.isDemo ? t('demo.badge') : quote ? t('research.workspace.providerQuote') : '—'} />
           </div>
         </div>
 

@@ -43,6 +43,9 @@ export function normalizeLongBridgeError(error: unknown): LongBridgeError {
     if (execaError.timedOut || details.includes('timed out') || details.includes('timeout')) {
       return new LongBridgeError('LongBridge command timed out', 'LONGBRIDGE_TIMEOUT');
     }
+    if (details.includes('403308') || details.includes('scope is not in authorized scopes')) {
+      return new LongBridgeError('Longbridge authorization does not include the required account-data scope.', 'LONGBRIDGE_PERMISSION_DENIED');
+    }
     if (
       details.includes('429002') ||
       details.includes('rate limited') ||

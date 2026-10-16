@@ -16,6 +16,22 @@ beforeAll(async () => {
 });
 afterAll(() => restore());
 
+it('shows the actual security currency as information without a fake dropdown', async () => {
+  const store = createStore(); store.set(activeSymbolAtom, '0700.HK');
+  const research = { ...fallbackClient.research!, listRuns: async () => ({ ok: true as const, data: [] }), listReports: async () => ({ ok: true as const, data: [] }) };
+  (window as unknown as { electronAPI: unknown }).electronAPI = { research };
+  const client = { ...fallbackClient, research, market: { ...fallbackClient.market, getStaticInfo: async () => ({ ok: true as const, data: { symbol: '0700.HK', name: 'Tencent', currency: 'HKD' } }) } };
+  const container = document.createElement('div'); document.body.appendChild(container); const root = createRoot(container);
+  try {
+    await act(async () => root.render(<TestI18n><Provider store={store}><FinagentClientProvider client={client}><ResearchPanel /></FinagentClientProvider></Provider></TestI18n>));
+    const label = container.querySelector('[data-testid="research-quote-currency"]');
+    expect(label?.textContent).toContain('HKD');
+    expect(label?.textContent).not.toContain('USD');
+    expect(label?.textContent).not.toContain('⌄');
+    expect(label?.getAttribute('title')).toContain('Informational');
+  } finally { await act(async () => root.unmount()); container.remove(); delete (window as unknown as { electronAPI?: unknown }).electronAPI; }
+});
+
 it('hydrates an interrupted run, exposes recovery actions, and shows a resume error', async () => {
   const run: ResearchRunSummary = {
     id: 'saved-run', symbol: 'NVDA.US', status: 'interrupted', startedAt: 1,

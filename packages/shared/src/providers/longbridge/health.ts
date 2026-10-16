@@ -166,7 +166,7 @@ export function healthFromAuthStatus(output: string, latencyMs?: number): Provid
   const label = accountLabel(account);
   const region = inferRegion(account);
 
-  if (!token || !tokenStatus) {
+  if (!token || !tokenStatus || tokenStatus === 'not_found') {
     return {
       status: 'not-connected',
       lastCheck,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import type { CalcIndex, StaticInfo } from '@finagent/core';
-import { activeSymbolAtom } from '../../atoms';
+import { activeSymbolAtom, workspaceRefreshAtom } from '../../atoms';
 import { useFinagentClient } from '../../client';
 
 const DASH = '\u2014';
@@ -28,6 +28,7 @@ export const FinancialsView: React.FC = () => {
   const { t } = useTranslation();
   const client = useFinagentClient();
   const symbol = useAtomValue(activeSymbolAtom);
+  const refreshRevision = useAtomValue(workspaceRefreshAtom);
 
   const [calcIndex, setCalcIndex] = useState<CalcIndex | null>(null);
   const [staticInfo, setStaticInfo] = useState<StaticInfo | null>(null);
@@ -51,7 +52,7 @@ export const FinancialsView: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [client, symbol]);
+  }, [client, symbol, refreshRevision]);
 
   if (!symbol) return null;
 

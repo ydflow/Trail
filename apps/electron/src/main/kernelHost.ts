@@ -1011,7 +1011,7 @@ export class AgentKernelHost {
       });
     }
     for (const info of credentialInfos) {
-      if (info.custom || byProvider.has(info.provider)) continue;
+      if (info.custom || info.provider.startsWith('custom:') || info.provider === 'runtime' || byProvider.has(info.provider)) continue;
       statuses.push({
         provider: info.provider,
         displayName: info.provider,
@@ -1738,6 +1738,10 @@ export class AgentKernelHost {
       this.providerRouter.coverage().find((c) => c.providerId === provider.id) ?? null;
     const config = await this.connectionStore.getConfig(provider.id);
     const routing = await this.connectionStore.getRouting(DEFAULT_PROVIDER_ROUTING);
+    // Installation and interrupted-login state can change outside this process.
+    // A saved not-installed result must not hide a newly installed CLI.
+    const useLiveHealth = (state?.status === 'connecting' && !this.activeLogin)
+      || (state?.status === 'not-installed' && health !== null && health.status !== 'not-installed');
     let hasAccount = false;
     let accountLabel: string | null = null;
     if (provider.kind === 'broker-account') {
@@ -1755,7 +1759,9 @@ export class AgentKernelHost {
       providerId: provider.id,
       kind: provider.kind,
       name: provider.name,
-      status: state?.status ?? health?.status ?? 'not-connected',
+      status: useLiveHealth
+        ? health?.status ?? 'not-connected'
+        : state?.status ?? health?.status ?? 'not-connected',
       health,
       coverage,
       configurable: provider.id === 'massive',
@@ -1765,7 +1771,7 @@ export class AgentKernelHost {
           : health?.status === 'connected',
       hasAccount,
       accountLabel,
-      error: state?.error ?? null,
+      error: useLiveHealth ? null : state?.error ?? null,
       enabled: config?.enabled !== false,
       endpoint: config?.endpoint ?? null,
       region: config?.region ?? health?.region ?? null,
@@ -1792,14 +1798,19 @@ export class AgentKernelHost {
     if (this.activeLogin) {
       throw createCodeError('LOGIN_IN_PROGRESS', 'A Longbridge login is already in progress.');
     }
-    await this.connectionStore.update({ providerId, status: 'connecting', lastCheck: Date.now() });
-
     const controller = new AbortController();
+    const login = { cancel: () => controller.abort() };
+    this.activeLogin = login;
+    await this.connectionStore.update({ providerId, status: 'connecting', lastCheck: Date.now() });
     let resolveUrl: (uri: string | undefined) => void;
     const urlPromise = new Promise<string | undefined>((resolve) => {
       resolveUrl = resolve;
     });
-    const urlTimer = setTimeout(() => resolveUrl(undefined), 30_000);
+    let startupTimedOut = false;
+    const urlTimer = setTimeout(() => {
+      startupTimedOut = true;
+      controller.abort();
+    }, 30_000);
 
     const outcomePromise = startLogin({
       exec: executeLongBridgeCli,
@@ -1811,21 +1822,17 @@ export class AgentKernelHost {
       },
       signal: controller.signal,
     });
-    this.activeLogin = {
-      cancel: () => controller.abort(),
-    };
-
-    const verificationUrl = await urlPromise;
-    if (!verificationUrl) {
-      controller.abort();
-      this.activeLogin = null;
-      throw createCodeError('LOGIN_START_FAILED', 'Could not start the Longbridge authorization flow.');
-    }
-
     // The device flow continues in the background; completion updates the
     // connection store and pushes `connections:changed` to the renderer.
-    void outcomePromise
+    const completion = outcomePromise
       .then(async (outcome) => {
+        this.marketData.clear();
+        if (startupTimedOut) {
+          outcome = { status: 'error', error: {
+            code: 'LOGIN_START_FAILED',
+            message: 'Longbridge did not provide an authorization URL. Check the CLI and network, then retry.',
+          } };
+        }
         if (outcome.status === 'connected') {
           await this.connectionStore.update({
             providerId,
@@ -1838,25 +1845,42 @@ export class AgentKernelHost {
         } else {
           await this.connectionStore.update({
             providerId,
-            status: 'error',
+            status: outcome.status === 'error' && outcome.error.code === 'LONGBRIDGE_NOT_INSTALLED'
+              ? 'not-installed' : 'error',
             lastCheck: Date.now(),
-            error: { code: 'LOGIN_TIMEOUT', message: 'Authorization timed out. Try again.' },
+            error: outcome.status === 'error' ? outcome.error
+              : { code: 'LOGIN_TIMEOUT', message: 'Authorization timed out. Try again.' },
           });
         }
-        this.activeLogin = null;
-        void this.pushConnections();
+        return outcome;
       })
-      .catch(() => {
-        this.activeLogin = null;
+      .finally(() => {
+        clearTimeout(urlTimer);
+        resolveUrl(undefined);
+        if (this.activeLogin === login) this.activeLogin = null;
         void this.pushConnections();
       });
 
+    // Subscribe to completion immediately: missing binaries / CLI failures
+    // must resolve the request instead of leaving a persisted Connecting card.
+    void completion.catch(() => undefined);
+    const verificationUrl = await urlPromise;
+    if (!verificationUrl) {
+      const outcome = await completion;
+      if (outcome.status === 'connected') return { status: 'connected' };
+      const error = outcome.status === 'error' ? outcome.error
+        : { code: 'LOGIN_CANCELLED', message: 'Longbridge authorization was cancelled.' };
+      throw createCodeError(error.code, error.message);
+    }
     return { status: 'connecting', verificationUrl };
   }
 
   async cancelConnectProvider(input: unknown): Promise<void> {
-    requireObject(input);
-    this.activeLogin?.cancel();
+    const request = requireObject(input);
+    const providerId = requireString(request.providerId, 'providerId');
+    if (providerId !== 'longbridge') throw createCodeError('CONFIG_UNSUPPORTED', 'Unsupported login provider.');
+    if (this.activeLogin) this.activeLogin.cancel();
+    else await this.connectionStore.update({ providerId, status: 'not-connected', lastCheck: Date.now() });
   }
 
   async disconnectProvider(input: unknown): Promise<ConnectionEntry | null> {
@@ -2531,11 +2555,17 @@ export class AgentKernelHost {
         baseUrl: provider.baseUrl,
         apiKey: provider.apiKey,
         api: provider.api,
-        models: provider.models,
+        // Most third-party OpenAI-compatible gateways still reject the
+        // newer `developer` role. Use `system` unless a provider explicitly
+        // opts into developer messages.
+        models: provider.models.map((model) => ({
+          ...model,
+          compat: { supportsDeveloperRole: false, ...(model.compat ?? {}) },
+        })),
       });
     }
     for (const info of await this.credentials.listCredentials()) {
-      if (info.custom) continue;
+      if (info.custom || info.provider.startsWith('custom:') || info.provider === 'runtime') continue;
       const apiKey = await this.credentials.getCredential(info.provider);
       if (!apiKey) continue;
       overrides.push({ provider: info.provider, apiKey });
@@ -2649,10 +2679,14 @@ const executeLongBridgeCli: LongbridgeExec = (args, options) =>
   executeLongBridge(args, { timeout: options?.timeout });
 
 /** Spawn the Longbridge CLI; stdout chunks stream to the login flow. */
-const spawnLongbridge: SpawnFn = (args, onStdout) => {
+const spawnLongbridge: SpawnFn = (args, onOutput, onError) => {
   const child = spawn('longbridge', args, { stdio: ['ignore', 'pipe', 'pipe'] });
-  child.stdout.on('data', (chunk: Buffer) => onStdout(chunk.toString()));
-  child.stderr.resume();
+  child.stdout.on('data', (chunk: Buffer) => onOutput(chunk.toString()));
+  child.stderr.on('data', (chunk: Buffer) => onOutput(chunk.toString()));
+  child.on('error', onError);
+  child.on('close', (code) => {
+    if (code !== 0) onError(new Error('Longbridge login exited before authorization completed.'));
+  });
   return { kill: () => child.kill() };
 };
 

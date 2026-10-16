@@ -63,6 +63,28 @@ function scriptedClient(handler: (line: Record<string, unknown>, proc: FakePiPro
 }
 
 describe('PiRpcClient LLM control plane', () => {
+  it('ignores delayed exit and output from a process replaced by restart', async () => {
+    const processes: FakePiProcess[] = [];
+    const client = new PiRpcClient({ spawnProcess: () => {
+      const proc = new FakePiProcess((line, child) => {
+        if (line.type !== 'get_state') return;
+        if (processes.length === 1) child.respond(line, { type: 'response', success: true, data: { sessionId: 'old' } });
+        else queueMicrotask(() => {
+          processes[0]?.stdout.write('old process invalid JSON\n');
+          processes[0]?.emit('exit', null, 'SIGTERM');
+          child.respond(line, { type: 'response', success: true, data: { sessionId: 'new' } });
+        });
+      });
+      proc.kill = () => { proc.killed = true; return true; };
+      processes.push(proc); return proc as never;
+    } });
+    try {
+      await client.getState(); await client.restart();
+      expect((await client.getState()).sessionId).toBe('new');
+      expect(client.getLastExitInfo()).toBeNull();
+    } finally { await client.dispose(); }
+  });
+
   it('lists models from get_available_models', async () => {
     const client = scriptedClient((line, proc) => {
       if (line.type === 'get_available_models') {

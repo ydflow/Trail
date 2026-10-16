@@ -73,6 +73,47 @@ async function render(client: FinagentClient) {
 }
 
 describe('ConnectionsCenter', () => {
+  it('cancels the real pending flow and does not claim authorization before a URL exists', async () => {
+    let entry = { ...ENTRY, status: 'connecting' as ConnectionEntry['status'] };
+    let cancelled = false;
+    const { container } = await render(clientWith({
+      list: async () => ({ ok: true, data: [entry] }),
+      cancelConnect: async (providerId) => {
+        cancelled = providerId === 'longbridge';
+        entry = { ...entry, status: 'not-connected' };
+        return { ok: true, data: undefined };
+      },
+    }));
+    expect(container.textContent).toContain('Getting the authorization link');
+    expect(container.textContent).not.toContain('Waiting for authorization');
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('[data-testid="cancel-connect-longbridge"]')?.click();
+    });
+    expect(cancelled).toBe(true);
+    expect(container.querySelector('[data-testid="connect-longbridge"]')).not.toBeNull();
+  });
+
+  it('exposes a manual verification link after the CLI provides a URL', async () => {
+    let entry = { ...ENTRY, status: 'not-connected' as ConnectionEntry['status'] };
+    const opened: string[] = [];
+    const client = clientWith({
+      list: async () => ({ ok: true, data: [entry] }),
+      connect: async () => {
+        entry = { ...entry, status: 'connecting' };
+        return { ok: true, data: { status: 'connecting', verificationUrl: 'https://example.test/authorize' } };
+      },
+    });
+    client.openExternal = async (url) => { opened.push(url); return { ok: true, data: undefined }; };
+    const { container } = await render(client);
+    await act(async () => {
+      container.querySelector<HTMLButtonElement>('[data-testid="connect-longbridge"]')?.click();
+    });
+    const openLink = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Open verification page');
+    expect(openLink).toBeDefined();
+    await act(async () => { openLink?.click(); });
+    expect(opened).toEqual(['https://example.test/authorize']);
+  });
+
   it('renders the capability matrix from coverage', async () => {
     const { container } = await render(clientWith());
     const matrix = container.querySelector('[data-testid="capability-matrix"]');

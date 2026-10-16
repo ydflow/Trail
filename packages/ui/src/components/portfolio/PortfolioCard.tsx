@@ -8,9 +8,10 @@ interface PortfolioCardProps {
   view: PortfolioView;
   /** True when the snapshot is built-in sample data (no live provider). */
   isDemo?: boolean;
+  demoReason?: string;
 }
 
-export const PortfolioCard: React.FC<PortfolioCardProps> = ({ view, isDemo = false }) => {
+export const PortfolioCard: React.FC<PortfolioCardProps> = ({ view, isDemo = false, demoReason }) => {
   const { t } = useTranslation();
   const invested = view.totalAssets !== undefined && view.totalPnL !== undefined
     ? view.totalAssets - view.totalPnL
@@ -33,7 +34,7 @@ export const PortfolioCard: React.FC<PortfolioCardProps> = ({ view, isDemo = fal
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 text-right">
-          {isDemo && <DemoBadge />}
+          {isDemo && <DemoBadge reason={demoReason} />}
           <div className={`rounded-full px-2.5 py-1 text-[12px] font-semibold tabular-nums ${isPositive ? 'bg-[var(--mac-green)]/10' : 'bg-[var(--mac-red)]/10'} ${pnlColor}`}>
             {formatSignedCurrency(view.totalPnL, view.baseCurrency)}
           </div>

@@ -34,6 +34,21 @@ const assistantMessage: Message = {
 };
 
 describe('TurnCard', () => {
+  it('shows one assistant identity above a full multi-section answer, and none on user turns', async () => {
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<I18nextProvider i18n={makeTestI18n('zh-CN')}><TurnCard message={{ ...assistantMessage, content: '## 市场变化\n第一段。\n\n## 判断依据\n第二段。' }} /></I18nextProvider>);
+    });
+    expect(container.querySelectorAll('[data-testid="assistant-identity"]').length).toBe(1);
+    expect(container.querySelector('.trail-answer-name')?.textContent).toBe('研迹');
+    expect(container.querySelector('.trail-answer-body')?.querySelectorAll('h2').length).toBe(2);
+    await act(async () => {
+      root.render(<I18nextProvider i18n={makeTestI18n('zh-CN')}><TurnCard message={{ ...assistantMessage, role: 'user' }} /></I18nextProvider>);
+    });
+    expect(container.querySelector('[data-testid="assistant-identity"]')).toBeNull();
+    await act(async () => root.unmount());
+  });
   it('renders persisted tool calls with the shared expandable activity timeline', async () => {
     const container = document.createElement('div');
     const root = createRoot(container);

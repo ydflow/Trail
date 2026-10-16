@@ -3,7 +3,9 @@ import type { NamespaceResource } from '../keys.ts';
 /** Agent panel + chat chrome (spec §113). Lifetime values are runtime data, not chrome. */
 export const agent = {
   panel: {
-    title: 'Agent Copilot',
+    title: 'Trail Assistant',
+    assistantName: 'Trail',
+    inputHint: 'Enter to send · Shift + Enter for a new line',
     collapsePanel: 'Collapse agent panel',
     inputPlaceholder: 'Ask the copilot…',
     inputRunningPlaceholder: 'Agent is running…',
@@ -26,6 +28,8 @@ export const agent = {
     detailsLabel: 'Advanced details',
   },
   empty: {
+    heading: 'Research starts with a question',
+    subtitle: 'Let Trail help you connect information and insight.',
     body: 'Start a new session to explore markets with your agent.',
     createSession: 'Create New Session',
   },
@@ -34,6 +38,7 @@ export const agent = {
     clear: 'Clear security context',
   },
   model: {
+    unavailable: 'Model controls unavailable',
     label: 'Model',
     loading: 'Loading models…',
     select: 'Select model',

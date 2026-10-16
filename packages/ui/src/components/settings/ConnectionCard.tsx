@@ -4,6 +4,7 @@ import type { FinancialProviderStatus } from '@finagent/core';
 import { useFinagentClient } from '../../client';
 import {
   connectProvider,
+  cancelProviderConnect,
   connectionStatusLabel,
   disconnectProvider,
   hasOpenExternal,
@@ -13,12 +14,13 @@ import {
   testProvider,
   type ConnectionEntry,
   type ConnectionKind,
+  type ConnectionError,
 } from '../../client/connections';
 import { Button } from '../primitives/Button';
 import { Input } from '../primitives/Input';
 
 /** Official Longbridge setup docs (never curl|sh from the renderer). */
-const LONGBRIDGE_SETUP_URL = 'https://open.longbridge.com/skill/install.md';
+const LONGBRIDGE_SETUP_URL = 'https://open.longbridge.com/docs/cli/install';
 
 const KIND_LABEL_KEY: Record<ConnectionKind, string> = {
   'financial-data': 'connections.kindFinancialData',
@@ -35,7 +37,7 @@ const STATUS_DOT: Record<FinancialProviderStatus, string> = {
   error: 'bg-destructive',
 };
 
-type BusyAction = 'connect' | 'disconnect' | 'test' | 'setConfig' | 'settings';
+type BusyAction = 'connect' | 'cancel' | 'disconnect' | 'test' | 'setConfig' | 'settings';
 
 /** A single provider connection card: status, actions, and the device/BYOK flows. */
 export const ConnectionCard: React.FC<{
@@ -44,8 +46,16 @@ export const ConnectionCard: React.FC<{
 }> = ({ entry, onChanged }) => {
   const { t } = useTranslation();
   const client = useFinagentClient();
+  const errorText = useCallback((failure: ConnectionError | null | undefined) => {
+    if (failure?.code === 'LONGBRIDGE_NOT_INSTALLED') return t('connections.cliNotFound');
+    if (failure?.code === 'LOGIN_START_FAILED') return t('connections.loginStartFailed');
+    if (failure?.code === 'LOGIN_TIMEOUT') return t('connections.authorizationTimedOut');
+    return failure?.message ?? null;
+  }, [t]);
   const [busy, setBusy] = useState<BusyAction | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(entry.error?.message ?? null);
+  const persistedError = errorText(entry.error);
+  useEffect(() => setError(persistedError), [persistedError]);
 
   // Device-flow state (longbridge).
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
@@ -92,10 +102,11 @@ export const ConnectionCard: React.FC<{
         setVerificationUrl(result.data.verificationUrl ?? null);
       }
       onChanged();
-    } else {
-      setError(result.error?.message ?? t('connections.connectionFailed'));
+    } else if (result.error?.code !== 'LOGIN_CANCELLED') {
+      setError(errorText(result.error) ?? t('connections.connectionFailed'));
+      onChanged();
     }
-  }, [client, entry.providerId, onChanged, t]);
+  }, [client, entry.providerId, errorText, onChanged, t]);
 
   const handleConnect = useCallback(() => {
     if (entry.configurable) {
@@ -165,10 +176,14 @@ export const ConnectionCard: React.FC<{
   }, [client, entry.providerId, run, t]);
 
   const handleCancel = useCallback(() => {
-    setVerificationUrl(null);
-    setError(null);
-    onChanged();
-  }, [onChanged]);
+    void run('cancel', async () => {
+      const result = await cancelProviderConnect(client, entry.providerId);
+      if (!result.ok) return { ok: false, error: result.error?.message ?? t('connections.connectionFailed') };
+      setVerificationUrl(null);
+      onChanged();
+      return { ok: true, error: null };
+    });
+  }, [client, entry.providerId, onChanged, run, t]);
 
   const handleInstall = useCallback(() => {
     void openExternalUrl(client, LONGBRIDGE_SETUP_URL);
@@ -185,7 +200,7 @@ export const ConnectionCard: React.FC<{
   const renderPrimaryAction = () => {
     if (waiting) {
       return (
-        <Button variant="outline" size="sm" onClick={handleCancel} disabled={busy !== null}>
+        <Button variant="outline" size="sm" onClick={handleCancel} disabled={busy !== null && busy !== 'connect'} data-testid={`cancel-connect-${entry.providerId}`}>
           {t('common.cancel')}
         </Button>
       );
@@ -335,12 +350,12 @@ export const ConnectionCard: React.FC<{
 
       {waiting && (
         <div className="mt-4 rounded-lg border border-info/30 bg-info/10 p-3">
-          <div className="text-[12px] font-medium text-foreground">{t('connections.waitingAuthorization')}</div>
+          <div className="text-[12px] font-medium text-foreground">{t(verificationUrl ? 'connections.waitingAuthorization' : 'connections.preparingAuthorization')}</div>
           {verificationUrl && (
             <ExternalLink url={verificationUrl} label={t('connections.openVerificationPage')} clientHasOpenExternal={hasOpenExternal(client)} onOpen={() => void openExternalUrl(client, verificationUrl)} />
           )}
           <div className="mt-1.5 text-[11px] text-foreground/48">
-            {t('connections.authorizeHint')}
+            {t(verificationUrl ? 'connections.authorizeHint' : 'connections.preparingAuthorizationHint')}
           </div>
         </div>
       )}

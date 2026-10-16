@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowUp, ChevronLeft, ChevronRight, Square, Sparkles } from 'lucide-react';
+import { ArrowUp, ChevronDown, ChevronRight, Square } from 'lucide-react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import type { ApiError, TrailTrace, PortfolioSnapshot, Quote, ToolCall } from '@finagent/core';
 import {
@@ -30,8 +30,8 @@ import { loadSessionTraceSources, projectSessionTrace } from '../../lib/traceDat
 import { QuoteCard } from './structured/QuoteCard';
 import { PortfolioRiskCard } from './structured/PortfolioRiskCard';
 import { AgentAmbientField, type AgentMotionState } from '../motion/AgentAmbientField';
+import { AssistantIdentity, TrailLogo } from '../brand/TrailIdentity';
 
-const trailLogoUrl = new URL('../../assets/trail-logo.png', import.meta.url).href;
 
 // ---------------------------------------------------------------------------
 // Defensive parsing of structured tool results (get_quote / get_portfolio).
@@ -116,7 +116,7 @@ export const AgentPanel: React.FC = () => {
   const wasRunningRef = useRef(false);
   useEffect(() => {
     if (!isRunning && wasRunningRef.current && activeSessionId) {
-      void loadMessages(client, activeSessionId);
+      void loadMessages(client, activeSessionId, messages.length);
     }
     wasRunningRef.current = isRunning;
   }, [isRunning, activeSessionId, client, loadMessages]);
@@ -217,34 +217,6 @@ export const AgentPanel: React.FC = () => {
     }
   };
 
-  if (!activeSessionId) {
-    return (
-      <aside
-        data-testid="agent-panel"
-        className="trail-agent-panel flex h-full w-full flex-col items-center justify-center border-l mac-section-divider bg-background"
-      >
-        <div className="px-6 text-center">
-          <img
-            src={trailLogoUrl}
-            alt=""
-            className="mx-auto mb-4 h-14 w-14 rounded-[16px] shadow-[0_14px_38px_rgba(var(--accent-rgb),0.18)]"
-            draggable={false}
-          />
-          <h2 className="mb-2 text-[19px] font-semibold tracking-tight text-foreground">{t('agent.panel.title')}</h2>
-          <p className="mb-5 text-[13px] leading-relaxed text-foreground/52">
-            {t('agent.empty.body')}
-          </p>
-          <button
-            onClick={() => void createSession(client)}
-            className="mac-primary-button h-9 rounded-[10px] px-4 text-[13px] font-semibold transition-smooth active:scale-[0.985]"
-          >
-            {t('agent.empty.createSession')}
-          </button>
-        </div>
-      </aside>
-    );
-  }
-
   const toolCalls = runView?.toolCalls ?? [];
   const quote = extractQuote(toolCalls);
   const portfolio = extractPortfolio(toolCalls);
@@ -255,20 +227,27 @@ export const AgentPanel: React.FC = () => {
       className="trail-agent-panel mac-sidebar flex h-full w-full flex-col border-l mac-section-divider"
     >
       {/* Header: model + thinking selectors and collapse affordance */}
-      <div className="trail-agent-header flex items-center gap-1.5 border-b mac-section-divider px-4 py-3">
-        <div className="trail-agent-title mr-auto">{t('agent.panel.title')}</div>
-        <ModelSelector disabled={isRunning} />
-        <ThinkingSelector disabled={isRunning} />
-        <div className="flex-1" />
-        <button
-          type="button"
-          onClick={() => setAgentPanelVisible(false)}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] text-foreground/44 transition-smooth hover:bg-[var(--mac-sidebar-hover)] hover:text-foreground"
-          aria-label={t('agent.panel.collapsePanel')}
-          title={t('agent.panel.collapsePanel')}
-        >
-          <ChevronLeft className="h-4 w-4" strokeWidth={1.8} />
-        </button>
+      <div className="trail-agent-header">
+        <div className="trail-agent-brand">
+          <TrailLogo />
+          <div className="min-w-0 flex-1">
+            <div className="trail-agent-title">{t('agent.panel.title')}</div>
+            <div className="trail-agent-wordmark">TRAIL</div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAgentPanelVisible(false)}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] text-foreground/44 transition-smooth hover:bg-[var(--mac-sidebar-hover)] hover:text-foreground"
+            aria-label={t('agent.panel.collapsePanel')}
+            title={t('agent.panel.collapsePanel')}
+          >
+            <ChevronDown className="h-4 w-4" strokeWidth={1.8} />
+          </button>
+        </div>
+        <div className="trail-agent-controls">
+          <ModelSelector disabled={isRunning} />
+          <ThinkingSelector disabled={isRunning} />
+        </div>
       </div>
 
       {/* Workspace context chip */}
@@ -280,9 +259,9 @@ export const AgentPanel: React.FC = () => {
       <div
         ref={bodyRef}
         onScroll={handleBodyScroll}
-        className="trail-agent-body flex-1 overflow-y-auto scrollbar-hover"
+        className="trail-agent-body min-h-0 flex-1 overflow-y-auto scrollbar-hover"
       >
-        <div className="flex flex-col gap-3 p-3">
+        <div className="trail-agent-body-content flex min-h-full flex-col gap-3 p-3">
           {runView?.infraError && (
             <RuntimeInfraBanner
               error={runView.infraError}
@@ -306,12 +285,19 @@ export const AgentPanel: React.FC = () => {
           {quote && <QuoteCard quote={quote} />}
           {portfolio && <PortfolioRiskCard portfolio={portfolio} />}
           {messages.length === 0 && !isRunning && (
-            <SuggestionChips
-              onPick={(text) => {
-                setInput(text);
-                void handleSend();
-              }}
-            />
+            <div className="trail-chat-welcome">
+              <TrailLogo />
+              <span className="trail-brand-rule" aria-hidden="true" />
+              <h2>{t('agent.empty.heading')}</h2>
+              <p>{t('agent.empty.subtitle')}</p>
+              {activeSessionId ? (
+                <SuggestionChips onPick={setInput} />
+              ) : (
+                <button type="button" className="mac-primary-button trail-chat-create" onClick={() => void createSession(client)}>
+                  {t('agent.empty.createSession')}
+                </button>
+              )}
+            </div>
           )}
           <MessageList messages={messages} isLoading={isRunning} />
           {isRunning && <StreamingBlock answer={runView?.answer ?? ''} />}
@@ -333,7 +319,7 @@ export const AgentPanel: React.FC = () => {
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={isRunning ? t('agent.panel.inputRunningPlaceholder') : t('agent.panel.inputPlaceholder')}
-            disabled={isRunning}
+            disabled={isRunning || !activeSessionId}
             rows={2}
             className="mac-input trail-agent-textarea w-full resize-none px-3 py-2.5 pr-11 text-[13px] leading-relaxed text-foreground placeholder:text-foreground/38 focus:border-[rgba(var(--accent-rgb),0.34)] focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:opacity-50"
           />
@@ -341,7 +327,7 @@ export const AgentPanel: React.FC = () => {
             <button
               type="button"
               onClick={() => void handleSend()}
-              disabled={!input.trim()}
+              disabled={!input.trim() || !activeSessionId}
               className="mac-primary-button trail-agent-send absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full transition-smooth active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
               aria-label={t('agent.panel.sendMessage')}
             >
@@ -349,6 +335,7 @@ export const AgentPanel: React.FC = () => {
             </button>
           )}
         </div>
+        <div className="trail-agent-input-hint">{t('agent.panel.inputHint')}</div>
         {sendError && <div className="mt-1.5 text-[11px] text-destructive">{sendError}</div>}
         {isRunning && (
           <div className="mt-2 flex justify-end">
@@ -435,12 +422,8 @@ const SuggestionChips: React.FC<{ onPick: (text: string) => void }> = ({ onPick 
   const prompts = (t(groupKey, { returnObjects: true }) as string[]) ?? [];
   if (prompts.length === 0) return null;
   return (
-    <div className="trail-agent-suggestions px-3 pb-1" data-testid="agent-suggestions">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[.12em] text-foreground/36">
-        <Sparkles className="h-3 w-3" strokeWidth={1.8} />
-        {t('agent.suggestions.title')}
-      </div>
-      <div className="mt-1.5 flex flex-wrap gap-1.5">
+    <div className="trail-agent-suggestions" data-testid="agent-suggestions" aria-label={t('agent.suggestions.title')}>
+      <div className="flex flex-col gap-2.5">
         {prompts.slice(0, 3).map((prompt) => (
           <button
             key={prompt}
@@ -448,7 +431,7 @@ const SuggestionChips: React.FC<{ onPick: (text: string) => void }> = ({ onPick 
             onClick={() => onPick(prompt)}
             className="max-w-full truncate rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] text-foreground/62 transition-smooth hover:border-border-strong hover:text-foreground"
           >
-            {prompt}
+            <span>{prompt}</span><ChevronRight className="h-4 w-4 shrink-0" />
           </button>
         ))}
       </div>
@@ -460,16 +443,15 @@ const SuggestionChips: React.FC<{ onPick: (text: string) => void }> = ({ onPick 
 const StreamingBlock: React.FC<{ answer: string }> = ({ answer }) => {
   const { t } = useTranslation();
   return (
-    <div data-testid="run-panel" className="rounded-[10px] border mac-section-divider bg-surface px-3.5 py-3">
-      <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase text-foreground/48">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-        {t('agent.panel.agentRunning')}
-      </div>
+    <div data-testid="run-panel" className="trail-streaming-answer min-w-0">
+      <AssistantIdentity streaming />
+      <div className="trail-answer-body">
       {answer.length > 0 ? (
-        <AnswerContent content={answer} streaming className="text-[13px] text-foreground/72" />
+        <AnswerContent content={answer} streaming />
       ) : (
         <div className="text-[13px] italic text-foreground/40">{t('agent.panel.thinking')}</div>
       )}
+      </div>
     </div>
   );
 };

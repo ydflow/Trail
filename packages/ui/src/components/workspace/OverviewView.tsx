@@ -9,7 +9,7 @@ import type {
   Holding,
   PortfolioSnapshot,
 } from '@finagent/core';
-import { activeSymbolAtom } from '../../atoms';
+import { activeSymbolAtom, workspaceRefreshAtom } from '../../atoms';
 import { formatMoney, formatPercent, formatQuantity, formatSignedMoney } from '../../lib/money';
 import { useFinagentClient } from '../../client';
 
@@ -61,6 +61,7 @@ export const OverviewView: React.FC = () => {
   const { t } = useTranslation();
   const client = useFinagentClient();
   const symbol = useAtomValue(activeSymbolAtom);
+  const refreshRevision = useAtomValue(workspaceRefreshAtom);
 
   const [quote, setQuote] = useState<Quote | null>(null);
   const [calcIndex, setCalcIndex] = useState<CalcIndex | null>(null);
@@ -117,7 +118,7 @@ export const OverviewView: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [client, symbol]);
+  }, [client, symbol, refreshRevision]);
 
   if (!symbol) return null;
 

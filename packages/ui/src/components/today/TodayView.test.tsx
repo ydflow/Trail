@@ -136,7 +136,7 @@ describe('TodayView', () => {
     await flushAsync()
 
     const text = container.textContent ?? ''
-    expect(text).toContain('早上好')
+    expect(text).toContain('今日概览')
     expect(text).toContain('投资组合')
     expect(text).toContain('自选涨跌幅')
     expect(text).toContain('深度研究')

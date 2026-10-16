@@ -492,10 +492,11 @@ export class PiRpcClient {
     this.stderrBuffer = '';
     this.stderrHistory = '';
 
-    proc.stdout.on('data', (chunk) => this.consumeStdout(String(chunk)));
-    proc.stderr.on('data', (chunk) => this.consumeStderr(String(chunk)));
-    proc.on('error', (error) => this.handleExit(normalizeSpawnError(error, this.command)));
+    proc.stdout.on('data', (chunk) => { if (this.process === proc) this.consumeStdout(String(chunk)); });
+    proc.stderr.on('data', (chunk) => { if (this.process === proc) this.consumeStderr(String(chunk)); });
+    proc.on('error', (error) => { if (this.process === proc) this.handleExit(normalizeSpawnError(error, this.command)); });
     proc.on('exit', (code, signal) => {
+      if (this.process !== proc) return;
       this.lastExitInfo = { code, signal };
       this.handleExit(createCodeError(
         'PI_RUNTIME_EXITED',
@@ -617,6 +618,18 @@ export class PiRpcClient {
           createCodeError('PI_RUNTIME_ERROR', String(event.error ?? event.message ?? 'Pi runtime rejected the prompt.'))
         );
       }
+      return;
+    }
+
+    const assistantFailure = extractAssistantFailure(event);
+    if (assistantFailure && !pending.abortRequested) {
+      this.finishPrompt(pending, createCodeError('PI_MODEL_ERROR', assistantFailure));
+      return;
+    }
+
+    if (event.type === 'agent_end' && !pending.abortRequested
+      && !extractFinalAnswer(event) && !pending.finalAnswer && pending.answerParts.join('').trim() === '') {
+      this.finishPrompt(pending, createCodeError('PI_EMPTY_RESPONSE', 'The model returned no answer. Check the model configuration and provider response.'));
       return;
     }
 
@@ -831,6 +844,18 @@ function extractEventText(event: Record<string, unknown>) {
     }
   }
   return '';
+}
+
+function extractAssistantFailure(event: Record<string, unknown>): string | undefined {
+  let message = readRecord(event.message);
+  if (event.type === 'agent_end' && Array.isArray(event.messages)) {
+    message = [...event.messages].reverse().map(readRecord).find((item) => item.role === 'assistant') ?? {};
+  }
+  if (message.role === 'assistant' && message.stopReason === 'error') {
+    return typeof message.errorMessage === 'string' && message.errorMessage.trim()
+      ? message.errorMessage : 'The model request failed without an answer.';
+  }
+  return undefined;
 }
 
 function extractFinalAnswer(event: Record<string, unknown>) {

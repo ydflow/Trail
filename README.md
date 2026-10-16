@@ -199,6 +199,15 @@ FINAGENT_AGENT_PROVIDER=local bun run dev
 FINAGENT_AGENT_PROVIDER=local FINAGENT_DEMO_DATA=1 bun run dev
 ```
 
+Windows CMD 打开已构建的桌面工作台：
+
+```cmd
+bun.cmd run build:electron
+start-trail.cmd
+```
+
+`start-trail.cmd` 会优先使用 npm 安装的原生 `bunx.exe`，避免 Windows 的 `bunx.cmd` 包装脚本无法被 Pi 子进程启动；若长桥安装在标准用户目录，也会补齐当前进程的 PATH。Pi CLI、模型凭据及长桥 CLI / 账户授权仍需单独配置。
+
 ### 命令
 
 | 命令 | 说明 |

@@ -98,6 +98,9 @@ export const TodayView: React.FC = () => {
   const [automationOpen, setAutomationOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const quotesAreDemo = useAtomValue(watchlistQuotesAreDemoAtom)
+  const portfolioDemoReason = t(portfolioCache.failure?.kind === 'no-account-permission'
+    ? 'demo.portfolioPermission' : portfolioCache.failure?.kind === 'empty'
+      ? 'demo.portfolioEmpty' : 'demo.portfolioUnavailable')
 
   useEffect(() => {
     let cancelled = false
@@ -162,7 +165,7 @@ export const TodayView: React.FC = () => {
 
   const portfolioContent = (() => {
     if (portfolioCache.loading && !portfolioView) return <SectionState kind="loading" />
-    if (portfolioView) return <PortfolioCard view={portfolioView} isDemo={portfolioCache.isDemo} />
+    if (portfolioView) return <PortfolioCard view={portfolioView} isDemo={portfolioCache.isDemo} demoReason={portfolioDemoReason} />
     const failure = portfolioCache.failure
     if (failure?.kind === 'not-connected' || failure?.kind === 'no-account-permission') {
       return <SectionState kind="empty" message={t('today.connectPortfolio')} />
@@ -186,7 +189,8 @@ export const TodayView: React.FC = () => {
       <ul className="divide-y divide-border">
         {movers.slice(0, MOVER_ROWS).map((mover) => (
           <li key={mover.symbol} className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
-            <span className="text-[12.5px] font-medium text-foreground">{mover.symbol}</span>
+            <button type="button" onClick={() => { setActiveSymbol(mover.symbol); setNavSection('watchlist') }}
+              data-testid={`today-mover-${mover.symbol}`} className="text-left text-[12.5px] font-medium text-foreground hover:text-accent hover:underline">{mover.symbol}</button>
             <span className="flex items-center gap-4">
               <span className="tnum text-[12.5px] text-foreground/78">
                 {mover.lastPrice !== undefined ? formatMoney(mover.lastPrice, 'USD') : DASH}
@@ -329,10 +333,10 @@ export const TodayView: React.FC = () => {
         <div className="trail-today-bento grid grid-cols-1 gap-4 lg:grid-cols-3">
           <section className="trail-stitch-card lg:col-span-2" data-testid="today-portfolio-glance">
             <div className="trail-stitch-card-heading">
-              <h2>{t('portfolio.totalValue')}</h2>
+              <h2>{t('today.portfolio')}</h2>
               <span className="flex items-center gap-2">
-                {(portfolioCache.isDemo || quotesAreDemo) && <DemoBadge />}
-                <span className="trail-card-menu" aria-hidden="true">•••</span>
+                {(portfolioCache.isDemo || quotesAreDemo) && <DemoBadge reason={portfolioCache.isDemo ? portfolioDemoReason : t('demo.quotesUnavailable')} />}
+                <button type="button" className="trail-stitch-text-button" onClick={() => setNavSection('portfolio')}>{t('common.view')}</button>
               </span>
             </div>
             {portfolioContent}
@@ -343,13 +347,13 @@ export const TodayView: React.FC = () => {
           </section>
 
           <section className="trail-stitch-card" data-testid="today-upcoming-events">
-            <div className="trail-stitch-card-heading"><h2>{t('today.upcomingEvents')}</h2><span className="flex items-center gap-2">{eventsAreDemo && <DemoBadge />}<CalendarDays className="h-4 w-4 text-foreground/48" /></span></div>
+            <div className="trail-stitch-card-heading"><h2>{t('today.upcomingEvents')}</h2><span className="flex items-center gap-2">{eventsAreDemo && <DemoBadge reason={t('demo.eventsUnavailable')} />}<CalendarDays className="h-4 w-4 text-foreground/48" /></span></div>
             {upcomingContent}
             <button type="button" onClick={() => setNavSection('events')} className="trail-stitch-secondary-button mt-5 w-full">{t('events.title')}</button>
           </section>
 
           <section className="trail-stitch-card lg:col-span-3" data-testid="today-watchlist-activity">
-            <div className="trail-stitch-card-heading"><h2>{t('today.watchlistMovers')}</h2><span className="flex items-center gap-2">{quotesAreDemo && <DemoBadge />}<button type="button" onClick={() => setNavSection('watchlist')} className="trail-stitch-text-button">{t('navigation.watchlist')}</button></span></div>
+            <div className="trail-stitch-card-heading"><h2>{t('today.watchlistMovers')}</h2><span className="flex items-center gap-2">{quotesAreDemo && <DemoBadge reason={t('demo.quotesUnavailable')} />}<button type="button" onClick={() => setNavSection('watchlist')} className="trail-stitch-text-button">{t('navigation.watchlist')}</button></span></div>
             {moversContent}
           </section>
         </div>

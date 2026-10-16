@@ -1,0 +1,62 @@
+/* Shared assistant surfaces. All colors inherit the light/dark workbench tokens. */
+.trail-logo { display: block; flex-shrink: 0; object-fit: contain; border-radius: 10px; }
+.trail-agent-panel { container-type: inline-size; min-width: 0; background: var(--surface); }
+.trail-agent-panel .trail-agent-header { flex-shrink: 0; padding: 1.1rem 1.1rem 0; background: var(--surface); }
+.trail-agent-brand { display: flex; align-items: center; gap: .9rem; margin-bottom: 1rem; }
+.trail-agent-brand > .trail-logo { width: 2.9rem; height: 2.9rem; }
+.trail-agent-panel .trail-agent-title { color: var(--foreground); font-size: 1.2rem; font-weight: 650; line-height: 1.4; letter-spacing: .02em; }
+.trail-agent-wordmark { margin-top: .1rem; color: var(--foreground-muted); font-size: .65rem; letter-spacing: .45em; }
+.trail-agent-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .7rem; }
+.trail-agent-controls > div { min-width: 0; }
+.trail-agent-controls button { width: 100%; max-width: none; min-height: 2.65rem; justify-content: space-between; border-radius: var(--radius); padding: .6rem .7rem; font-size: .82rem; color: var(--foreground); }
+.trail-agent-controls button > span { min-width: 0; margin-right: auto; }
+.trail-agent-controls button:disabled { opacity: .62; }
+.trail-agent-context { flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--surface); padding: .85rem 1.1rem 1rem; }
+.trail-agent-context [data-testid='context-chip'] { max-width: 100%; border: 0; border-radius: 999px; background: var(--surface-muted); padding: .32rem .9rem; font-size: .84rem; color: var(--accent); overflow-wrap: anywhere; }
+.trail-agent-context [data-testid='context-chip'] > span { color: inherit; }
+.trail-agent-body { background: var(--surface); overscroll-behavior: contain; scrollbar-gutter: stable; }
+.trail-agent-body-content { min-width: 0; padding: 1.4rem 1.1rem 1rem; }
+.trail-chat-welcome { display: flex; flex: 1; flex-direction: column; justify-content: center; align-items: center; min-height: 23rem; padding-block: 1.8rem; text-align: center; }
+.trail-chat-welcome > .trail-logo { width: 6.3rem; height: 6.3rem; border-radius: 22px; }
+.trail-brand-rule { width: 2.6rem; height: 2px; margin: 1.5rem 0 1.2rem; background: var(--brand-gold); }
+.trail-chat-welcome h2 { color: var(--foreground); font-size: clamp(1.05rem, 4.3cqi, 1.65rem); font-weight: 650; line-height: 1.6; letter-spacing: -.025em; }
+.trail-chat-welcome > p { margin-top: .4rem; color: var(--foreground-muted); font-size: .9rem; line-height: 1.7; }
+.trail-agent-suggestions { align-self: stretch; margin-top: 2rem; }
+.trail-agent-suggestions button { display: flex; width: 100%; max-width: 100%; align-items: center; justify-content: space-between; gap: .8rem; white-space: normal; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: .85rem 1rem; color: var(--foreground); font-size: .9rem; line-height: 1.5; text-align: left; }
+.trail-agent-suggestions button:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+.trail-chat-create { margin-top: 1.5rem; border-radius: var(--radius); padding: .7rem 1rem; font-size: .9rem; }
+.trail-message-list:empty { display: none; }
+.trail-message-list > div { display: flex; flex-direction: column; gap: 1.6rem; }
+.trail-chat-turn { min-width: 0; margin-top: 0; }
+.trail-chat-turn--user { margin-bottom: .6rem; }
+.trail-chat-turn--user .mac-message-user { border: 0; border-radius: 8px; background: var(--surface-muted); padding: .85rem 1rem; }
+.trail-answer-identity { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; margin-bottom: .5rem; min-height: 2.2rem; color: var(--foreground); }
+.trail-answer-identity .trail-logo { width: 2.2rem; height: 2.2rem; border-radius: 8px; }
+.trail-answer-name { font-size: 1rem; font-weight: 650; }
+.trail-answer-identity time, .trail-answer-live { color: var(--foreground-subtle); font-size: .73rem; font-variant-numeric: tabular-nums; }
+.trail-answer-live { border-left: 1px solid var(--border); padding-left: .65rem; }
+.trail-answer-body { min-width: 0; padding-left: 2.85rem; }
+.trail-answer-body .markdown-content { min-width: 0; color: var(--foreground); font-size: 1rem; line-height: 1.9; overflow-wrap: anywhere; }
+.trail-answer-body .markdown-content p { margin-bottom: 1rem; }
+.trail-answer-body .markdown-content :is(h1, h2, h3) { position: relative; margin: 1.6rem 0 .65rem; padding-left: .9rem; font-size: 1rem; line-height: 1.6; letter-spacing: 0; }
+.trail-answer-body .markdown-content :is(h1, h2, h3)::before { position: absolute; top: .3em; bottom: .3em; left: 0; width: 3px; border-radius: 2px; background: var(--accent); content: ''; }
+.trail-answer-body :is(pre, table) { max-width: 100%; }
+.trail-answer-body code { font-family: var(--font-code-stack); }
+.trail-answer-sources:has(button) { margin-top: 1.2rem; border-top: 1px solid var(--border); padding-top: .8rem; }
+.trail-answer-sources button { padding: .3rem 0; font-size: .85rem; color: var(--foreground-muted); }
+.trail-answer-sources button svg { width: 1.15rem; height: 1.15rem; margin-right: .4rem; color: var(--accent); }
+.trail-agent-panel .trail-agent-composer { flex-shrink: 0; border-top: 0; padding: .9rem 1.1rem 1.2rem; background: var(--surface); }
+.trail-agent-composer .trail-agent-textarea { display: block; min-height: 4.8rem; border: 1px solid var(--input); border-radius: 11px; background: var(--surface); padding: 1.2rem 3.9rem 1rem 1rem; font-size: .92rem; line-height: 1.7; }
+.trail-agent-composer .trail-agent-send { width: 2.7rem; height: 2.7rem; bottom: 1rem; right: .7rem; border-radius: 999px !important; background: var(--primary); color: var(--primary-foreground); box-shadow: none; }
+.trail-agent-send svg { width: 1.45rem; height: 1.45rem; }
+.trail-agent-input-hint { margin: .55rem .2rem 0; font-size: .72rem; line-height: 1.5; color: var(--foreground-subtle); }
+@container (max-width: 360px) {
+  .trail-agent-panel .trail-agent-header { padding: .9rem .8rem 0; }
+  .trail-agent-context { padding-inline: .8rem; }
+  .trail-agent-body-content { padding-inline: .8rem; }
+  .trail-agent-panel .trail-agent-composer { padding-inline: .8rem; }
+  .trail-answer-body { padding-left: 0; padding-top: .35rem; }
+  .trail-agent-controls { gap: .5rem; }
+  .trail-agent-controls button { font-size: .75rem; padding-inline: .6rem; }
+  .trail-chat-welcome > .trail-logo { width: 5.2rem; height: 5.2rem; }
+}

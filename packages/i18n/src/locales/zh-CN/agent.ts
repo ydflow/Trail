@@ -4,13 +4,15 @@ import type { agent as enAgent } from '../en-US/agent.ts';
 /** Agent panel + chat chrome — Simplified Chinese. */
 export const agent = {
   panel: {
-    title: 'Agent Copilot',
+    title: '研迹助手',
+    assistantName: '研迹',
+    inputHint: 'Enter 发送 · Shift + Enter 换行',
     collapsePanel: '收起面板',
-    inputPlaceholder: '向 Copilot 提问…',
-    inputRunningPlaceholder: 'Agent 运行中…',
+    inputPlaceholder: '向研迹提问……',
+    inputRunningPlaceholder: '研迹正在研究…',
     sendMessage: '发送消息',
     stop: '停止',
-    agentRunning: 'Agent 运行中',
+    agentRunning: '研迹正在研究',
     thinking: '思考中…',
   },
   runtime: {
@@ -26,6 +28,8 @@ export const agent = {
     detailsLabel: '高级详情',
   },
   empty: {
+    heading: '研究，从一个问题开始',
+    subtitle: '让研迹帮你梳理信息与判断。',
     body: '开始新会话，让 Agent 为你探索市场。',
     createSession: '创建新会话',
   },
@@ -34,14 +38,15 @@ export const agent = {
     clear: '清除证券上下文',
   },
   model: {
+    unavailable: '模型控制暂不可用',
     label: '模型',
     loading: '加载模型中…',
     select: '选择模型',
     none: '暂无可用模型',
   },
   reasoning: {
-    label: '推理',
-    withLevel: '推理：{{level}}',
+    label: '思考级别',
+    withLevel: '思考：{{level}}',
     unavailable: '当前运行时不可用思考等级',
   },
   tool: {

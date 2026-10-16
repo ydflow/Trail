@@ -14,7 +14,7 @@ import {
   FileText,
   FlaskConical,
   GitCompareArrows,
-  LayoutDashboard,
+  House,
   Settings,
   Trash2,
   UserRound,
@@ -31,11 +31,12 @@ import {
 } from '../../atoms';
 import { useFinagentClient } from '../../client';
 import { Watchlist } from '../stock/Watchlist';
+import { TrailLogo } from '../brand/TrailIdentity';
 
 type SidebarItem = { key: NavSection; labelKey: string; icon: LucideIcon };
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
-  { key: 'today', labelKey: 'today', icon: LayoutDashboard },
+  { key: 'today', labelKey: 'today', icon: House },
   { key: 'discover', labelKey: 'discover', icon: Compass },
   { key: 'watchlist', labelKey: 'workspace', icon: ChartNoAxesCombined },
   { key: 'portfolio', labelKey: 'portfolio', icon: BriefcaseBusiness },
@@ -84,8 +85,12 @@ export const Sidebar: React.FC = () => {
     <aside className="trail-sidebar h-full w-full overflow-hidden bg-surface" data-testid="sidebar">
       <div className="trail-sidebar-content flex h-full min-w-0 flex-col px-3 py-5">
         <div className="trail-sidebar-brand mb-6 px-2">
-          <div className="trail-sidebar-brand-name">Trail</div>
-          <div className="trail-sidebar-brand-kicker">{t('navigation.institutionalResearch')}</div>
+          <TrailLogo />
+          <div>
+            <div className="trail-sidebar-brand-name">Trail</div>
+            <div className="trail-sidebar-brand-chinese">研迹</div>
+            <div className="trail-sidebar-brand-kicker">{t('navigation.brandTagline')}</div>
+          </div>
         </div>
 
         <button
@@ -122,7 +127,7 @@ export const Sidebar: React.FC = () => {
               <span className="trail-sidebar-section-label">{t('navigation.sessions')}</span>
               <span className="tnum text-[10px] text-foreground/40">{sessions.length}</span>
             </div>
-            <div className="max-h-28 overflow-y-auto">
+            <div className="trail-sidebar-sessions max-h-28 overflow-y-auto">
               {sessions.map((session) => (
                 <div key={session.id} className="group relative">
                   <button
@@ -148,7 +153,7 @@ export const Sidebar: React.FC = () => {
               <Activity className="h-3.5 w-3.5" />
               <span>{t('navigation.watchlist')}</span>
             </button>
-            <div className="mt-1 max-h-28 overflow-y-auto">
+            <div className="trail-sidebar-watchlist mt-1 min-h-0 flex-1">
               <Watchlist showHeader={false} />
             </div>
           </section>

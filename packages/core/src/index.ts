@@ -484,6 +484,8 @@ export interface CustomProviderModel {
   contextWindow?: number;
   maxTokens?: number;
   reasoning?: boolean;
+  /** Compatibility flags for OpenAI-compatible gateways. */
+  compat?: { supportsDeveloperRole?: boolean; supportsReasoningEffort?: boolean; maxTokensField?: 'max_tokens' | 'max_completion_tokens' };
 }
 
 /**
