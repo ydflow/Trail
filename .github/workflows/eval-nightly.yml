@@ -2,14 +2,12 @@ name: Eval Nightly (full live)
 
 # Full benchmark against live providers with an LLM judge. Deliberately NOT a
 # PR/push gate: it costs API credits and can be flaky around real market data
-# (spec §73, §79). Runs on a schedule (daily 03:17 UTC) and on demand via
-# workflow_dispatch for release/manual experiments.
+# (spec §73, §79). Runs on demand via workflow_dispatch for
+# release/manual experiments.
 on:
-  schedule:
-    - cron: '17 3 * * *'
   workflow_dispatch:
 
-# Never cancel a nightly run; superseded manual runs may be cancelled.
+# Never cancel a run; superseded manual runs may be cancelled.
 concurrency:
   group: eval-nightly
   cancel-in-progress: false
