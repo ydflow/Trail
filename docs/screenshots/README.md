@@ -53,6 +53,6 @@ Additional checks: 85 relative file links resolve; both READMEs pass GitHub's GF
 
 - A first live answer emitted an invalid `time_series_chart` block and fell back to text; its rendered Markdown table was also fragmented around citations. That attempt remains in the local capture profile. A separate short quote question supplied the clean workspace/source screenshots; it is not evidence that all model output contracts pass.
 - Deep Research completed as `partial`; several retrieved fields were absent or not usable for analysis, and the model-generated report was in English within the Chinese UI. No report text or financial values were edited for the screenshots.
-- Hidden-window screenshot capture stalled on Windows; final gallery captures were taken from visible Electron windows. Temporary capture scripts/profiles/logs are excluded from Git.
+- Hidden-window screenshot capture sometimes stalled on Windows; captures were completed using CDP and visible Electron windows. Temporary capture scripts/profiles/logs are excluded from Git.
 - Full Electron regression, interruption/fault injection, real brokerage portfolio verification, cloud tracing, complete live benchmark, installer distribution, signing and notarization were not run for this README change. Existing recovery acceptance remains a separate historical record.
 - Screenshot content is time-specific and does not substantiate investment returns, model accuracy, general reliability or cross-platform production readiness.
