@@ -11,15 +11,16 @@ import { AgentPanel } from '../agent/AgentPanel';
 import { WorkspaceTopbar } from './WorkspaceTopbar';
 
 const SIZES_KEY = 'allotmentSizes';
-const DEFAULT_SIZES = [240, 640, 400];
+const DEFAULT_SIZES = [240, 810, 390];
 
 export const WorkbenchShell: React.FC = () => {
   const agentPanelVisible = useAtomValue(agentPanelVisibleAtom);
   const [sizes, setSizes] = useState<number[]>(() => readPersisted<number[]>(SIZES_KEY, DEFAULT_SIZES));
-  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 900);
+  const [windowWidth, setWindowWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1440);
+  const isNarrow = windowWidth < 900;
 
   useEffect(() => {
-    const onResize = () => setIsNarrow(window.innerWidth < 900);
+    const onResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -56,9 +57,9 @@ export const WorkbenchShell: React.FC = () => {
         <Allotment.Pane minSize={isNarrow ? 56 : 200} preferredSize={isNarrow ? 56 : showAgent ? normalized[0] : 360}>
           <Sidebar />
         </Allotment.Pane>
-        <Allotment.Pane minSize={isNarrow ? 320 : 500}>
+        <Allotment.Pane minSize={isNarrow ? 320 : showAgent ? Math.min(500, windowWidth - 520) : 500}>
           <ErrorBoundary>
-            <div className="flex h-full min-h-0 flex-col">
+            <div className="trail-workspace-center flex h-full min-h-0 flex-col">
               <WorkspaceTopbar />
               <div className="min-h-0 flex-1">
                 <FinanceWorkspace />

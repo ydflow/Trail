@@ -5,8 +5,8 @@ import type { today as enToday } from '../en-US/today.ts';
 export const today = {
   // hero
   quietWorkspace: '安静工作区',
-  greeting: '早上好',
-  heroSubtitle: '今天想了解关于你投资组合的什么？',
+  greeting: '今日概览',
+  heroSubtitle: '从市场变化出发，回到你的判断。',
   searchPlaceholder: '搜索证券，例如 NVDA.US',
   searchAria: '搜索证券',
   quickActionDeepResearch: '深度研究',

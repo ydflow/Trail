@@ -81,6 +81,8 @@ class AbortedRequest extends Error {
 export function toProviderError(error: unknown): ProviderError {
   if (isLongBridgeError(error)) {
     switch (error.code) {
+      case 'LONGBRIDGE_PERMISSION_DENIED':
+        return { code: 'PERMISSION_DENIED', message: 'Longbridge authorization does not include the required account-data scope.' };
       case 'LONGBRIDGE_NOT_AUTHED':
         return {
           code: 'AUTH_EXPIRED',

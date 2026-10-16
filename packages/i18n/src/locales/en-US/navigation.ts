@@ -1,5 +1,15 @@
 /** Global navigation rail + shell chrome (spec §24). */
 export const navigation = {
+  toggleTheme: 'Toggle light or dark theme',
+  refreshData: 'Refresh current data',
+  refreshComplete: 'Data refreshed',
+  refreshFailed: 'Refresh failed; check the current page',
+  refreshUnavailable: 'No market data to refresh on this page',
+
+  brandTagline: 'Leave a trail of insight',
+  workbenchTitle: 'Trail Workbench',
+  marketSetupNeeded: 'Market data is not connected',
+  marketPaused: 'Market data is paused',
   today: 'Today',
   discover: 'Discover',
   workspace: 'Workspace',

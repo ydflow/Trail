@@ -15,6 +15,10 @@ import {
 } from '../../client';
 import { I18nProvider } from '../../i18n/I18nProvider';
 import type { LongBridgeStatus } from '@finagent/core';
+import { useTranslation } from 'react-i18next';
+import { Info } from 'lucide-react';
+import { useAtomValue } from 'jotai';
+import { workspaceRefreshAtom } from '../../atoms';
 
 interface AppShellProps {
   client?: FinagentClient;
@@ -43,13 +47,15 @@ export const AppShell: React.FC<AppShellProps> = ({ client = fallbackClient }) =
 };
 
 const LongBridgeBanner: React.FC = () => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<LongBridgeStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const client = useFinagentClient();
+  const refreshRevision = useAtomValue(workspaceRefreshAtom);
 
   useEffect(() => {
     let mounted = true;
-    client.longbridge.getStatus().then((result) => {
+    const refresh = () => client.longbridge.getStatus().then((result) => {
       if (!mounted) return;
       if (result.ok) {
         setStatus(result.data);
@@ -59,10 +65,16 @@ const LongBridgeBanner: React.FC = () => {
         setError(result.error.message);
       }
     });
+    void refresh();
+    const unsubscribe = client.connections?.onChanged(() => { void refresh(); });
+    const onFocus = () => { void refresh(); };
+    window.addEventListener('focus', onFocus);
     return () => {
       mounted = false;
+      unsubscribe?.();
+      window.removeEventListener('focus', onFocus);
     };
-  }, [client]);
+  }, [client, refreshRevision]);
 
   if (!error && (!status || status.available)) {
     return null;
@@ -70,13 +82,13 @@ const LongBridgeBanner: React.FC = () => {
 
   const message = error ?? status?.message ?? 'LongBridge CLI status is unavailable.';
   const action = status?.action ?? 'Install LongBridge CLI and run longbridge auth login.';
-  const title = status?.status === 'rate_limited' ? 'LongBridge paused: ' : 'LongBridge setup needed: ';
+  const title = t(status?.status === 'rate_limited' ? 'navigation.marketPaused' : 'navigation.marketSetupNeeded');
 
   return (
-    <div className="trail-banner border-b px-4 py-2">
-      <span className="font-semibold text-foreground">{title}</span>
-      <span className="text-foreground/78">{message}</span>
-      <span className="ml-2 text-foreground/54">{action}</span>
+    <div className="trail-banner flex items-center gap-2 border-b px-4 py-2" title={`${message}\n${action}`}>
+      <Info className="h-3.5 w-3.5 shrink-0 text-warning" aria-hidden="true" />
+      <span className="shrink-0 font-medium text-foreground">{title}</span>
+      <span className="min-w-0 truncate text-foreground/54">{action}</span>
     </div>
   );
 };

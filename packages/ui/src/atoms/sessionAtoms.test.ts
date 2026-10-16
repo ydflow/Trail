@@ -98,6 +98,33 @@ function makeClient(): FinagentClient {
 }
 
 describe('session atoms', () => {
+  it('retains a complete live answer until its persisted replacement is ready', async () => {
+    const store = createStore();
+    const client = makeClient();
+    const user = { id: 'u', role: 'user' as const, content: 'question', timestamp: 1 };
+    const live = { id: 'live', role: 'assistant' as const, content: 'answer', timestamp: 2 };
+    const saved = { ...live, id: 'saved' };
+    store.set(messagesAtomFamily('completion'), [user, live]);
+    let reads = 0;
+    client.kernel.getMessages = async () => {
+      reads += 1;
+      expect(store.get(messagesAtomFamily('completion'))).toEqual([user, live]);
+      return { ok: true, data: reads < 3 ? [user] : [user, saved] };
+    };
+    await store.set(loadMessagesAtom, client, 'completion', 2);
+    expect(reads).toBe(3);
+    expect(store.get(messagesAtomFamily('completion'))).toEqual([user, saved]);
+  });
+
+  it('does not erase a complete answer if persistence stays behind the refresh deadline', async () => {
+    const store = createStore();
+    const client = makeClient();
+    const live = { id: 'live', role: 'assistant' as const, content: 'answer', timestamp: 2 };
+    store.set(messagesAtomFamily('delayed'), [live]);
+    client.kernel.getMessages = async () => ({ ok: true, data: [] });
+    await store.set(loadMessagesAtom, client, 'delayed', 1);
+    expect(store.get(messagesAtomFamily('delayed'))).toEqual([live]);
+  });
   beforeEach(() => {
     sessionCounter = 0;
     savedSessions = [];

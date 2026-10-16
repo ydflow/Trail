@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import type { NewsItem } from '@finagent/core';
-import { activeSymbolAtom } from '../../atoms';
+import { activeSymbolAtom, workspaceRefreshAtom } from '../../atoms';
 import { useFinagentClient } from '../../client';
 
 type TFunc = (key: string, vars?: Record<string, unknown>) => string;
 
 const relativeTime = (timestamp: number, t: TFunc): string => {
-  const diff = Date.now() - timestamp;
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return t('common.unknown');
+  const diff = Date.now() - timestamp * 1000;
   if (diff < 0) return t('security.news.justNow');
   const minutes = Math.floor(diff / 60000);
   if (minutes < 1) return t('security.news.justNow');
@@ -27,6 +28,7 @@ export const NewsView: React.FC = () => {
   const { t } = useTranslation();
   const client = useFinagentClient();
   const symbol = useAtomValue(activeSymbolAtom);
+  const refreshRevision = useAtomValue(workspaceRefreshAtom);
 
   const [news, setNews] = useState<NewsItem[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -48,7 +50,7 @@ export const NewsView: React.FC = () => {
     client.market.getNews(symbol).then((res) => {
       if (cancelled) return;
       if (res.ok) {
-        setNews(res.data);
+        setNews([...res.data].sort((a, b) => b.timestamp - a.timestamp));
       } else {
         setError(res.error.message);
       }
@@ -58,7 +60,7 @@ export const NewsView: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [client, symbol]);
+  }, [client, symbol, refreshRevision]);
 
   if (!symbol) return null;
 
@@ -111,9 +113,12 @@ export const NewsView: React.FC = () => {
                 </div>
               )}
             </div>
-            <span className="shrink-0 pt-0.5 text-[11px] tabular-nums text-foreground/42">
+            <time
+              dateTime={item.timestamp > 0 ? new Date(item.timestamp * 1000).toISOString() : undefined}
+              title={item.timestamp > 0 ? new Date(item.timestamp * 1000).toLocaleString() : t('common.unknown')}
+              className="shrink-0 pt-0.5 text-[11px] tabular-nums text-foreground/42">
               {relativeTime(item.timestamp, t)}
-            </span>
+            </time>
           </a>
         </li>
       ))}

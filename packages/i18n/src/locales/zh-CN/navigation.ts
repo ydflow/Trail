@@ -3,6 +3,16 @@ import type { navigation as enNavigation } from '../en-US/navigation.ts';
 
 /** Global navigation rail + shell chrome — Simplified Chinese (glossary-aligned §61). */
 export const navigation = {
+  toggleTheme: '切换深浅主题',
+  refreshData: '刷新当前数据',
+  refreshComplete: '数据已刷新',
+  refreshFailed: '刷新失败，请查看当前页面提示',
+  refreshUnavailable: '当前页面无需刷新行情',
+
+  brandTagline: '研究留下痕迹',
+  workbenchTitle: '研迹工作台',
+  marketSetupNeeded: '行情尚未连接',
+  marketPaused: '行情访问暂缓',
   today: '今日',
   discover: '机会发现',
   workspace: '工作台',
@@ -18,7 +28,7 @@ export const navigation = {
   preferences: '偏好设置',
   settings: '设置',
   configure: '在不离开金融工作台的情况下配置研迹。',
-  agentPanel: 'Agent',
+  agentPanel: '研迹助手',
   // ── Sidebar rail / shell chrome (spec §24) ──────────────────────────────
   globalNavAria: '全局导航',
   homeAria: '研迹首页',

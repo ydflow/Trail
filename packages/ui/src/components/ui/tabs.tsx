@@ -8,7 +8,7 @@ export const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => (
-  <TabsPrimitive.List ref={ref} className={cn('inline-flex items-center gap-0 border-b border-border', className)} {...props} />
+  <TabsPrimitive.List ref={ref} className={cn('inline-flex max-w-full items-center gap-0 overflow-x-auto border-b border-border', className)} {...props} />
 ));
 TabsList.displayName = TabsPrimitive.List.displayName;
 
@@ -18,7 +18,7 @@ export const TabsTrigger = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
-    className={cn('border-b-2 border-transparent px-3 py-2 text-[12px] font-medium text-foreground/56 transition-colors hover:text-foreground data-[state=active]:border-accent data-[state=active]:text-foreground', className)}
+    className={cn('shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 py-2 text-[12px] font-medium text-foreground/56 transition-colors hover:text-foreground data-[state=active]:border-accent data-[state=active]:text-foreground', className)}
     {...props}
   />
 ));

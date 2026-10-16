@@ -55,7 +55,7 @@ class FakePiProcess extends EventEmitter {
       })}\n`);
     } else if (line.type === 'prompt') {
       this.stdout.write(`${JSON.stringify({ id: line.id, type: 'response', command: 'prompt', success: true })}\n`);
-      this.stdout.write(`${JSON.stringify({ type: 'agent_end', messages: [] })}\n`);
+      this.stdout.write(`${JSON.stringify({ type: 'agent_end', messages: [{ role: 'assistant', content: [{ type: 'text', text: 'Context received.' }] }] })}\n`);
     }
   }
 

@@ -82,7 +82,9 @@ export function parseQuoteResponse(output: string): Quote {
       change,
       changePercent: changeRatio * 100,
       volume: toOptionalNumber(data.volume) ?? 0,
-      timestamp: toTimestamp(data.timestamp),
+      // CLI 0.30 omits the quote time entirely. Keep the real price usable,
+      // with 0 meaning unknown; never invent an exchange timestamp from now().
+      timestamp: data.timestamp === undefined ? 0 : toTimestamp(data.timestamp),
       high: toOptionalNumber(data.high) ?? lastPrice,
       low: toOptionalNumber(data.low) ?? lastPrice,
       open: toOptionalNumber(data.open) ?? lastPrice,

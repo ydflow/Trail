@@ -54,6 +54,15 @@ export const ResearchPanel: React.FC = () => {
   const [symbolInput, setSymbolInput] = useState('');
   const [symbolError, setSymbolError] = useState<string | null>(null);
   const [thesisSaved, setThesisSaved] = useState(false);
+  const [quoteCurrency, setQuoteCurrency] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    setQuoteCurrency(null);
+    if (symbol) void client.market.getStaticInfo(symbol).then((result) => {
+      if (alive && result.ok) setQuoteCurrency(result.data.currency ?? null);
+    }).catch(() => undefined);
+    return () => { alive = false; };
+  }, [client, symbol]);
 
   // Discover → Research: a candidate card carries a recommended strategy.
   useEffect(() => {
@@ -231,7 +240,9 @@ export const ResearchPanel: React.FC = () => {
           />
           <span className="trail-research-command-hint">⌘ K</span>
         </label>
-        <span className="trail-research-topbar-market">USD <span aria-hidden="true">⌄</span></span>
+        <span className="trail-research-topbar-market" data-testid="research-quote-currency" title={t('research.workspace.currencyHint')}>
+          {t('research.workspace.currencyLabel')}: {quoteCurrency ?? '—'}
+        </span>
       </div>
       <div className="trail-pilot-research-header">
         <div>

@@ -48,8 +48,8 @@ export function createMarketQuoteCapability(
           providerName: 'Longbridge',
           ...(instrumentId ? { instrumentId } : {}),
           fetchedAt: (ctx?.now ?? Date.now)(),
-          marketTime: quote.timestamp * 1000,
-          stale: false,
+          ...(quote.timestamp > 0 ? { marketTime: quote.timestamp * 1000 } : {}),
+          stale: quote.timestamp <= 0,
         },
         summary: formatQuote(quote),
       };
@@ -67,7 +67,7 @@ function formatQuote(quote: Quote) {
   const changeStr = quote.change >= 0
     ? `+${quote.change.toFixed(2)} (+${quote.changePercent.toFixed(2)}%)`
     : `${quote.change.toFixed(2)} (${quote.changePercent.toFixed(2)}%)`;
-  const asOf = new Date(quote.timestamp * 1000).toLocaleString();
+  const asOf = quote.timestamp > 0 ? new Date(quote.timestamp * 1000).toLocaleString() : 'Not supplied by the provider';
 
   return [
     `${changeIcon} ${quote.symbol}: $${quote.lastPrice.toFixed(2)}`,

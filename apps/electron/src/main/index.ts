@@ -25,8 +25,13 @@ loadFinagentEnv({
 if (!app.requestSingleInstanceLock()) app.exit(0);
 app.on('second-instance', () => {
   if (process.env.FINAGENT_E2E_HIDDEN === '1') return;
-  if (mainWindow?.isMinimized()) mainWindow.restore();
-  mainWindow?.focus();
+  void app.whenReady().then(() => {
+    if (!mainWindow || mainWindow.isDestroyed()) createWindow();
+    if (mainWindow?.isMinimized()) mainWindow.restore();
+    // focus() alone does not reveal a window hidden by an earlier launch.
+    mainWindow?.show();
+    mainWindow?.focus();
+  });
 });
 const agentKernelHost = new AgentKernelHost();
 registerAboutIpc();

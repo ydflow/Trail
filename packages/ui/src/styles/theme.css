@@ -1,0 +1,124 @@
+/* Trail · 研迹 — shared light/dark workbench tokens. */
+:root {
+  /* One sans-serif family for Chinese, Latin, and tabular data. */
+  --font-global-stack: "Inter", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-sans-stack: var(--font-global-stack);
+  --font-display-stack: var(--font-global-stack);
+  --font-numeric-stack: var(--font-global-stack);
+  --background: #f5f8f6;
+  --surface: #ffffff;
+  --surface-muted: #edf4f0;
+  --surface-hover: #e5efea;
+  --foreground: #101b22;
+  --foreground-muted: #58656d;
+  --foreground-subtle: #7a878c;
+  --primary: #104f40;
+  --primary-foreground: #ffffff;
+  --accent: #0c5746;
+  --accent-foreground: #ffffff;
+  --positive: #10b981;
+  --negative: #ef4444;
+  --warning: #b45309;
+  --info: #287a98;
+  --border: #e1e9e5;
+  --border-strong: #c6d3cd;
+  --input: #c6d3cd;
+  --ring: rgba(12, 87, 70, .35);
+  --radius: 7px;
+  --foreground-rgb: 15, 23, 42;
+  --accent-rgb: 12, 87, 70;
+  --brand-gold: #bd965c;
+  --chart-1: #12614d;
+  --chart-2: #71a58f;
+  --chart-3: #bc995d;
+  --chart-4: #4b7a80;
+  --chart-5: #9cae85;
+  --chart-6: #609baf;
+  --chart-7: #b68568;
+  --chart-8: #b9cdbf;
+  --destructive: var(--negative);
+  --success: var(--positive);
+  --text: var(--foreground);
+  --text-muted: var(--foreground-muted);
+  --surface-raised: var(--surface);
+  --font-code-stack: "Cascadia Code", Consolas, monospace;
+  --shadow-minimal: 0 1px 3px rgba(var(--foreground-rgb), .05);
+  --shadow-middle: 0 12px 32px rgba(var(--foreground-rgb), .12);
+  --positive-rgb: 16, 185, 129;
+  --negative-rgb: 239, 68, 68;
+  --warning-rgb: 180, 83, 9;
+
+  /* Motion language: preserve the existing 160ms micro interaction rhythm. */
+  --motion-fast: 120ms;
+  --motion-base: 160ms;
+  --motion-content: 220ms;
+  --motion-slow: 600ms;
+  --motion-ambient: 11s;
+
+  /* Compatibility aliases for feature slices that still use the old names. */
+  --mac-window: var(--background);
+  --mac-titlebar: var(--surface);
+  --mac-sidebar: var(--surface-muted);
+  --mac-sidebar-hover: color-mix(in srgb, var(--foreground) 6%, transparent);
+  --mac-border: var(--border);
+  --mac-border-strong: var(--border-strong);
+  --mac-control: var(--surface);
+  --mac-control-hover: var(--surface-hover);
+  --mac-surface: var(--surface);
+  --mac-surface-solid: var(--surface);
+  --mac-blue: var(--accent);
+  --mac-blue-hover: color-mix(in srgb, var(--accent) 88%, black);
+  --mac-blue-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --mac-accent: var(--accent);
+  --mac-green: var(--positive);
+  --mac-red: var(--negative);
+  --mac-yellow: var(--warning);
+
+  /* Legacy scalar tokens used by a few existing charts/import views. */
+  --bg-primary: 0.975 0.004 260;
+  --bg-secondary: 0.955 0.006 260;
+  --accent-primary: 0.4 0.075 166;
+  --text-primary: 0.19 0.012 260;
+  --text-secondary: 0.48 0.012 260;
+}
+
+.dark {
+  --chart-1: #61b495;
+  --chart-2: #a0cab7;
+  --chart-3: #d1b274;
+  --chart-4: #7db1b5;
+  --chart-5: #b6c49a;
+  --chart-6: #88b8c8;
+  --chart-7: #c79e85;
+  --chart-8: #d1ded4;
+  --background: #101916;
+  --surface: #17231e;
+  --surface-muted: #1c2c25;
+  --surface-hover: #263b31;
+  --foreground: #edf4ef;
+  --foreground-muted: #b4c5bc;
+  --foreground-subtle: #8b9f93;
+  --primary: #8bceb1;
+  --primary-foreground: #10291e;
+  --accent: #8bceb1;
+  --accent-foreground: #10291e;
+  --positive: #42c995;
+  --negative: #ff6b76;
+  --warning: #e3b45b;
+  --info: #7db8d2;
+  --border: rgba(235, 241, 248, .13);
+  --border-strong: rgba(235, 241, 248, .22);
+  --input: rgba(235, 241, 248, .18);
+  --ring: rgba(139, 206, 177, .5);
+  --foreground-rgb: 236, 236, 240;
+  --accent-rgb: 139, 206, 177;
+  --positive-rgb: 92, 182, 110;
+  --negative-rgb: 229, 116, 102;
+  --warning-rgb: 229, 178, 78;
+
+  --bg-primary: 0.16 0.012 260;
+  --bg-secondary: 0.135 0.012 260;
+  --accent-primary: 0.78 0.08 163;
+  --text-primary: 0.93 0.008 260;
+  --text-secondary: 0.68 0.01 260;
+}

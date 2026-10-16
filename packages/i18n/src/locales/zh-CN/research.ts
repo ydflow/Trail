@@ -6,6 +6,10 @@ export const research = {
   deepResearch: '深度研究',
   workspace: {
     title: '研究',
+    currencyLabel: '币种',
+    currencyHint: '当前证券的报价币种，仅作信息展示；现有功能不提供币种换算。',
+    providerQuote: '数据源报价',
+    quoteTimeUnknown: '已获取价格，数据源未提供报价时间。',
     searchPlaceholder: '搜索标的、主题或笔记',
     addToWatchlist: '加入自选',
     inWatchlist: '已在自选',

@@ -22,6 +22,9 @@ interface ProviderModelConfig {
   reasoning?: boolean;
   contextWindow?: number;
   maxTokens?: number;
+  input?: Array<'text' | 'image'>;
+  cost?: { input: number; output: number; cacheRead: number; cacheWrite: number };
+  compat?: { supportsDeveloperRole?: boolean; supportsReasoningEffort?: boolean; maxTokensField?: 'max_tokens' | 'max_completion_tokens' };
 }
 
 interface ProviderConfig {
@@ -203,7 +206,18 @@ export function registerProviderOverrides(agent: AgentApi) {
     if (entry.baseUrl !== undefined) config.baseUrl = entry.baseUrl;
     if (entry.apiKey !== undefined) config.apiKey = entry.apiKey;
     if (entry.api !== undefined) config.api = entry.api;
-    if (entry.models !== undefined) config.models = entry.models;
+    // Extension registrations require complete descriptors (unlike models.json,
+    // where Pi fills these defaults). In particular, Pi calls input.includes().
+    if (entry.models !== undefined) config.models = entry.models.map((model) => ({
+      ...model,
+      name: model.name ?? model.id,
+      reasoning: model.reasoning ?? false,
+      input: model.input ?? ['text'],
+      cost: model.cost ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: model.contextWindow ?? 128000,
+      maxTokens: model.maxTokens ?? 16384,
+      compat: { supportsDeveloperRole: false, ...(model.compat ?? {}) },
+    }));
     agent.registerProvider(entry.provider, config);
   }
 }

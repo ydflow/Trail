@@ -8,6 +8,8 @@ import type { PortfolioFailure, PortfolioFailureKind, PortfolioSnapshot } from '
  */
 
 const CODE_KINDS: Record<string, PortfolioFailureKind> = {
+  PERMISSION_DENIED: 'no-account-permission',
+  LONGBRIDGE_PERMISSION_DENIED: 'no-account-permission',
   LONGBRIDGE_NOT_INSTALLED: 'not-connected',
   LONGBRIDGE_NOT_AUTHED: 'no-account-permission',
   LONGBRIDGE_TIMEOUT: 'timeout',
@@ -32,6 +34,10 @@ interface IpcErrorLike {
 /** Map an IPC error envelope (or any thrown value) to a `PortfolioFailure`. */
 export function portfolioFailureFromError(error: unknown): PortfolioFailure {
   const code = (error as IpcErrorLike | null | undefined)?.code
+  const detail = (error as IpcErrorLike | null | undefined)?.message ?? ''
+  if (/403308|scope is not in authorized scopes/i.test(detail)) {
+    return { kind: 'no-account-permission', message: KIND_MESSAGES['no-account-permission'] }
+  }
   const kind = code !== undefined && CODE_KINDS[code] !== undefined
     ? CODE_KINDS[code]
     : 'provider-error'

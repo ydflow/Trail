@@ -8,14 +8,14 @@ interface AssetPieChartProps {
 }
 
 const COLORS = [
-  'bg-blue-500',
-  'bg-green-500',
-  'bg-yellow-500',
-  'bg-purple-500',
-  'bg-pink-500',
-  'bg-cyan-500',
-  'bg-orange-500',
-  'bg-teal-500',
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+  'var(--chart-6)',
+  'var(--chart-7)',
+  'var(--chart-8)',
 ];
 
 interface Slice {
@@ -34,7 +34,7 @@ export const AssetPieChart: React.FC<AssetPieChartProps> = ({ view }) => {
   const total = view.totalAssets ?? (holdingsValue + cash);
 
   const items: Slice[] = [
-    { name: t('portfolio.cash'), value: cash, currency: view.baseCurrency, color: 'bg-gray-400' },
+    { name: t('portfolio.cash'), value: cash, currency: view.baseCurrency, color: 'var(--foreground-subtle)' },
     ...view.holdings.map((h, i) => ({
       name: h.symbol,
       value: h.marketValueBase ?? h.marketValue ?? 0,
@@ -65,8 +65,8 @@ export const AssetPieChart: React.FC<AssetPieChartProps> = ({ view }) => {
         {displayItems.map((item, i) => (
           <div
             key={i}
-            className={`${item.color} transition-all`}
-            style={{ width: `${(item.value / total) * 100}%` }}
+            className="transition-all"
+            style={{ width: `${(item.value / total) * 100}%`, backgroundColor: item.color }}
             title={`${item.name}: ${formatCurrency(item.value, item.currency)} (${((item.value / total) * 100).toFixed(1)}%)`}
           />
         ))}
@@ -82,7 +82,7 @@ export const AssetPieChart: React.FC<AssetPieChartProps> = ({ view }) => {
       <div className="grid grid-cols-2 gap-2">
         {displayItems.map((item, i) => (
           <div key={i} className="flex items-center gap-2 text-sm">
-            <div className={`w-3 h-3 rounded-sm ${item.color}`} />
+            <div className="w-3 h-3 shrink-0 rounded-sm" style={{ backgroundColor: item.color }} />
             <span className="text-[oklch(var(--text-secondary))] truncate">
               {item.name}:
             </span>

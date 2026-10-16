@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { useTranslation } from 'react-i18next';
-import { activeSymbolAtom } from '../../atoms';
+import { activeSymbolAtom, workspaceRefreshAtom } from '../../atoms';
 import { useFinagentClient } from '../../client';
 import { Button } from '../primitives/Button';
 import { DataFreshness } from '../primitives/DataFreshness';
@@ -17,6 +17,7 @@ export function ChartView() {
   const { t } = useTranslation();
   const client = useFinagentClient();
   const symbol = useAtomValue(activeSymbolAtom);
+  const refreshRevision = useAtomValue(workspaceRefreshAtom);
 
   const [period, setPeriod] = useState<Period>('1d');
   const [bars, setBars] = useState<FinancialBar[]>([]);
@@ -62,7 +63,7 @@ export function ChartView() {
     return () => {
       cancelled = true;
     };
-  }, [symbol, period, retryToken, client]);
+  }, [symbol, period, retryToken, client, refreshRevision]);
 
   const retry = () => setRetryToken((token) => token + 1);
 

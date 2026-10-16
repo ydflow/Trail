@@ -14,6 +14,10 @@ function snapshot(overrides: Partial<PortfolioSnapshot> = {}): PortfolioSnapshot
 }
 
 describe('portfolioFailureFromError', () => {
+  it('identifies normalized scope failures as missing account permission', () => {
+    expect(portfolioFailureFromError({ code: 'PERMISSION_DENIED' }).kind).toBe('no-account-permission');
+  });
+
   it('maps IPC error codes to the matching failure kind with a user-safe message', () => {
     expect(portfolioFailureFromError({ code: 'LONGBRIDGE_NOT_INSTALLED' }).kind).toBe('not-connected');
     expect(portfolioFailureFromError({ code: 'LONGBRIDGE_NOT_AUTHED' }).kind).toBe('no-account-permission');

@@ -1,6 +1,6 @@
 import type { ProviderHealth } from '@finagent/core';
 import { isRecord } from '../../guards.ts';
-import { parseAuthStatus, stringField, type LongbridgeExec } from './health.ts';
+import { isNotInstalledError, parseAuthStatus, stringField, type LongbridgeExec } from './health.ts';
 
 /**
  * Main-process Longbridge auth orchestration (docs/longbridge-auth.md).
@@ -11,14 +11,20 @@ import { parseAuthStatus, stringField, type LongbridgeExec } from './health.ts';
  * kernel.
  */
 
-export type LoginOutcome = { status: 'connected' | 'timeout' | 'cancelled' };
+export type LoginOutcome =
+  | { status: 'connected' | 'timeout' | 'cancelled' }
+  | { status: 'error'; error: { code: string; message: string } };
 
 export interface SpawnedProcess {
   kill(): void;
 }
 
 /** Launch a process; `onStdout` receives stdout chunks as they arrive. */
-export type SpawnFn = (args: string[], onStdout: (chunk: string) => void) => SpawnedProcess;
+export type SpawnFn = (
+  args: string[],
+  onOutput: (chunk: string) => void,
+  onError: (error: unknown) => void
+) => SpawnedProcess;
 
 export interface StartLoginOptions {
   exec: LongbridgeExec;
@@ -131,17 +137,33 @@ export async function startLogin(options: StartLoginOptions): Promise<LoginOutco
 
   let accumulated = '';
   let uriOpened = false;
-
-  const child = spawn(['auth', 'login', '--format', 'json'], (chunk) => {
-    accumulated += chunk;
-    if (uriOpened) return;
-    const uri = extractVerificationUri(accumulated);
-    if (uri) {
-      uriOpened = true;
-      onVerificationUri?.(uri);
-      void openUrl(uri);
-    }
+  const stopped = Promise.withResolvers<LoginOutcome>();
+  const cleanup = new AbortController();
+  const onAbort = () => stopped.resolve({ status: 'cancelled' });
+  signal?.addEventListener('abort', onAbort, { once: true });
+  const onError = (error: unknown) => stopped.resolve({
+    status: 'error',
+    error: isNotInstalledError(error)
+      ? { code: 'LONGBRIDGE_NOT_INSTALLED', message: 'Longbridge CLI was not found. Install it and restart Trail.' }
+      : { code: 'LOGIN_START_FAILED', message: 'Longbridge authorization could not start. Check the CLI and network, then retry.' },
   });
+
+  let child: SpawnedProcess | undefined;
+  try {
+    child = spawn(['auth', 'login', '--format', 'json'], (chunk) => {
+      accumulated += chunk;
+      if (uriOpened) return;
+      const uri = extractVerificationUri(accumulated);
+      if (uri) {
+        uriOpened = true;
+        onVerificationUri?.(uri);
+        // Keep the manual URL available if the system browser cannot open.
+        void Promise.resolve().then(() => openUrl(uri)).catch(() => undefined);
+      }
+    }, onError);
+  } catch (error) {
+    onError(error);
+  }
 
   const startedAt = Date.now();
 
@@ -149,11 +171,16 @@ export async function startLogin(options: StartLoginOptions): Promise<LoginOutco
     while (true) {
       if (signal?.aborted) return { status: 'cancelled' };
       if (Date.now() - startedAt >= timeoutMs) return { status: 'timeout' };
-      if ((await pollTokenStatus(exec)) === 'valid') return { status: 'connected' };
-      await sleep(pollMs, signal);
+      const result = await Promise.race([pollTokenStatus(exec), stopped.promise]);
+      if (typeof result === 'object' && result !== null) return result;
+      if (result === 'valid') return { status: 'connected' };
+      const paused = await Promise.race([sleep(pollMs, cleanup.signal), stopped.promise]);
+      if (paused) return paused;
     }
   } finally {
-    child.kill();
+    cleanup.abort();
+    signal?.removeEventListener('abort', onAbort);
+    child?.kill();
   }
 }
 

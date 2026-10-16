@@ -6,6 +6,7 @@ import { AnswerContent } from './AnswerContent';
 import { SourceInspector } from './SourceInspector';
 import { ToolActivity } from '../agent/ToolActivity';
 import { collectCitationSources } from '../../lib/citations';
+import { AssistantIdentity } from '../brand/TrailIdentity';
 
 interface TurnCardProps {
   message: Message;
@@ -32,10 +33,10 @@ export const TurnCard: React.FC<TurnCardProps> = ({ message }) => {
 
   return (
     <div
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+      className={`trail-chat-turn flex ${isUser ? 'trail-chat-turn--user justify-end' : 'justify-start'}`}
     >
       <div
-        className={`max-w-[88%] rounded-[10px] px-3.5 py-3 ${
+        className={`min-w-0 rounded-[10px] ${isUser ? 'max-w-[88%] px-3.5 py-3' : 'w-full'} ${
           isUser
             ? 'mac-message-user rounded-br-[4px]'
             : isTool
@@ -43,43 +44,43 @@ export const TurnCard: React.FC<TurnCardProps> = ({ message }) => {
             : 'mac-message-assistant rounded-bl-[4px] text-foreground'
         }`}
       >
-        {isTool && message.toolName && (
-          <div className="mb-1.5 text-[12px] font-semibold text-accent">
-            {t('agent.tool.label', { name: message.toolName })}
-          </div>
-        )}
-        {isUser ? (
-          <div className="max-w-none whitespace-pre-wrap text-[14px] leading-relaxed">{message.content}</div>
-        ) : (
-          <AnswerContent
-            content={message.content}
-            message={isAssistant ? message : undefined}
-            onOpenSource={isAssistant ? (sourceId) => openInspector(sourceId) : undefined}
-          />
-        )}
-        {!isUser && toolCalls.length > 0 && (
-          <div className="mt-3 border-t mac-section-divider pt-3">
-            <ToolActivity toolCalls={toolCalls} />
-          </div>
-        )}
-        {isAssistant && (
-          <div className="mt-2 flex items-center gap-3">
-            <span className={`text-[11px] ${isUser ? 'text-white/68' : 'text-foreground/38'}`}>
-              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-            {citationIndex.sources.length > 0 && (
-              <button
-                type="button"
-                data-testid="open-source-inspector"
-                onClick={() => openInspector()}
-                className="flex items-center gap-1 rounded-[6px] px-1.5 py-0.5 text-[11px] text-foreground/48 transition-smooth hover:bg-foreground/6 hover:text-foreground"
-              >
-                <BookOpen className="h-3 w-3" />
-                {t('agent.sources.count', { count: citationIndex.sources.length })}
-              </button>
-            )}
-          </div>
-        )}
+        {isAssistant && <AssistantIdentity timestamp={message.timestamp} />}
+        <div className={isAssistant ? 'trail-answer-body' : undefined}>
+          {isTool && message.toolName && (
+            <div className="mb-1.5 text-[12px] font-semibold text-accent">
+              {t('agent.tool.label', { name: message.toolName })}
+            </div>
+          )}
+          {isUser ? (
+            <div className="max-w-none whitespace-pre-wrap text-[14px] leading-relaxed">{message.content}</div>
+          ) : (
+            <AnswerContent
+              content={message.content}
+              message={isAssistant ? message : undefined}
+              onOpenSource={isAssistant ? (sourceId) => openInspector(sourceId) : undefined}
+            />
+          )}
+          {!isUser && toolCalls.length > 0 && (
+            <div className="mt-3 border-t mac-section-divider pt-3">
+              <ToolActivity toolCalls={toolCalls} />
+            </div>
+          )}
+          {isAssistant && (
+            <div className="trail-answer-sources mt-2 flex items-center gap-3">
+              {citationIndex.sources.length > 0 && (
+                <button
+                  type="button"
+                  data-testid="open-source-inspector"
+                  onClick={() => openInspector()}
+                  className="flex items-center gap-1 rounded-[6px] px-1.5 py-0.5 text-[11px] text-foreground/48 transition-smooth hover:bg-foreground/6 hover:text-foreground"
+                >
+                  <BookOpen className="h-3 w-3" />
+                  {t('agent.sources.count', { count: citationIndex.sources.length })}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       {isAssistant && inspectorOpen && (
         <SourceInspector

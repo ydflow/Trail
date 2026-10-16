@@ -1,5 +1,6 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { LongbridgeExec } from './health.ts';
 import type { SpawnFn } from './auth.ts';
@@ -18,13 +19,10 @@ const execaMock = mock((command: string, args: string[], options?: Record<string
   execaHandler(command, args, options)
 );
 
-// `execa` lives at longbridge-tools/node_modules (not hoisted), so the bare
-// specifier does not resolve from this package. Mock it at its resolved entry
-// so the real longbridge-tools parsers run against canned CLI stdout.
-const EXECA_ENTRY = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../../longbridge-tools/node_modules/execa/index.js'
-);
+// Resolve from the executor's package: Bun may hoist execa to the workspace.
+const EXECA_ENTRY = createRequire(join(
+  dirname(fileURLToPath(import.meta.url)), '../../../../longbridge-tools/package.json'
+)).resolve('execa');
 mock.module(EXECA_ENTRY, () => ({ execa: execaMock }));
 
 // Dynamic import: the execa mock must be registered before the adapter module
@@ -137,6 +135,17 @@ describe('LongbridgeFinancialDataProvider', () => {
     }
   });
 
+  it('keeps missing OAuth scopes distinct from expired authentication', async () => {
+    execaHandler = async () => { throw Object.assign(new Error('Request failed'), { stderr: "API error (code 403308): Target API's scope is not in authorized scopes; private trace", code: '1' }); };
+    const result = await new LongbridgeBrokerAccountProvider().getPortfolio();
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('PERMISSION_DENIED');
+      expect(result.error.message).toContain('scope');
+      expect(result.error.message).not.toContain('private trace');
+    }
+  });
+
   it('maps auth failures to AUTH_EXPIRED with a user-safe message', async () => {
     const authError = Object.assign(new Error('not authenticated'), { stderr: 'please login', code: '1' });
     execaHandler = async () => {
@@ -240,6 +249,12 @@ describe('LongbridgeHealthProbe', () => {
     expect(health.status).toBe('expired');
   });
 
+  it('treats CLI 0.30 not_found as a fresh installation awaiting login', async () => {
+    const { exec } = buildExec({ authStatus: () => JSON.stringify({ token: { status: 'not_found' } }) });
+    const health = await new LongbridgeHealthProbe({ exec, cacheTtlMs: 0 }).status();
+    expect(health.status).toBe('not-connected');
+  });
+
   it('reports connected with permissions and region', async () => {
     const { exec } = buildExec({ authStatus: () => authJson(CN_REALTIME_QUOTE_LEVEL) });
     const health = await new LongbridgeHealthProbe({ exec, cacheTtlMs: 0 }).status();
@@ -339,6 +354,56 @@ describe('LongbridgeBrokerAccountProvider', () => {
 // ── Auth orchestration ──────────────────────────────────────────────────────
 
 describe('auth orchestration', () => {
+  it('reports a missing CLI immediately without waiting for token polling', async () => {
+    let killed = false;
+    const outcome = await startLogin({
+      exec: () => new Promise(() => {}),
+      spawn: (_args, _output, fail) => {
+        queueMicrotask(() => fail(Object.assign(new Error('spawn ENOENT'), { code: 'ENOENT' })));
+        return { kill: () => { killed = true; } };
+      },
+      openUrl: () => { throw new Error('Must not open a browser without a URL'); },
+    });
+    expect(outcome).toMatchObject({ status: 'error', error: { code: 'LONGBRIDGE_NOT_INSTALLED' } });
+    expect(killed).toBe(true);
+  });
+
+  it('handles synchronous launch failures without leaking vendor output', async () => {
+    const outcome = await startLogin({
+      exec: () => new Promise(() => {}),
+      spawn: () => { throw new Error('private vendor diagnostic'); },
+      openUrl: () => {},
+    });
+    expect(outcome).toMatchObject({ status: 'error', error: { code: 'LOGIN_START_FAILED' } });
+    expect(JSON.stringify(outcome)).not.toContain('private vendor diagnostic');
+  });
+
+  it('preserves the manual URL when opening the system browser rejects', async () => {
+    const urls: string[] = [];
+    const outcome = await startLogin({
+      exec: async () => JSON.stringify({ token: { status: 'valid' } }),
+      spawn: (_args, output) => {
+        output(JSON.stringify({ verification_uri: 'https://example.test/authorize' }));
+        return { kill: () => {} };
+      },
+      onVerificationUri: (uri) => { urls.push(uri); },
+      openUrl: async () => { throw new Error('No default browser'); },
+    });
+    expect(outcome.status).toBe('connected');
+    expect(urls).toEqual(['https://example.test/authorize']);
+  });
+
+  it('cancels even while an auth-status command is stalled', async () => {
+    const controller = new AbortController();
+    const pending = startLogin({
+      exec: () => new Promise(() => {}),
+      spawn: () => ({ kill: () => {} }),
+      openUrl: () => {}, signal: controller.signal,
+    });
+    controller.abort();
+    expect(await pending).toEqual({ status: 'cancelled' });
+  });
+
   it('startLogin opens the verification_uri and completes on a valid token', async () => {
     const spawnedArgs: string[][] = [];
     const opened: string[] = [];

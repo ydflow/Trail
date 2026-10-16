@@ -53,6 +53,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ disabled = false }
       </DropdownMenuContent>
     </DropdownMenu>
     {error && <div className="mt-1 text-[11px] text-destructive">{error}</div>}
-    {!error && state.error && <div className="mt-1 text-[11px] text-foreground/42">{state.error}</div>}
+    {!error && state.error && <div role="status" title={state.error} className="trail-model-notice mt-1 text-[11px] text-foreground/42">{t('agent.model.unavailable')}</div>}
   </div>;
 };

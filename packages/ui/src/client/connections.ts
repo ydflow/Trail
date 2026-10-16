@@ -187,6 +187,22 @@ export async function connectProvider(
   }
 }
 
+/** Cancel a pending device-authorization flow without logging out. */
+export async function cancelProviderConnect(
+  client: FinagentClient,
+  providerId: string
+): Promise<ConnectionActionResult<void>> {
+  const cancel = client.connections?.cancelConnect;
+  if (typeof cancel !== 'function') return { ok: false, data: null, error: UNAVAILABLE };
+  try {
+    const result = await cancel(providerId);
+    return result.ok ? { ok: true, data: result.data, error: null }
+      : { ok: false, data: null, error: result.error };
+  } catch (error) {
+    return { ok: false, data: null, error: asError(error) };
+  }
+}
+
 /** Disconnect a provider. */
 export async function disconnectProvider(
   client: FinagentClient,
