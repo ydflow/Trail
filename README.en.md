@@ -31,48 +31,55 @@ Quotes, news, financial statements and chat answers often live in separate windo
 
 ### Deep Research: charts, evidence and judgment in one workspace
 
-<p align="center"><img src="docs/screenshots/research.png" alt="New Deep Research workspace with NVDA chart, evidence table and decision rail" width="1200" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/research.png" alt="New Deep Research workspace with NVDA chart, evidence table and decision rail" width="1200" /></p>
 
 Inspect a security alongside its chart, evidence and decision rail. Completed reports include section findings, risks and catalysts, with an action to save the research as a thesis.
 
 ### Securities workspace and AI copilot
 
-<p align="center"><img src="docs/screenshots/workspace.png" alt="Live Longbridge chart and a DeepSeek copilot answer with source links" width="1200" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/workspace.png" alt="Live Longbridge chart and a DeepSeek copilot answer with source links" width="1200" /></p>
 
 Watchlists, quotes, financials, news and charts share the focused security. The copilot retrieves structured data and streams explanations, with sources accessible beside its answer.
 
 ### Inspect the source behind a claim
 
-<p align="center"><img src="docs/screenshots/sources.png" alt="Source Inspector showing financial values, provider, timestamps, lineage and snapshot hash" width="1000" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/sources.png" alt="Source Inspector showing financial values, provider, timestamps, lineage and snapshot hash" width="1000" /></p>
 
 Open a citation to inspect values, provider, retrieval time, normalization lineage and snapshot hash. Missing quote timestamps, stale sources and unavailable data retain visible states.
 
-<details>
-<summary><strong>More screens: Today, Discover, Portfolio, Events, Skills, Evaluation and Settings</strong></summary>
+### More workspaces
 
 | Today | Discover |
 | --- | --- |
-| ![Today overview](docs/screenshots/today.png) | ![Discovery task catalog](docs/screenshots/discover.png) |
+| ![Today overview](docs/screenshots/ui-2026-10-16/today.png) | ![Discovery task catalog](docs/screenshots/ui-2026-10-16/discover.png) |
 | Watchlist moves, events, briefs and research entry points. | Market, fundamental, technical and event screening tasks. |
 
 | Portfolio | Events & catalysts |
 | --- | --- |
-| ![Sample portfolio](docs/screenshots/portfolio.png) | ![Events](docs/screenshots/events.png) |
+| ![Sample portfolio](docs/screenshots/ui-2026-10-16/portfolio.png) | ![Events](docs/screenshots/ui-2026-10-16/events.png) |
 | Allocation, holdings and actions to start research. | Earnings and macro events with research context. |
 
 | Skills | Evaluation |
 | --- | --- |
-| ![Skill hub](docs/screenshots/skills.png) | ![Evaluation Center](docs/screenshots/evaluation.png) |
+| ![Skill hub](docs/screenshots/ui-2026-10-16/skills.png) | ![Evaluation Center](docs/screenshots/ui-2026-10-16/evaluation.png) |
 | Readiness based on capability dependencies. | Experiments, baselines, failure modes and feedback. |
 
 | Settings | Tracing & privacy |
 | --- | --- |
-| ![Settings](docs/screenshots/settings.png) | ![Evaluation settings](docs/screenshots/evaluation-settings.png) |
+| ![Settings](docs/screenshots/ui-2026-10-16/settings.png) | ![Evaluation settings](docs/screenshots/ui-2026-10-16/evaluation-settings.png) |
 | Models, language, themes, connections and diagnostics. | Optional Langfuse / LangSmith configuration and privacy controls. |
 
-<p align="center"><img src="docs/screenshots/profile.png" alt="Profile and security workspace health checks" width="1000" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/profile.png" alt="Profile and security workspace health checks" width="1000" /></p>
 
-</details>
+### Structured answers: quotes, holdings and risk
+
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/agent-typed-blocks-quote.png" alt="Current copilot metric cards and time series with explicit sample data labels" width="1100" /></p>
+
+| Portfolio holdings table | Portfolio risk comparison |
+| --- | --- |
+| ![Structured portfolio answer](docs/screenshots/ui-2026-10-16/agent-typed-blocks-portfolio.png) | ![Structured risk answer](docs/screenshots/ui-2026-10-16/agent-typed-blocks-risk.png) |
+
+All three answers were executed in the current Electron client with the deterministic local agent and sample data, including source and evidence entry points.
 
 **Screenshot provenance:** These are actual Windows Electron screens built from the current source. Research, the securities workspace and Source Inspector use public Longbridge data and a configured DeepSeek model. Today, Portfolio, Discover and Events use built-in sample content in a separate demonstration profile; balances and holdings are not a real account. Evaluation shows a 15-case offline fixture experiment; Settings shows configuration surfaces. Neither demonstrates live-model quality or verified cloud tracing. Prices, news, report stance and confidence are capture-time snapshots. See the [capture and verification record](docs/screenshots/README.md).
 

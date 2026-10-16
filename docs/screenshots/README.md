@@ -1,58 +1,50 @@
-# README screenshots and verification
+# Current UI screenshot inventory
 
-Captured on 2026-10-16 (Asia/Shanghai) from source baseline `9ecef6225ab35ea3631cef155bb8a5a17823759b`.
+All **15 product screenshots** were recaptured from the current Electron client on 2026-10-16 (Asia/Shanghai). The gallery now uses the versioned `ui-2026-10-16/` directory. The old product PNGs at the root of `docs/screenshots/` were removed after checking that each had a replacement. Both language READMEs directly display every image, including the three structured-answer screenshots omitted from the previous refresh; the gallery is no longer collapsed.
 
-## Capture environment
+## Environment and data
 
-- Windows; Bun 1.4.2; Node.js v24.19.0; repository-pinned Electron 39.
-- Actual Electron renderer at `file:///D:/folio/Trail/apps/electron/dist/renderer/index.html`, with the real preload bridge and main-process kernel. These are not browser-only mockups or generated UI illustrations.
-- Chinese UI, light theme, 1600 × 1000 viewport. Captures use Playwright/CDP against dedicated Electron profiles. Browser plugin not available; repository-installed `playwright-core` was used.
-- The live profile reused the configured model credentials locally. No credential files, user conversations, account identifiers or real account holdings are included in this documentation change.
-- The demonstration profile disabled the `longbridge`, `longbridge-broker` and `massive` providers and used the local runtime. Final product captures use the UI's built-in sample fallback, with sample badges where implemented; no real account balances are shown.
+- Windows, Bun 1.4.2, Node.js v24.19.0 and repository-pinned Electron 39. Source UI is the implementation merged at `9ecef6225ab35ea3631cef155bb8a5a17823759b`; the starting documentation revision for this follow-up was `ba458279e5b23416f2800e260f5118bbf671933d`.
+- Actual desktop renderer with its preload bridge and main-process kernel, driven with repository-installed Playwright/CDP. Browser plugin not available. No generated UI images or injected financial values were used.
+- Chinese UI and light theme. Standard screens are 1600 × 1000; the three structured-answer screens are 1600 × 1200 so the tables and chart can be read together.
+- The isolated live profile uses the existing model credentials locally and Longbridge public NVDA data. The stored comprehensive report from the preceding live run is reopened, with a refreshed surrounding quote/chart; report evidence remains its original snapshot.
+- Product demonstration screens use providers disabled in the separate local profile, allowing the UI's built-in sample fallback. Structured-answer screens additionally enable `FINAGENT_DEMO_DATA=1` so real local-agent tool execution generates typed blocks carrying sample badges.
+- Portfolio amounts, holdings and risk comparisons are examples, not a real brokerage account. No credential files, real account identifiers or real account holdings are published.
 
-## Current README assets
+## Complete replacement map
 
-| File | Data / purpose |
+Each filename below replaces the root-level PNG with the same basename.
+
+| Current image | Captured state |
 | --- | --- |
-| [research.png](research.png) | Live Longbridge public NVDA data and a real DeepSeek comprehensive research report. The report is explicitly **partial**: 15 capability calls completed and 1 failed out of 16. Report evidence is frozen; the surrounding current quote/chart can change afterward. |
-| [workspace.png](workspace.png) | Live Longbridge NVDA K-line and a real DeepSeek quote answer, with source links. The captured quote lacked a provider timestamp and included zeroed pre-market fields; the answer describes these limitations. |
-| [sources.png](sources.png) | The quote answer's Source Inspector: financial values, provider, retrieval time, stale status, normalization lineage and snapshot hash. |
-| [today.png](today.png) | Built-in sample overview, watchlist, events and briefs. |
-| [portfolio.png](portfolio.png) | Built-in sample balance, allocation and holdings. **Not a real brokerage account.** |
-| [discover.png](discover.png) | Current screening task catalog and built-in sample content where present; no claim of a completed live market scan. |
-| [events.png](events.png) | Built-in sample earnings/macro events, with sample labeling. |
-| [skills.png](skills.png) | Skill list and readiness in the separate demonstration profile. |
-| [evaluation.png](evaluation.png) | Evaluation Center after a real 15-case offline fixture smoke run. The visible 100% pass label and 77% aggregate belong to that deterministic experiment; tool coverage/evidence metrics remain visibly lower. No live-model quality is implied. |
-| [evaluation-settings.png](evaluation-settings.png) | Tracing settings and privacy controls. Connections are not configured in this profile; this is not a successful cloud-export test. |
-| [settings.png](settings.png) | Live profile's model configuration surface; credential fields contain no visible keys. |
-| [profile.png](profile.png) | Local profile/health UI in the demonstration profile. |
+| [research.png](ui-2026-10-16/research.png) | Loaded NVDA chart, evidence and decision rail; previously generated real DeepSeek report, explicitly partial (15 completed capability calls, 1 failed). |
+| [workspace.png](ui-2026-10-16/workspace.png) | Current Longbridge quote/K-line and a newly executed DeepSeek public quote answer. Missing provider timestamp is disclosed in the answer. |
+| [sources.png](ui-2026-10-16/sources.png) | Source Inspector for that newly executed answer, with quote values, provider, timestamp status, lineage and snapshot hash. |
+| [today.png](ui-2026-10-16/today.png) | Built-in sample overview, watchlist, events and briefs. |
+| [portfolio.png](ui-2026-10-16/portfolio.png) | Sample account overview, allocation and holdings, visibly labeled as sample data. |
+| [discover.png](ui-2026-10-16/discover.png) | Current screening task catalog; no live market-wide scan is implied. |
+| [events.png](ui-2026-10-16/events.png) | Sample earnings and macro calendar. |
+| [skills.png](ui-2026-10-16/skills.png) | Current skill list and capability readiness. |
+| [evaluation.png](ui-2026-10-16/evaluation.png) | Existing 15-case offline fixture experiment, with its metric breakdown; not live-model quality. |
+| [settings.png](ui-2026-10-16/settings.png) | Live model/runtime configuration after loading, with blank credential input fields. |
+| [evaluation-settings.png](ui-2026-10-16/evaluation-settings.png) | Tracing switches, privacy and service configuration surfaces; not cloud-export acceptance. |
+| [profile.png](ui-2026-10-16/profile.png) | Loaded local workspace identity and health status. |
+| [agent-typed-blocks-quote.png](ui-2026-10-16/agent-typed-blocks-quote.png) | Newly executed local quote question: `metric_grid` + `time_series_chart`, two sample badges and evidence links. |
+| [agent-typed-blocks-portfolio.png](ui-2026-10-16/agent-typed-blocks-portfolio.png) | Newly executed local portfolio question: `data_table`, sample badge and evidence links. |
+| [agent-typed-blocks-risk.png](ui-2026-10-16/agent-typed-blocks-risk.png) | Newly executed local portfolio-risk question: `comparison_table`, sample badge and evidence links. |
 
-All nine screenshots referenced by the previous README were replaced. Three images were added: research, sources and evaluation settings. Older `agent-typed-blocks-*.png` assets remain historical assets for existing documentation and are not used by the refreshed READMEs.
+## Verification for this follow-up
 
-## Verification performed for this documentation refresh
+- All 15 expected PNGs exist in the versioned directory, have valid dimensions, and appear in both READMEs. No old root-level product screenshot files or old product screenshot references remain.
+- Actual typed-answer flows: `What is the quote for AAPL.US?`, `Show my portfolio`, and `What is my portfolio risk?`. Their four expected block types and sample badges were checked after rendering. Reopening the three sessions restored their blocks before the final screenshots.
+- Live flow: NVDA watchlist → chart → new public quote question → model answer → Source Inspector. The first run failed its Pi health check after 5000 ms; the existing Retry action subsequently completed the answer with two tool steps. This successful retry is not a claim that startup reliability is fixed.
+- Research and security screenshots were recaptured after waiting for the visible quote/chart to finish loading. Screenshots do not replace missing values or alter model text.
+- Relative links, GitHub GFM rendering, image loading and direct gallery visibility were checked in both languages. The documentation-only scope does not require repeating the full source test suite.
 
-```text
-bun.cmd run build:electron
-→ exit 0; renderer, preload and main built successfully.
-→ Existing Vite option deprecation and bundle-size warnings remain.
+## Prior source validation and limits
 
-bun.cmd run typecheck
-→ core, i18n, shared, ui and electron all exit 0.
+The preceding documentation refresh ran `bun.cmd run build:electron` and `bun.cmd run typecheck` successfully, plus 170 focused tests (0 failures, 784 assertions across 21 files). Those checks were not repeated for this image/reference-only follow-up. The existing fixture experiment completed 15/15 cases with deterministic evaluators and no judge; its visible 100% pass label and 77% aggregate are specific to that fixture run, with lower tool/evidence metrics still visible.
 
-bun.cmd test --isolate packages/shared/src/research packages/ui/src/components/research packages/ui/src/lib/citations.test.ts packages/shared/src/strategies/presets.test.ts packages/shared/src/screening/strategies.test.ts --timeout 20000
-→ 170 pass / 0 fail; 784 assertions; 21 files.
-```
+The source baseline's [main CI run 38905940792](https://github.com/ydflow/Trail/actions/runs/38905940792) passed Typecheck, Full unit tests and Secret scan. It is baseline evidence, not CI on this documentation update. The workflow ignores Markdown and `docs/**` changes.
 
-Desktop interaction evidence: watchlist → NVDA → K-line → real copilot query → citation/source inspection; Research → start comprehensive research → persisted partial report → reload after desktop restart; navigation to Today, Discover, Portfolio, Events, Skills, Evaluation, Settings and Profile. Screenshot inspection checks the resulting layouts, visible provenance and sample/empty states.
-
-The baseline main CI [run 38905940792](https://github.com/ydflow/Trail/actions/runs/38905940792) succeeded on the exact source baseline above: Typecheck, Full unit tests and Secret scan passed. This is baseline evidence, not CI on the documentation commit. The workflow ignores Markdown and `docs/**` changes, so a documentation-only push need not create a new CI run.
-
-Additional checks: 85 relative file links resolve; both READMEs pass GitHub's GFM rendering API and contain the same 12 screenshot assets. Desktop HTML preview verifies image loading and the expandable gallery. A fixture showcase was executed with `bun.cmd scripts/eval/run.ts --smoke --mode fixture --store artifacts/readme-refresh/demo-profile --out artifacts/readme-refresh/eval-smoke.json`: exit 0, 15/15 runs completed and deterministically scored, no judge configured. The first invocation used an unsupported `--store-dir` flag and exited before any cases; it was corrected to `--store`.
-
-## Observed limits
-
-- A first live answer emitted an invalid `time_series_chart` block and fell back to text; its rendered Markdown table was also fragmented around citations. That attempt remains in the local capture profile. A separate short quote question supplied the clean workspace/source screenshots; it is not evidence that all model output contracts pass.
-- Deep Research completed as `partial`; several retrieved fields were absent or not usable for analysis, and the model-generated report was in English within the Chinese UI. No report text or financial values were edited for the screenshots.
-- Hidden-window screenshot capture sometimes stalled on Windows; captures were completed using CDP and visible Electron windows. Temporary capture scripts/profiles/logs are excluded from Git.
-- Full Electron regression, interruption/fault injection, real brokerage portfolio verification, cloud tracing, complete live benchmark, installer distribution, signing and notarization were not run for this README change. Existing recovery acceptance remains a separate historical record.
-- Screenshot content is time-specific and does not substantiate investment returns, model accuracy, general reliability or cross-platform production readiness.
+Full Electron regression, fault injection, cloud tracing, live-model benchmark, real portfolio verification, installers, signing and notarization were not run here. The earlier live answer with an invalid structured block, and the partial English research report within Chinese UI, remain known limitations. Historical fault-injection and before/after evidence outside the product screenshot directory remains historical evidence; it is not used as the README gallery.

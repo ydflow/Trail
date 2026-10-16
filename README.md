@@ -31,48 +31,55 @@
 
 ### 深度研究：行情、证据与判断，在同一工作区
 
-<p align="center"><img src="docs/screenshots/research.png" alt="新版深度研究工作区：NVDA K线、依据表与判断侧栏" width="1200" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/research.png" alt="新版深度研究工作区：NVDA K线、依据表与判断侧栏" width="1200" /></p>
 
 以证券为中心展开 K 线、研究依据和判断侧栏；报告完成后可以查看分项结论、风险、催化剂，并继续保存为投资逻辑。
 
 ### 证券工作台与 AI 副驾驶
 
-<p align="center"><img src="docs/screenshots/workspace.png" alt="长桥真实行情和K线，右侧DeepSeek助手回答并附来源入口" width="1200" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/workspace.png" alt="长桥真实行情和K线，右侧DeepSeek助手回答并附来源入口" width="1200" /></p>
 
 自选、报价、财务、新闻与图表共享当前证券上下文。右侧助手可以读取结构化数据，以流式回答补充解释；来源入口保留在回答旁边。
 
 ### 数据来源可以打开检查
 
-<p align="center"><img src="docs/screenshots/sources.png" alt="来源检查器：金融数值、提供商、获取时间、规范化链路与快照哈希" width="1000" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/sources.png" alt="来源检查器：金融数值、提供商、获取时间、规范化链路与快照哈希" width="1000" /></p>
 
 从引用进入来源检查器，查看数值、提供商、获取时间、规范化链路与快照哈希。价格时间缺失、来源过期与数据不可用会保留在可见状态中。
 
-<details>
-<summary><strong>展开更多界面：今日、发现、组合、事件、技能、评测与设置</strong></summary>
+### 更多工作区
 
 | 今日概览 | 机会发现 |
 | --- | --- |
-| ![今日概览](docs/screenshots/today.png) | ![机会发现任务目录](docs/screenshots/discover.png) |
+| ![今日概览](docs/screenshots/ui-2026-10-16/today.png) | ![机会发现任务目录](docs/screenshots/ui-2026-10-16/discover.png) |
 | 自选异动、事件、简报与下一步研究入口。 | 按市场、基本面、技术与事件组织筛选任务。 |
 
 | 投资组合 | 事件与催化剂 |
 | --- | --- |
-| ![示例投资组合](docs/screenshots/portfolio.png) | ![事件与催化剂](docs/screenshots/events.png) |
+| ![示例投资组合](docs/screenshots/ui-2026-10-16/portfolio.png) | ![事件与催化剂](docs/screenshots/ui-2026-10-16/events.png) |
 | 资产配置、持仓和进入研究的操作。 | 财报、宏观事件与研究上下文。 |
 
 | 技能中心 | 评测中心 |
 | --- | --- |
-| ![技能中心](docs/screenshots/skills.png) | ![评测中心](docs/screenshots/evaluation.png) |
+| ![技能中心](docs/screenshots/ui-2026-10-16/skills.png) | ![评测中心](docs/screenshots/ui-2026-10-16/evaluation.png) |
 | 按能力依赖显示技能就绪情况。 | 实验、基线、失败模式与人工反馈入口。 |
 
 | 设置中心 | 追踪与隐私设置 |
 | --- | --- |
-| ![设置中心](docs/screenshots/settings.png) | ![评测设置](docs/screenshots/evaluation-settings.png) |
+| ![设置中心](docs/screenshots/ui-2026-10-16/settings.png) | ![评测设置](docs/screenshots/ui-2026-10-16/evaluation-settings.png) |
 | 模型、语言、主题、连接与诊断。 | 可选 Langfuse / LangSmith 连接与隐私控制。 |
 
-<p align="center"><img src="docs/screenshots/profile.png" alt="个人与安全：本地工作区与集成健康检查" width="1000" /></p>
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/profile.png" alt="个人与安全：本地工作区与集成健康检查" width="1000" /></p>
 
-</details>
+### 结构化回答：行情、组合与风险
+
+<p align="center"><img src="docs/screenshots/ui-2026-10-16/agent-typed-blocks-quote.png" alt="新版助手的行情指标卡片与走势图，使用明确标注的示例数据" width="1100" /></p>
+
+| 组合持仓表 | 组合风险对比 |
+| --- | --- |
+| ![组合结构化回答](docs/screenshots/ui-2026-10-16/agent-typed-blocks-portfolio.png) | ![风险结构化回答](docs/screenshots/ui-2026-10-16/agent-typed-blocks-risk.png) |
+
+以上三种回答均在当前 Electron 客户端实际运行，由本地确定性 Agent 和示例数据生成，包含数据来源与证据入口。
 
 **截图说明：** 以上均来自当前源码构建的真实 Windows Electron 界面。研究、证券工作台与来源检查器使用长桥公开证券数据和已配置的 DeepSeek 模型；今日、组合、发现与事件展示独立演示配置下的内置示例内容，组合金额与持仓不是实际账户资产。评测中心展示 15 个离线 fixture 案例的样例实验；设置图片仅展示配置入口，不代表真实模型质量或云端追踪验收。截图中的价格、新闻、报告立场及置信度均为采集当时的快照，详见[截图记录](docs/screenshots/README.md)。
 
