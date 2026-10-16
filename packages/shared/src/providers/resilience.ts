@@ -1,5 +1,5 @@
 /**
- * Provider resilience layer (#25).
+ * Provider resilience layer.
  *
  * Four small, independently testable primitives that `ProviderRouter`
  * composes around the existing primary/fallback chain:
@@ -9,7 +9,7 @@
  *      unsupported / upstream 5xx / not-found / empty / malformed / aborted).
  *   2. {@link runWithRetry} — bounded retry with exponential backoff +
  *      jitter. Auth/config and other deterministic failures are NEVER retried;
- *      an optional {@link RetryBudget} lets the #17 run budget cap retries.
+ *      an optional {@link RetryBudget} lets the run budget cap retries.
  *   3. {@link CircuitBreaker} / {@link CircuitBreakerRegistry} — per-provider
  *      closed/open/half-open state so a hard-down provider is skipped fast
  *      instead of making every request wait for its timeout.
@@ -21,7 +21,7 @@
  *
  * Design constraints:
  *  - Pure framework code: no vendor knowledge, no canonical-data semantics
- *    (reconciliation is #26, fact-envelope semantics are #24).
+ *    (reconciliation and fact-envelope semantics are out of scope here).
  *  - Everything is OPT-IN. A `ProviderRouter` built without resilience options
  *    behaves exactly as before, which keeps the existing tests valid.
  *  - Time is injectable (`now`/`sleep`/`random`) so every path is
@@ -146,7 +146,7 @@ export function classifyFailure(code: string | undefined | null): FailureKind {
  * Kinds where an immediate, SAME-provider retry may help: transient server /
  * transport / quota pressure only. Everything else (auth, malformed payload,
  * not-found, unsupported, abort, unknown) fails fast — retrying a deterministic
- * failure just burns the #17 run budget.
+ * failure just burns the run budget.
  */
 const RETRYABLE_KINDS: ReadonlySet<FailureKind> = new Set<FailureKind>([
   'timeout',
@@ -175,7 +175,7 @@ export function isRetryableError(error: ProviderError): boolean {
 
 // ── 2. Bounded retry + backoff ────────────────────────────────────────────
 
-/** Hook into the enclosing run's #17 budget; retries stop once exhausted. */
+/** Hook into the enclosing run's budget; retries stop once exhausted. */
 export interface RetryBudget {
   /** True when the owning Agent/Deep-Research run has spent its budget. */
   isExhausted(): boolean;
@@ -196,7 +196,7 @@ export interface RetryOptions {
   sleep?: (ms: number) => Promise<void>;
   /** Injectable random in [0,1) (tests pass a constant for determinism). */
   random?: () => number;
-  /** Optional #17 run-budget gate. */
+  /** Optional run-budget gate. */
   budget?: RetryBudget;
 }
 
@@ -235,7 +235,7 @@ export interface RetryOutcome<T> {
   result: ProviderResult<T>;
   /** Attempts actually made against the provider (≥1). */
   attempts: number;
-  /** True when the loop stopped because the #17 run budget was spent. */
+  /** True when the loop stopped because the run budget was spent. */
   stoppedByBudget: boolean;
 }
 
@@ -246,7 +246,7 @@ export interface RetryOutcome<T> {
  * Stop rules (in order): success → return; non-retryable error → return
  * immediately; last attempt → return; aborted → return; budget exhausted →
  * return; otherwise backoff and retry. Auth/config errors therefore get
- * exactly ONE attempt, satisfying "#25: auth must not be retried infinitely".
+ * exactly ONE attempt, satisfying "auth must not be retried infinitely".
  */
 export async function runWithRetry<T>(
   operation: (attempt: number) => Promise<ProviderResult<T>>,
@@ -396,7 +396,7 @@ export class CircuitBreakerRegistry {
 // ── 4. Typed, per-class TTL cache ─────────────────────────────────────────
 
 /**
- * Data freshness CLASS. TTL is chosen by class (issue #25 requirement: TTL by
+ * Data freshness CLASS. TTL is chosen by class (requirement: TTL by
  * data type, never one global duration).
  *  - quote/portfolio: near-live, very short TTL.
  *  - history (kline): short TTL, paging/period makes refetch costlier.

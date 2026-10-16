@@ -1,4 +1,4 @@
-// Live, opt-in Copilot citation acceptance (#30): real AgentKernel (Pi runtime,
+// Live, opt-in Copilot citation acceptance: real AgentKernel (Pi runtime,
 // real model) + the real Pi-extension tool chain (finance capability tools with
 // EVIDENCE lines + inline-citation instruction), answering a mixed-source
 // question (structured quote + news). The only stub is the `longbridge` CLI

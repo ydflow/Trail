@@ -1,8 +1,8 @@
 # ADR 0001: Stream Event Protocol v1
 
-- **Status:** Proposed (awaiting review on #27)
+- **Status:** Proposed (awaiting review)
 - **Date:** 2026-09-11
-- **Deciders:** ydflow/Trail maintainers, contributor for #27
+- **Deciders:** ydflow/Trail maintainers
 
 ## Context
 
@@ -17,7 +17,7 @@ carried over one IPC channel (`agent:event` in `apps/electron`). The envelope al
 - an independent `cancelled` event (UI currently infers cancellation from `run_failed`);
 - typed payloads for `tool_progress`, `citation_added`, and `status`.
 
-Issue #27 asks for a stable, versioned streaming event protocol with cancel and
+The requirement is a stable, versioned streaming event protocol with cancel and
 reconnect support.
 
 ## Decision
@@ -32,8 +32,8 @@ gradually replaces it.
 ```ts
 interface StreamEventEnvelope<T extends StreamEventType> {
   protocolVersion: 1;   // forward-compat gate
-  runId: string;        // one run = one generation (identity, see #34)
-  messageId?: string;   // message-level events only: stable message id (#34);
+  runId: string;        // one run = one generation (identity)
+  messageId?: string;   // message-level events only: stable message id;
                         // run-level events omit it. message and run are distinct identities
   sequence: number;     // monotonic per run; idempotency key = runId + sequence
   type: T;
@@ -42,7 +42,7 @@ interface StreamEventEnvelope<T extends StreamEventType> {
 }
 ```
 
-Identity model (aligned with #34): a message has a stable id and can span
+Identity model: a message has a stable id and can span
 multiple runs (edit / regenerate / fork); an assistant generation binds to
 exactly one run. Message-level events (`message_started / text_delta /
 message_completed / cancelled`) carry the real assistant `messageId`; run-level
@@ -66,8 +66,8 @@ Key behavior change: `message_delta` (full-answer snapshot) becomes `text_delta`
 | Cancel | renderer `cancelRun` → runtime propagates → runtime **explicitly emits `cancelled`**; partial answer preserved (`payload.partial.text` carries the text produced so far) |
 | `run_failed` normalization | `RUN_CANCELLED` → `cancelled{reason:'user'}`; `BUDGET_EXHAUSTED` → `cancelled{reason:'budget'}`; `RETRY_STORM` / `LOOP_DETECTED` → `cancelled{reason:'runtime'}`; everything else → `error` (see `stream-event-adapter`) |
 | Reconnect | **Implemented (v1, in-memory):** `RunManager.replayStream(runId, lastSequence)` returns the contiguous tail from `StreamEventHistory` (`packages/shared/src/kernel/stream-history.ts`); when the run is unknown or the tail is non-contiguous (buffer eviction), it returns `recoverable: false` — an explicit unrecoverable path the renderer must surface. IPC: `runs:stream-replay` |
-| Final-state parity | UI `stopReason` and persisted `run.status` come from the same single final state in run-manager (aligns with #18) |
-| Security (#19) | `status` never exposes chain-of-thought; tool payloads pass redaction before reaching the UI; renderer never executes model-returned code |
+| Final-state parity | UI `stopReason` and persisted `run.status` come from the same single final state in run-manager |
+| Security | `status` never exposes chain-of-thought; tool payloads pass redaction before reaching the UI; renderer never executes model-returned code |
 
 ## Migration path
 
@@ -80,12 +80,12 @@ Key behavior change: `message_delta` (full-answer snapshot) becomes `text_delta`
 ## Consequences
 
 - **Positive:** versioned contract; deterministic idempotency; explicit cancellation
-  state; groundwork for reconnect/resume and for #21 immutable run manifests.
+  state; groundwork for reconnect/resume and for immutable run manifests.
 - **Negative:** dual event families during migration; consumers must handle both.
 - **Open questions for reviewers:**
   1. Resume data source: v1 keeps events in memory (`StreamEventHistory`); persisting
-     an event log is deferred (ties into #21 immutable run manifests) — acceptable?
+     an event log is deferred (ties into immutable run manifests) — acceptable?
   2. Is `status.phase` of `thinking / searching / working` sufficient?
-  3. ~~Keep `messageId` merged with `runId`~~ **resolved**: #34 requires distinct
+  3. ~~Keep `messageId` merged with `runId`~~ **resolved**: the identity model requires distinct
      message / run identities — envelope carries `messageId` only on message-level
      events (see Identity model above).

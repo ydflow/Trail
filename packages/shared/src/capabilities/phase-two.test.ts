@@ -111,7 +111,7 @@ describe('phase-2 manifest input validation', () => {
     expect(result.summary).toContain('NVDA.US');
   });
 
-  it('stamps capitalFlow provenance.marketTime in epoch MS (issue #179)', async () => {
+  it('stamps capitalFlow provenance.marketTime in epoch MS', async () => {
     const flow = createMarketCapitalFlowCapability(fetchers());
     const result = await flow.execute({ symbol: 'NVDA.US' }, { now: () => 12345 });
     // The parser emits CapitalFlow.timestamp in epoch SECONDS; the ms-

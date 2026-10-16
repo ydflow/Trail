@@ -111,7 +111,7 @@ export const AgentPanel: React.FC = () => {
   // The run_completed event payload does not carry financial evidence (the
   // envelopes are built when the run settles). Once a run finishes, refresh the
   // message list from the store so the persisted evidence-backed message — with
-  // resolvable citations — replaces the synthesized live one (#30).
+  // resolvable citations — replaces the synthesized live one.
   const loadMessages = useSetAtom(loadMessagesAtom);
   const wasRunningRef = useRef(false);
   useEffect(() => {

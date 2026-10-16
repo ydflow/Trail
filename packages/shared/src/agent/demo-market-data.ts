@@ -5,7 +5,7 @@ import type { CapabilityFetchResult } from '../capabilities/fetchers.ts';
 type QuoteResultFetcher = (symbol: string, signal?: AbortSignal) => Promise<CapabilityFetchResult<Quote>>;
 
 /**
- * Built-in sample data for the offline demo path (#31 E2E, README offline
+ * Built-in sample data for the offline demo path (E2E, README offline
  * promise). `FINAGENT_DEMO_DATA=1` makes provider-unavailable fetchers fall
  * back to these deterministic values so the Copilot can demonstrate typed
  * answer blocks without any vendor credential. Mirrors the renderer demo

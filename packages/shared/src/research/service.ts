@@ -208,7 +208,7 @@ export class ResearchService {
         },
       });
       if (result.report && !active.controller.signal.aborted) {
-        // Preserve #73: never publish a completed/partial summary before its report.
+        // Preserve : never publish a completed/partial summary before its report.
         await this.options.repository.saveReport(result.report);
         await this.options.onReport?.(result.report);
         cp.summary = { ...cp.summary, status: result.report.runStatus,

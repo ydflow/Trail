@@ -1,4 +1,4 @@
-// Typed financial answer blocks (#31).
+// Typed financial answer blocks.
 //
 // Copilot answers may embed a small set of versioned, schema-validated blocks
 // next to Markdown text. Blocks are carried inside the answer string as
@@ -30,7 +30,7 @@ interface AnswerBlockBase {
   title?: string;
   /** Data-source slug (e.g. `demo` for built-in sample data) shown in the footer. */
   source?: string;
-  /** References into the run's tool-call / evidence records (#29/#30). */
+  /** References into the run's tool-call / evidence records. */
   evidenceIds?: string[];
 }
 

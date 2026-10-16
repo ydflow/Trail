@@ -1,4 +1,4 @@
-// Live evaluation preflight (issue #113).
+// Live evaluation preflight.
 //
 // The nightly live suite must not masquerade as a benchmark when nothing was
 // measurable: before any case runs, prove that the Pi runtime is reachable,

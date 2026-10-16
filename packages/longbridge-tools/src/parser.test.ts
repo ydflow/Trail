@@ -72,14 +72,14 @@ describe('parseQuoteResponse empty-value markers', () => {
     expect(parsed.timestamp).toBe(Math.floor(Date.parse('2026-05-05 12:36:35') / 1000));
   });
 
-  it('treats a whitespace-only optional field as missing, not as 0 (issue #184)', () => {
+  it('treats a whitespace-only optional field as missing, not as 0', () => {
     const parsed = parseQuoteResponse(quote({ high: '   ', low: '\t', volume: '  ' }));
     expect(parsed.high).toBe(195.5);
     expect(parsed.low).toBe(195.5);
     expect(parsed.volume).toBe(0);
   });
 
-  it('does not coerce null/boolean/array values into numbers (issue #184)', () => {
+  it('does not coerce null/boolean/array values into numbers', () => {
     // Required fields fail closed instead of reporting Number(null) === 0.
     expect(() => parseQuoteResponse(quote({ prev_close: null }))).toThrow(LongBridgeError);
     expect(() => parseQuoteResponse(quote({ prev_close: true }))).toThrow(LongBridgeError);
@@ -91,20 +91,20 @@ describe('parseQuoteResponse empty-value markers', () => {
     expect(parsed.open).toBe(195.5);
   });
 
-  it('fails a quote with no usable timestamp instead of fabricating the current time (issue #184)', () => {
+  it('fails a quote with no usable timestamp instead of fabricating the current time', () => {
     expect(() => parseQuoteResponse(quote({ timestamp: '' }))).toThrow(LongBridgeError);
     expect(() => parseQuoteResponse(quote({ timestamp: '   ' }))).toThrow(LongBridgeError);
     expect(() => parseQuoteResponse(quote({ timestamp: 'not-a-date' }))).toThrow(LongBridgeError);
   });
 
-  it('parses epoch seconds delivered as a numeric string (issue #184)', () => {
+  it('parses epoch seconds delivered as a numeric string', () => {
     // The CLI sends epoch seconds as strings (same shape `toEpochSeconds`
     // already handles for capital-flow/trade payloads).
     const parsed = parseQuoteResponse(quote({ timestamp: '1786492800' }));
     expect(parsed.timestamp).toBe(1786492800);
   });
 
-  it('keeps the documented fallback for garbage optional values (issue #184)', () => {
+  it('keeps the documented fallback for garbage optional values', () => {
     // A non-empty non-numeric string is "no value" for optional fields — the
     // documented tradeoff: the quote stays usable, high/low/volume fall back.
     const parsed = parseQuoteResponse(quote({ high: 'abc', volume: 'n/a' }));
@@ -153,12 +153,12 @@ describe('other parsers with empty-value markers', () => {
     expect(temp.sentiment).toBe(0);
   });
 
-  it('fails a kline without a timestamp instead of stamping it "now" (issue #184)', () => {
+  it('fails a kline without a timestamp instead of stamping it "now"', () => {
     const payload = JSON.stringify([{ open: 1, high: 2, low: 0.5, close: 1.5, volume: 10 }]);
     expect(() => parseKlineResponse(payload)).toThrow(LongBridgeError);
   });
 
-  it('keeps the "now" fallback for a dateless news item instead of failing the feed (issue #184)', () => {
+  it('keeps the "now" fallback for a dateless news item instead of failing the feed', () => {
     const news = parseNewsResponse(
       JSON.stringify([{ id: 1, title: 'headline', published_at: '' }])
     );

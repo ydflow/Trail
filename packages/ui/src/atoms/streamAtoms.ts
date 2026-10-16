@@ -1,4 +1,4 @@
-// Stream Event Protocol v1 — renderer 侧事件缓冲与幂等（issue #27，PR-D）。
+// Stream Event Protocol v1 — renderer 侧事件缓冲与幂等（PR-D）。
 //
 // 目标：在不改变现有渲染路径的前提下，把 onStreamEvent 的协议事件按
 // run 有序缓存 + 幂等去重，供后续渲染切换使用（text_delta 增量渲染、

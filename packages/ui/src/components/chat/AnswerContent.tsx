@@ -10,7 +10,7 @@ import { assignCitationNumbers, collectBlockEvidenceIds, collectCitationSources 
 
 /**
  * Copilot answer renderer: Markdown text interleaved with typed financial
- * answer blocks (#31) and inline citation markers (#30). Works identically for
+ * answer blocks and inline citation markers. Works identically for
  * the live streaming answer and for persisted messages — blocks and markers
  * are part of the message content itself, so a reload rebuilds them from the
  * same bytes. Text segments render through the existing hardened Markdown

@@ -59,7 +59,7 @@ import { scoresFromEvaluation } from './langfuse/scores.ts';
 
 /**
  * LLM control surface the runner needs to apply + verify experiment config
- * (#114). Structural subset of `LlmRuntimeApi` (Pi adapter) so fakes stay
+ * Structural subset of `LlmRuntimeApi` (Pi adapter) so fakes stay
  * minimal; `setModel`/`setThinkingLevel` are optional so a control surface
  * that cannot switch models is representable (→ explicit unapplied/error).
  */
@@ -141,7 +141,7 @@ const TIMEOUT_ERROR_CODE = 'PI_REQUEST_TIMEOUT';
 const CANCELLED_ERROR_CODE = 'RUN_CANCELLED';
 
 /**
- * Requested experiment config that could not be applied to the runtime (#114).
+ * Requested experiment config that could not be applied to the runtime.
  * The run fails with this code instead of silently executing under the
  * runtime's previous/default model — a mislabeled A/B is worse than no run.
  */
@@ -391,7 +391,7 @@ export class ExperimentService {
 
   /**
    * Apply the experiment's requested model/provider/thinking to the runtime
-   * BEFORE the case session runs, then confirm by readback (#114).
+   * BEFORE the case session runs, then confirm by readback.
    *
    * Semantics:
    * - model+provider requested → must apply via the runtime control surface
@@ -513,7 +513,7 @@ export class ExperimentService {
     const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     const startedAt = this.now();
 
-    // #114: apply + verify the requested config BEFORE anything runs. A
+    // apply + verify the requested config BEFORE anything runs. A
     // failure here is terminal for the case: the run is recorded as failed
     // with CONFIG_APPLY_FAILED rather than executing under whatever model the
     // runtime happened to still be on.
@@ -531,7 +531,7 @@ export class ExperimentService {
         error: applied.error,
         toolCalls: [],
         // The agent never ran: a config failure is infra-invalid, not a
-        // measurable zero (#113).
+        // measurable zero.
         execution: 'not-started',
       };
       await this.traceRun(failedRun, session.id, caseItem.locale);
@@ -658,7 +658,7 @@ export class ExperimentService {
         datasetId: dataset.id,
         datasetVersion: dataset.version,
         goldCaseId: caseItem.id,
-        // Readback-confirmed values ONLY (#114). A dimension the runtime never
+        // Readback-confirmed values ONLY. A dimension the runtime never
         // confirmed (no control surface, or recorded as unapplied) stays
         // unknown in the trace — the requested value is recorded under its own
         // name and is never promoted to the actual model label.
@@ -682,7 +682,7 @@ export class ExperimentService {
       // is configured. Only completed runs are measurable: a failed/timeout
       // run never produced a finished agent trajectory, so rule metrics would
       // emit phantom passes (e.g. "no tool calls made" = 1.0) and judge calls
-      // would waste credits on an empty answer (issue #113). Such runs still
+      // would waste credits on an empty answer. Such runs still
       // carry a verdict (`fail`) and stay in the quality aggregates as real
       // negative results when they started; only not-started config failures
       // and explicit runtime/process failures are infrastructure.
@@ -782,7 +782,7 @@ export class ExperimentService {
       datasetVersion?: string;
       goldCaseId?: string;
       /**
-       * Runtime config confirmed by READBACK (#114) — omit the key entirely
+       * Runtime config confirmed by READBACK — omit the key entirely
        * when the runtime state is unknown. Never pass a requested value here.
        */
       model?: string;
@@ -933,7 +933,7 @@ export class ExperimentService {
  * the per-metric aggregate means from `summarizeMetricsForComparison`; missing
  * thresholds fall back to the metric definition defaults during comparison.
  *
- * Refuses experiments whose execution validity is not `valid` (issue #113):
+ * Refuses experiments whose execution validity is not `valid`:
  * a baseline built from infrastructure failures would be a misleading
  * benchmark floor, and once stored it is compared against silently.
  */

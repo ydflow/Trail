@@ -96,7 +96,7 @@ export function buildFinancialEvidence(input: BuildFinancialEvidenceInput): Fina
 
 /**
  * Deterministic evidence-envelope id, computable before the run settles so
- * tool results can carry their `fe_*` id for inline citations (#30).
+ * tool results can carry their `fe_*` id for inline citations.
  */
 export function computeEnvelopeId(runId: string, toolCallId: string, resultHash: string): string {
   return `fe_${hashText(`${runId}:${toolCallId}:${resultHash}`).slice(0, 24)}`;

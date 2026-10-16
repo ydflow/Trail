@@ -1,9 +1,9 @@
-# 修复方案：统一行内引用 + 来源检查器（Issue #30）与 Deep Research 提示注入防御（Security Issue）
+# 修复方案：统一行内引用 + 来源检查器与 Deep Research 提示注入防御
 
 > 状态：已实施（v2，含实现期修订）
 > 日期：2026-09-11
 > 涉及 Issue：
-> - **Issue #30** — `[Copilot Evidence] Add unified inline citations and a source inspector`
+> - 需求 — `[Copilot Evidence] Add unified inline citations and a source inspector`
 > - **Security Issue** — `[Security] Defend Deep Research against prompt injection from untrusted sources`（编号以仓库实际 issue 为准，开放列表未直接检索到，按标题实现）
 >
 > **实现期修订**（与本稿 2.2/2.3 的差异）：
@@ -15,7 +15,7 @@
 
 ## 第一部分：现状分析（代码勘察结论）
 
-### 1.1 证据链现状（与 Issue #30 直接相关）
+### 1.1 证据链现状（与本方案直接相关）
 
 | 环节 | 位置 | 说明 |
 |---|---|---|
@@ -24,7 +24,7 @@
 | 证据持久化 | `packages/shared/src/kernel/run-manager.ts`（约 283–297 行） | run 结束时把 `financialEvidence` 挂到 assistant `Message` 上，经 `session-manager.ts` → `message-repository.ts` 落盘 `sessions/<sessionId>/messages.json` |
 | 前端获取 | `apps/electron/src/main/kernelHost.ts` `getMessages` | 完整返回含 `financialEvidence` 与 `toolCalls`；**流式 `AgentEvent` 不携带证据**，证据仅在 run 结束后随消息加载 |
 | 类型化答案块 | `packages/core/src/answer-blocks.ts` | 块以 ` ```trail-block` 围栏内嵌于回答文本；`AnswerBlockBase.evidenceIds?: string[]` 已预留 |
-| 块渲染 | `packages/ui/src/components/chat/AnswerContent.tsx` + `blocks/parseAnswerSegments.ts` + `blocks/AnswerBlockView.tsx` + `blocks/AnswerBlockFrame.tsx` | `AnswerBlockFrame` 已渲染证据 chip（`<span data-evidence-id={id}>`），注释明确预期 #30 检查器直接挂载 |
+| 块渲染 | `packages/ui/src/components/chat/AnswerContent.tsx` + `blocks/parseAnswerSegments.ts` + `blocks/AnswerBlockView.tsx` + `blocks/AnswerBlockFrame.tsx` | `AnswerBlockFrame` 已渲染证据 chip（`<span data-evidence-id={id}>`），注释明确预期检查器直接挂载 |
 | 证据 ID 语义 | `packages/shared/src/agent/local-finance-agent-backend.ts`（约 347 行）与 `answer-block-emitter.ts` | **块里写的 `evidenceIds` 实际是 `toolCall.id`，不是 `fe_*` envelope id**。`FinancialEvidenceEnvelope.toolCallId` 是二者的关联键 |
 | 行内引用 | 无 | 聊天/Markdown 管线（`MarkdownContent.tsx`）中不存在任何 `[1]` 上标、脚注或来源列表渲染 |
 | 检查器先例 | `packages/ui/src/components/trace/TraceInspector.tsx`（Dialog 多页签）、`settings/SkillDetailDrawer.tsx`（侧滑抽屉） | 可复用 `Dialog` 原语、`DataFreshness`、`DemoBadge` 等 |
@@ -58,7 +58,7 @@
 
 ---
 
-## 第二部分：Issue #30 方案 — 统一行内引用 + 来源检查器
+## 第二部分：方案 — 统一行内引用 + 来源检查器
 
 ### 2.1 设计目标
 
@@ -248,7 +248,7 @@ export function sanitizeNewsItem(item: NewsItem): NewsItem; // title/summary 清
 
 ### 4.1 建议实施顺序（两条 issue 独立可并行，各自可拆 2 个 PR）
 
-**Issue #30（预计 2 个 PR）：**
+**实施拆分（预计 2 个提交）：**
 1. PR-A（契约+后端）：core `citations.ts` + `answer-blocks` 增量字段 + `computeEnvelopeId` 抽取 + emitter/pi-tools `EVIDENCE:` 行 + 提示词指令 + 全部 shared/core 测试；
 2. PR-B（前端）：`lib/citations.ts` + `AnswerContent` marker 渲染 + `AnswerBlockFrame` chip 升级 + `SourceInspector` Dialog + i18n + UI/e2e 测试。
 

@@ -120,7 +120,7 @@ export interface ProviderCoverage {
 
 /**
  * One failed provider attempt, recorded when a fallback ultimately served a
- * request (#25). The trail is evidence of *how* the final provider was
+ * request. The trail is evidence of *how* the final provider was
  * reached — it never rewrites `providerId`, so stale/backup data can never be
  * presented as if it came from the original source (spec §62).
  */
@@ -156,7 +156,7 @@ export interface ProviderProvenance {
   /** True when the data may be outdated relative to the market. */
   stale: boolean;
   /**
-   * Failed providers skipped before this result was produced (#25). Absent on
+   * Failed providers skipped before this result was produced. Absent on
    * a first-choice success; attached only when non-empty (a fallback or a
    * stale-cache downgrade served the call).
    */
@@ -176,7 +176,7 @@ export interface ProviderError {
   /** Listing choices when `code` is `AMBIGUOUS_INSTRUMENT`. */
   candidates?: InstrumentCandidateSummary[];
   /**
-   * Providers attempted before this error (#25). Present only when routing
+   * Providers attempted before this error. Present only when routing
    * actually failed over; mirrors `ProviderProvenance.failoverTrail`.
    */
   failoverTrail?: ProviderFailoverStep[];

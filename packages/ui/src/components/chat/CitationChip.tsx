@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useCitations } from './citationsContext';
 
 /**
- * One inline citation superscript (`[n]`, #30). A marker is rendered as a
+ * One inline citation superscript (`[n]`). A marker is rendered as a
  * numbered, clickable chip only when its id resolves against the message's
  * evidence records; fabricated ids — or evidence still streaming — render as
  * a muted `?` that is never clickable. Provenance is never invented.

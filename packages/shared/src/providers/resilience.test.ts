@@ -1,6 +1,6 @@
 /**
- * Tests for the #25 provider resilience layer: typed failure classification,
- * bounded retry/backoff (with the #17 run-budget gate), circuit breaker,
+ * Tests for the provider resilience layer: typed failure classification,
+ * bounded retry/backoff (with the run-budget gate), circuit breaker,
  * per-class TTL cache, stale downgrade semantics, and the router-level
  * integration scenarios the issue explicitly demands (429 / timeout / outage
  * fault injection + fallback provenance).
@@ -238,7 +238,7 @@ describe('runWithRetry', () => {
     if (!result.result.ok) expect(result.result.error.code).toBe('SERVICE_UNAVAILABLE');
   });
 
-  it('stops retrying once the #17 run budget is exhausted', async () => {
+  it('stops retrying once the run budget is exhausted', async () => {
     const budget = { exhausted: false, isExhausted(): boolean { return this.exhausted; } };
     let calls = 0;
     const result = await runWithRetry(
@@ -399,7 +399,7 @@ describe('calendar query cache isolation', () => {
   });
 });
 
-describe('ProviderRouter resilience integration (#25)', () => {
+describe('ProviderRouter resilience integration', () => {
   it('retries a 429 on the primary and never touches the fallback', async () => {
     const router = new ProviderRouter({
       retry: { maxAttempts: 3, sleep: noSleep, jitter: false },
@@ -750,7 +750,7 @@ describe('ProviderRouter resilience integration (#25)', () => {
     expect(router.getCapabilityRouting('market.quote')).toEqual({ primary: 'b' });
   });
 
-  it('does not retry once the injected #17 run budget is exhausted', async () => {
+  it('does not retry once the injected run budget is exhausted', async () => {
     const budget = { exhausted: false, isExhausted(): boolean { return this.exhausted; } };
     const router = new ProviderRouter({
       retry: { maxAttempts: 4, sleep: noSleep, budget },

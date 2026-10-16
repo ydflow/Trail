@@ -2,7 +2,7 @@ import type { AnswerBlock, CitationSource, FinancialEvidenceEnvelope, Message } 
 import { buildCitationNumbering } from '@finagent/core';
 
 /**
- * #30 citation plumbing: assemble the citable origins of one assistant
+ * citation plumbing: assemble the citable origins of one assistant
  * message from its persisted evidence records and tool calls, and assign the
  * message-stable `[n]` numbering shared by inline markers and block chips.
  */

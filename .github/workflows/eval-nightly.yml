@@ -40,7 +40,7 @@ jobs:
       # secret resolves to an empty string.
       #
       # A failure is never swallowed: the step carries the CLI's real exit
-      # code through the `| tee` pipeline (`set -o pipefail`, issue #113).
+      # code through the `| tee` pipeline (`set -o pipefail`).
       # Codes: 0 valid · 1 quality regression/usage · 2 invalid or
       # inconclusive execution (live preflight/infra failures) · 3 cancelled.
       # The model must be explicit — live runs never rely on ambient runtime

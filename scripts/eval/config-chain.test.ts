@@ -1,4 +1,4 @@
-// #114 chain integration test: CLI argv → parseFlags → normalizeModelSelection
+// chain integration test: CLI argv → parseFlags → normalizeModelSelection
 // → ExperimentService → runtime control → run metadata. The service-level
 // fakes in experiment-service.test.ts cover apply/readback/blocking below the
 // service boundary; this file stitches the CLI boundary onto that chain so the
@@ -126,7 +126,7 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-describe('#114 CLI → service → runtime → metadata chain', () => {
+describe('CLI → service → runtime → metadata chain', () => {
   it('applies the split shorthand before startRun and records the readback model', async () => {
     // CLI boundary: --model provider/model-id + --thinking.
     const options = parseFlags(['--model', 'anthropic/claude-sonnet-4-5', '--thinking', 'high']);

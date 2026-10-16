@@ -1,4 +1,4 @@
-// Stream Event Protocol v1 — replay 的 app 级 E2E（issue #27）。
+// Stream Event Protocol v1 — replay 的 app 级 E2E。
 //
 // 走真实传输链路：Electron main（AgentKernelHost）→ preload（runs:stream-replay
 // / agent:stream）→ renderer。与 kernel 级 E2E（stream-replay.e2e.test.ts）互补，

@@ -396,7 +396,7 @@ describe('RunManager', () => {
   });
 });
 
-describe('RunManager budgets and runaway detection (#17)', () => {
+describe('RunManager budgets and runaway detection', () => {
   const toolEvent = (
     input: AgentRunInput,
     toolName: string,
@@ -719,7 +719,7 @@ describe('RunManager budgets and runaway detection (#17)', () => {
     expect(persisted?.stopReason).toBeUndefined();
   });
 
-  it('accounts provider-reported tokens and cost into the budget (#17)', async () => {
+  it('accounts provider-reported tokens and cost into the budget', async () => {
     const { sessions, runs, runtime } = makeKernel(
       async function* (input) {
         yield event(

@@ -1,4 +1,4 @@
-// Acceptance-only `longbridge` CLI shim (#30 evidence): replays captured
+// Acceptance-only `longbridge` CLI shim (evidence): replays captured
 // fixtures from packages/longbridge-tools/src/testing/fixtures so the REAL
 // capability manifests (quote/news parsing, sanitization, evidence envelopes)
 // run end-to-end without the Longbridge CLI. Compiled to a single-file

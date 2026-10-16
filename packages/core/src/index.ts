@@ -5,7 +5,7 @@ import type { FinancialEvidenceEnvelope } from './financial-evidence.ts';
 
 export type { SupportedLocale, LocalePreference } from './locale.ts';
 
-// Stream Event Protocol v1 (issue #27, docs/adr/0001-stream-event-protocol.md)
+// Stream Event Protocol v1 (docs/adr/0001-stream-event-protocol.md)
 export * from './stream-events.ts';
 
 export interface Quote {
@@ -176,7 +176,7 @@ export interface Run {
   completedAt?: number;
   answer?: string;
   error?: ApiError;
-  /** Machine-readable reason the run stopped; absent on records written before #17. */
+  /** Machine-readable reason the run stopped; absent on records written before this field was introduced. */
   stopReason?: StopReason;
   /** The numbers behind a non-success stop (which budget ran out, which loop fired). */
   stopDetail?: Record<string, unknown>;

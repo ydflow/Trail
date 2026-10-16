@@ -76,7 +76,7 @@ function twoStepScript(answer: string) {
   };
 }
 
-describe('AgentKernel run budgets (#17)', () => {
+describe('AgentKernel run budgets', () => {
   it('forwards budget options to the run loop so a real run can be stopped', async () => {
     const runtime = new ScriptedRuntime(twoStepScript('partial'));
     const kernel = new AgentKernel({

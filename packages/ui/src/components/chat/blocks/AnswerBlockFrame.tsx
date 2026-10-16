@@ -10,7 +10,7 @@ import { useCitations } from '../citationsContext';
  * body, and a provenance footer (as-of + evidence references). Evidence ids
  * carry `data-evidence-id` hooks; when the message-level citation index is
  * available they render as numbered `[n]` chips sharing the inline-marker
- * numbering space and deep-link into the #30 source inspector.
+ * numbering space and deep-link into the source inspector.
  */
 export const AnswerBlockFrame: React.FC<{
   block: AnswerBlock;

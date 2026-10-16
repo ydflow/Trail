@@ -5,7 +5,7 @@
  * Every repository in this directory reads a whole JSON file, edits it and
  * writes it back, so two overlapping updates would otherwise both base
  * their write on the same snapshot and silently drop each other's changes
- * (issue #145 for `ConnectionStore`, and the session-scoped repositories
+ * for `ConnectionStore`, and the session-scoped repositories
  * here). `JsonFileStore` only serializes the final replacement, which
  * leaves the window between `read` and `write` uncovered — hence a lock at
  * this layer, keyed by the resolved target path so that separate store

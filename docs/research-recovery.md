@@ -38,7 +38,7 @@ From the repository root:
 bun test --isolate packages/shared/src/research packages/ui/src/components/research packages/pi-extension/src --timeout 20000
 ```
 
-`hard-kill.test.ts` starts an independent Bun process, waits for one saved result and one outstanding read, sends SIGKILL, and uses a fresh process to reconcile/resume the same run. It verifies preserved evidence, one report and attempt counts of 1 for the saved step and 2 for the uncertain step. Providers and synthesis in this test are fixtures; it is not the live acceptance required by issue #18.
+`hard-kill.test.ts` starts an independent Bun process, waits for one saved result and one outstanding read, sends SIGKILL, and uses a fresh process to reconcile/resume the same run. It verifies preserved evidence, one report and attempt counts of 1 for the saved step and 2 for the uncertain step. Providers and synthesis in this test are fixtures; it is not the live acceptance required by.
 
 ## Live Electron acceptance
 

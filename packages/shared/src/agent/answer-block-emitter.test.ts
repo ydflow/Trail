@@ -81,7 +81,7 @@ describe('buildQuoteAnswerBlocks', () => {
     }
   });
 
-  it('renders epoch-SECOND kline timestamps as real dates, not 1970 (#167)', () => {
+  it('renders epoch-SECOND kline timestamps as real dates, not 1970', () => {
     // Repo convention: Kline.timestamp is epoch seconds (longbridge normalizer).
     // 2026-01-10T00:00:00Z → 1768003200.
     const seconds: Kline[] = Array.from({ length: 5 }, (_, index) => ({

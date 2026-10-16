@@ -22,7 +22,7 @@ bun run scripts/eval/run.ts -- --dataset deep-research-gold-v1 --mode fixture
 
 This dataset is intentionally compatible with the existing `EvaluationCase`
 runner. Real-model execution, source retrieval, and Langfuse trace linkage are
-follow-up work in the broader #15/#14 scope.
+follow-up work in the broader scope.
 
 ## Case sources
 

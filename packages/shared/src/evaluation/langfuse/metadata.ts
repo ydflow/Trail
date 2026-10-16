@@ -1,4 +1,4 @@
-// Trail ↔ Langfuse metadata / tag contract (issue #14).
+// Trail ↔ Langfuse metadata / tag contract.
 //
 // Tags are the filterable axis in the Langfuse UI; metadata is the structured
 // payload attached to the root trace. Keep both stable so evaluation runs,
@@ -19,11 +19,11 @@ export interface TrailLangfuseMetadata {
   goldCaseId?: string;
   datasetId?: string;
   datasetVersion?: string;
-  /** Readback-confirmed model/provider; absent when the runtime stayed unknown (#114). */
+  /** Readback-confirmed model/provider; absent when the runtime stayed unknown. */
   model?: string;
   provider?: string;
   /**
-   * Requested model/provider (#114). Kept under their own names so an
+   * Requested model/provider. Kept under their own names so an
    * unapplied request can never be read back as the model that actually ran;
    * they deliberately do not become `model:`/`provider:` tags.
    */

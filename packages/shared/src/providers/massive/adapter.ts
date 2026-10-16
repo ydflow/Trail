@@ -235,7 +235,7 @@ export class MassiveFinancialDataProvider implements FinancialDataProvider {
         const path = `/v2/aggs/ticker/${encodeURIComponent(ticker)}/range/1/${timespan}/${from}/${to}`
         const payload = await getJson(buildAggsUrl(path, count), apiKey, signal, endpoint)
         const klines = mapKlines(symbol, payload)
-        // Kline timestamps are epoch SECONDS; provenance.marketTime is MS (issue #179).
+        // Kline timestamps are epoch SECONDS; provenance.marketTime is MS.
         const marketTime = klines.length > 0 ? klines[klines.length - 1].timestamp * 1000 : undefined
         return { ok: true, data: klines, provenance: provenance(marketTime) }
       }

@@ -85,7 +85,7 @@ function lastAssistantContent(store: ReturnType<typeof createStore>, sessionId: 
   return messages[messages.length - 1]?.content ?? '';
 }
 
-describe('guard stops read like a stop, not like an error (#17)', () => {
+describe('guard stops read like a stop, not like an error', () => {
   it('shows why the run stopped next to the work it had already completed', () => {
     const store = createStore();
     store.set(activeSessionIdAtom, 'visible-session');

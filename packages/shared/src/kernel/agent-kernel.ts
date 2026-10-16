@@ -27,7 +27,7 @@ export interface AgentKernelOptions {
   /** Explicit runtime override (tests). */
   runtime?: AgentRuntime;
   marketData?: MarketDataService;
-  /** Label local-runtime answer blocks as built-in sample data (#31 demo mode). */
+  /** Label local-runtime answer blocks as built-in sample data (demo mode). */
   demoData?: boolean;
   /**
    * Capability-backed tool registry shared by the local and Pi adapters.
@@ -39,7 +39,7 @@ export interface AgentKernelOptions {
   skillHub?: SkillHub;
   now?: () => number;
   /**
-   * Budget defaults and the system ceiling every run obeys (#17). Without it
+   * Budget defaults and the system ceiling every run obeys. Without it
    * runs are unbudgeted; a run may still tighten its own limits at startRun.
    */
   budgets?: ResolveBudgetInput;
@@ -85,7 +85,7 @@ export class AgentKernel {
       budgets: options.budgets,
       searchTools: options.searchTools,
       runaway: options.runaway,
-      // issue #75：与 kernel 存储同目录落盘流事件日志，支持跨重启 replay。
+      // 与 kernel 存储同目录落盘流事件日志，支持跨重启 replay。
       streamLogDir: join(options.storageDir, 'stream-events'),
     });
   }

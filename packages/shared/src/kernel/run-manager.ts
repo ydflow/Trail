@@ -65,7 +65,7 @@ export interface RunManagerOptions {
   /** Timer implementation for deterministic tests; production uses setTimeout. */
   scheduler?: RunManagerScheduler;
   /**
-   * Budget defaults and the system ceiling applied to every run (#17). A run
+   * Budget defaults and the system ceiling applied to every run. A run
    * may override the defaults but never the ceiling; with no `budgets` option a
    * run is unbudgeted and behaves exactly as before.
    */
@@ -74,7 +74,7 @@ export interface RunManagerOptions {
   searchTools?: string[];
   /** Runaway detector thresholds; unset fields fall back to `defaultRunawayPolicy()`. */
   runaway?: Partial<RunawayPolicy>;
-  /** Stream event log 目录（issue #75）：持久化 replay 历史，跨重启可用；缺省为纯内存。 */
+  /** Stream event log 目录：持久化 replay 历史，跨重启可用；缺省为纯内存。 */
   streamLogDir?: string;
 }
 
@@ -95,7 +95,7 @@ interface ActiveRun {
 }
 
 /**
- * 单个 run 的协议状态（ADR 0001 / #34）。
+ * 单个 run 的协议状态（ADR 0001）。
  * - sequence：run 内严格单调 +1，由 RunManager 在唯一汇聚点统一重排
  *   （runtime 与本管理器都自产事件且各自计数，会冲突在 1 上）；
  * - messageId：该 run 对应的 assistant message 身份，message 级事件携带。
@@ -130,7 +130,7 @@ export class RunManager {
   private readonly listeners = new Set<(event: AgentEvent) => void>();
   private readonly streamListeners = new Set<(sessionId: string, event: StreamEvent) => void>();
   private activeRun: ActiveRun | null = null;
-  /** run 级事件历史（内存 + 可选磁盘日志）：为 reconnect replay 提供数据源（ADR 0001 / #75）。 */
+  /** run 级事件历史（内存 + 可选磁盘日志）：为 reconnect replay 提供数据源（ADR 0001）。 */
   private readonly streamHistory: StreamEventHistory;
 
   constructor(options: RunManagerOptions) {
@@ -142,7 +142,7 @@ export class RunManager {
     this.budgetInput = options.budgets ?? {};
     this.searchToolPatterns = options.searchTools ?? [];
     this.runawayPolicy = options.runaway ?? {};
-    // issue #75：可选持久化 —— 启动时从磁盘恢复历史，使 replay 跨重启可用；
+    // 可选持久化 —— 启动时从磁盘恢复历史，使 replay 跨重启可用；
     // 无目录或磁盘故障时降级为纯内存（实时链路不受影响）。
     const streamLog = options.streamLogDir ? new StreamEventLog(options.streamLogDir) : undefined;
     this.streamHistory = new StreamEventHistory({
@@ -157,7 +157,7 @@ export class RunManager {
   }
 
   /**
-   * Stream Event Protocol v1 channel (issue #27). Parallel to `subscribe`;
+   * Stream Event Protocol v1 channel. Parallel to `subscribe`;
    * every AgentEvent is additionally mapped to StreamEvents. The sessionId is
    * passed along since the envelope intentionally does not carry it.
    */
@@ -268,7 +268,7 @@ export class RunManager {
     };
     this.activeRun = active;
     this.armWallClockBudget(active);
-    // 一次 run = 一次 assistant generation（#34）：run 启动时确定稳定的
+    // 一次 run = 一次 assistant generation：run 启动时确定稳定的
     // assistant message id 与协议 sequence 计数器，随 run 全程传递。
     const protocol: RunProtocol = { sequence: 0, messageId: randomUUID(), text: '' };
     this.emit(
@@ -590,7 +590,7 @@ export class RunManager {
 /**
  * The budget delta a provider-reported usage contributes. Values that are
  * missing or unusable are skipped on purpose: a provider that cannot report
- * tokens or cost must not fail an otherwise normal run (#17 acceptance).
+ * tokens or cost must not fail an otherwise normal run (acceptance).
  * @param usage - usage the runtime attached to a completed message.
  * @returns the delta to add to the run's usage.
  */

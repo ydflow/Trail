@@ -2,7 +2,7 @@
  * Currency-aware money formatting (spec §17) — thin compatibility layer.
  *
  * Every formatter delegates to the @finagent/i18n formatters (spec §52-59)
- * so the active UI locale controls presentation (issue #86): the OS locale
+ * so the active UI locale controls presentation: the OS locale
  * no longer participates, and one view can never mix `US$1,234.56` and
  * `$1,234.56` for the same currency. Unknown currencies fall back to a
  * plain number + ISO code. NEVER hardcode `$`.

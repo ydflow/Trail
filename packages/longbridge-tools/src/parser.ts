@@ -268,7 +268,7 @@ export function parseNewsResponse(output: string): NewsItem[] {
       url: entry.url ?? `https://longbridge.cn/news/${entry.id}`,
       // A news item may legitimately omit its date; falling back to "now" is
       // the documented tradeoff — better than rejecting the whole feed, and
-      // never presented as market data (issue #184).
+      // never presented as market data.
       timestamp: toEpochSeconds(entry.published_at) ?? Math.floor(Date.now() / 1000),
       symbols: [],
     }));
@@ -282,7 +282,7 @@ export function parseNewsResponse(output: string): NewsItem[] {
  * only; anything else (missing, `null`, blank, booleans, arrays, garbage) has
  * no value and callers apply their documented fallback. Coercing through
  * `Number()` used to fabricate values out of non-numbers — `Number(null)` and
- * `Number([])` are 0, `Number(true)` is 1 (issue #184).
+ * `Number([])` are 0, `Number(true)` is 1.
  */
 function toOptionalNumber(value: unknown): number | undefined {
   if (typeof value === 'number') {
@@ -300,7 +300,7 @@ function toOptionalNumber(value: unknown): number | undefined {
 /**
  * Required numeric field. Fail-closed: missing, `null`, blank, boolean or
  * array values throw instead of being coerced — `Number(null)` is 0, so a
- * `prev_close: null` used to surface as a real 0 price (issue #184).
+ * `prev_close: null` used to surface as a real 0 price.
  */
 function toNumber(value: unknown, field: string): number {
   if (typeof value === 'number') {
@@ -322,7 +322,7 @@ function toNumber(value: unknown, field: string): number {
  * Strict timestamp for required fields, delegating to `toEpochSeconds` so the
  * CLI's shapes (epoch seconds as number or numeric string, `YYYY.MM.DD`, ISO
  * dates) all parse; missing/unparseable values throw instead of being
- * fabricated as the current time (issue #184).
+ * fabricated as the current time.
  */
 function toTimestamp(value: unknown): number {
   const parsed = toEpochSeconds(value);

@@ -18,7 +18,7 @@ export const TurnCard: React.FC<TurnCardProps> = ({ message }) => {
   const toolCalls = message.toolCalls ?? [];
   const isAssistant = !isUser && !isTool;
 
-  // #30: provenance surface for this assistant turn.
+  // provenance surface for this assistant turn.
   const citationIndex = useMemo(
     () => (isAssistant ? collectCitationSources(message) : { sources: [], byId: new Map() }),
     [message, isAssistant]

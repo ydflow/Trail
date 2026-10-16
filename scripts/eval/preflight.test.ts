@@ -1,4 +1,4 @@
-// Live preflight tests (issue #113): every readiness dimension must surface
+// Live preflight tests: every readiness dimension must surface
 // as an explicit failure, and no check may leak a credential value.
 import { describe, expect, it } from 'bun:test';
 import type { LlmModel, LlmRuntimeState, LlmTestResult } from '@finagent/core';

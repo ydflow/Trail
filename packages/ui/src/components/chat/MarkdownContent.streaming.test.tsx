@@ -60,7 +60,7 @@ function fixtureNamed(name: string): (typeof STREAMING_MARKDOWN_FIXTURES)[number
   return fixture;
 }
 
-describe('streaming Markdown fixtures (#28)', () => {
+describe('streaming Markdown fixtures', () => {
   for (const fixture of STREAMING_MARKDOWN_FIXTURES) {
     it(`keeps "${fixture.name}" renderable while streaming`, async () => {
       const { container, root } = await mountStreaming(fixture.partial);

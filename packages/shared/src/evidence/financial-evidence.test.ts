@@ -91,7 +91,7 @@ describe('buildFinancialEvidence', () => {
     expect(exported).not.toContain('canary-secret');
   });
 
-  it('matches computeEnvelopeId so citations can be issued before settle (#30)', () => {
+  it('matches computeEnvelopeId so citations can be issued before settle', () => {
     const [record] = buildFinancialEvidence({ sessionId: 's', runId: 'r', toolCalls: [call()] });
     expect(record.id).toBe(computeEnvelopeId('r', record.toolCallId, record.resultHash));
     expect(record.id.startsWith('fe_')).toBe(true);

@@ -55,7 +55,7 @@ dashboard and baseline promotion.
   passed through from repo secrets (never echoed, never logged). The model
   defaults to `anthropic/claude-sonnet-4-5` and can be overridden via the
   `FINAGENT_EVAL_MODEL` / `FINAGENT_JUDGE_MODEL` repository variables.
-- Before any case runs, the CLI executes a **live preflight** (issue #113):
+- Before any case runs, the CLI executes a **live preflight**:
   Pi runtime health, model availability, a one-token credential probe, the
   LongBridge data source, and judge readiness. A missing install or credential
   is an explicit `invalid` state (exit `2`), never a suite that "ran" with

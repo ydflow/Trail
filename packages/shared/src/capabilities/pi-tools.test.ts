@@ -36,7 +36,7 @@ describe('createCapabilityTools', () => {
     expect(out.content[0].text).toBe('Quote for AAPL.US\n\nDATA: {"symbol":"AAPL.US"}\n\nEVIDENCE: call-1');
   });
 
-  it('appends the EVIDENCE line even without a summary (#30)', async () => {
+  it('appends the EVIDENCE line even without a summary', async () => {
     const cap = defineCapability({
       id: 'market.quote',
       name: 'Quote',

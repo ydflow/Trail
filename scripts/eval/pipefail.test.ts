@@ -1,4 +1,4 @@
-// `... | tee ...` failure propagation (issue #113 acceptance): the same shell
+// `... | tee ...` failure propagation: the same shell
 // shape the nightly workflow uses must keep a non-zero exit when the wrapped
 // command fails. Without `pipefail` the pipeline's status is `tee`'s 0 — the
 // exact wrapper that turned a fully failed live run into a green Actions job.

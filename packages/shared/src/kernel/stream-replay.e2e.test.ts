@@ -1,4 +1,4 @@
-// Stream Event Protocol v1 — replay 全链路 E2E（issue #27）。
+// Stream Event Protocol v1 — replay 全链路 E2E。
 //
 // 与 stream-history.test.ts（纯内存历史单测）不同，这里走真实运行链路：
 // RunManager + LocalRuntimeAdapter（FINAGENT_AGENT_PROVIDER=local 时 E2E
@@ -7,7 +7,7 @@
 //   2. 无实时订阅者时事件仍入历史（reconnect 的数据源保证）；
 //   3. 中途“断线”后按 lastSequence 补发，拼接结果与全量一致；
 //   4. 取消路径产生显式 cancelled 事件且可补发（atEnd=true）；
-//   5. message/run 双身份：message 级事件带 messageId，run 级不带（#34）。
+//   5. message/run 双身份：message 级事件带 messageId，run 级不带。
 
 import { readFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -37,7 +37,7 @@ afterEach(async () => {
 
 /**
  * 全链路装配：真实 SessionManager/RunManager + LocalRuntimeAdapter。
- * 默认启用持久化日志（issue #75）——目录写入 e2e 临时目录，跑完即清。
+ * 默认启用持久化日志——目录写入 e2e 临时目录，跑完即清。
  */
 function makeStack(runtime = new LocalRuntimeAdapter({ now: () => clock })) {
   const store = new JsonFileStore(dir);
@@ -90,7 +90,7 @@ function expectStrictSequence(events: StreamEvent[]) {
   expect(events.map((e) => e.sequence)).toEqual(events.map((_, i) => i + 1));
 }
 
-/** #34 身份契约：message 级事件必带 messageId，run 级不带。 */
+/** 身份契约：message 级事件必带 messageId，run 级不带。 */
 function expectIdentityContract(events: StreamEvent[]) {
   for (const event of events) {
     if (MESSAGE_LEVEL_TYPES.has(event.type)) {

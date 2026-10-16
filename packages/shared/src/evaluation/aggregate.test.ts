@@ -324,7 +324,7 @@ describe('summarizeExperiment', () => {
   });
 
   it('is invalid with no headline score when every run failed at infrastructure level', () => {
-    // Regression for the nightly incident (issue #113): 0 measured cases must
+    // Regression for the nightly incident: 0 measured cases must
     // never read as a comparable composite score or a valid benchmark. A
     // generic `PI_RUNTIME_ERROR` that never started is still infrastructure —
     // it must not masquerade as an agent-quality result.
@@ -403,7 +403,7 @@ describe('summarizeExperiment', () => {
   it('counts a run that started and then timed out as a negative quality result', () => {
     // The wall-clock budget is a task-level outcome: the agent had its chance
     // and failed to deliver. Only "never started" or an explicit runtime
-    // process failure is infrastructure (#113 review).
+    // process failure is infrastructure (review).
     const runs = [
       makeRun({ id: 'run-1' }),
       makeRun({

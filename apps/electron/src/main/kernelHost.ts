@@ -482,7 +482,7 @@ export class AgentKernelHost {
         window.webContents.send('agent:event', event);
       }
     });
-    // Stream Event Protocol v1 (issue #27): parallel transport for the
+    // Stream Event Protocol v1: parallel transport for the
     // protocol channel, alongside the legacy agent:event delivery.
     this.streamUnsubscribe?.();
     this.streamUnsubscribe = this.kernel.runs.subscribeStream((sessionId, event) => {

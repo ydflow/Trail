@@ -89,7 +89,7 @@ with canned per-symbol market data — no LLM credentials, no network, CI-safe
 (spec §106). `live` uses the Pi runtime with real providers; credentials come
 from env (`ANTHROPIC_API_KEY` or `FINAGENT_PROVIDER_OVERRIDES`), and an
 **explicit `--model <provider>/<id>` is required**. Every live run starts with a
-preflight (issue #113) that checks the Pi runtime, model availability, model
+preflight that checks the Pi runtime, model availability, model
 credentials (one-token prompt), the LongBridge data source, and judge readiness
 before any case runs; failures are reported with status only (never secrets)
 and exit `2` without running the suite.
@@ -101,7 +101,7 @@ evaluators only and the summary explicitly lists the unmeasured judge metrics.
 A judge that was requested but is missing settings fails the live preflight
 instead of silently downgrading.
 
-**Validity vs quality (issue #113).** The summary reports execution validity
+**Validity vs quality.** The summary reports execution validity
 separately from quality: `execution` carries
 requested/started/evaluated/infra-failed/skipped counts, and `validity` is
 `valid` only when every requested case produced a completed, evaluated run.

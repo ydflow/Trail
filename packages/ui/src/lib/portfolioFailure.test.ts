@@ -79,7 +79,7 @@ describe('formatSignedMoney / formatPercent', () => {
   });
 });
 
-describe('money formatting follows the UI locale (issue #86)', () => {
+describe('money formatting follows the UI locale', () => {
   it('renders USD through the active i18n locale, never the OS locale', async () => {
     const { i18nSetCurrentLocale } = await import('@finagent/i18n');
     try {

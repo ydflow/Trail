@@ -108,7 +108,7 @@ export function createMarketCapitalFlowCapability(
           provider: 'longbridge',
           fetchedAt: (ctx?.now ?? Date.now)(),
           // provenance.marketTime is epoch MS everywhere else; the parser
-          // emits CapitalFlow.timestamp in epoch seconds (issue #179).
+          // emits CapitalFlow.timestamp in epoch seconds.
           marketTime: flow.timestamp * 1000,
           stale: false,
         },

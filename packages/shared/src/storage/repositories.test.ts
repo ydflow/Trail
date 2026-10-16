@@ -40,7 +40,7 @@ function makeMessage(id: string, content: string): Message {
  * JsonFileStore whose reads yield before completing, widening the
  * read-modify-write window so that a lost-update regression interleaves
  * deterministically under `Promise.all`. `ConnectionStore` uses the same
- * harness for the equivalent guard (issue #145).
+ * harness for the equivalent guard.
  */
 class SlowReadJsonFileStore extends JsonFileStore {
   constructor(dir: string, private readonly delayMs: number) {

@@ -234,7 +234,7 @@ export class LocalFinanceAgentBackend implements AgentBackend {
   }
 
   /**
-   * #31: append typed answer blocks to the local provider's deterministic
+   * Append typed answer blocks to the local provider's deterministic
    * answers. Quote answers additionally fetch a 30-day K-line series for the
    * time-series chart; a failed chart call degrades the quote answer, never
    * breaks it.
@@ -343,7 +343,7 @@ function composePortfolioRiskAnswer(
       : '- Data gaps: none from executed tools.',
   ].join('\n');
 
-  // #31: a position-by-position comparison block over the same data.
+  // A position-by-position comparison block over the same data.
   const evidenceIds = toolCalls
     .filter((toolCall) => toolCall.status === 'success')
     .map((toolCall) => toolCall.id)

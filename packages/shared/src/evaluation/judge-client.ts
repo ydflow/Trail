@@ -152,7 +152,7 @@ function judgeSetting(value: string | undefined): string {
 
 /**
  * Like {@link resolveJudgeConfig}, but distinguishes "no judge requested" from
- * "judge requested but misconfigured". The live preflight (issue #113) needs
+ * "judge requested but misconfigured". The live preflight needs
  * the latter to be an explicit failure rather than a silent deterministic-only
  * downgrade.
  */

@@ -61,7 +61,7 @@ function readOptions(input: unknown): unknown {
 }
 
 /**
- * Opt-in resilience configuration (#25). Every field is optional; when the
+ * Opt-in resilience configuration. Every field is optional; when the
  * whole object (or a field) is omitted, the router behaves exactly like the
  * original primary/fallback router — no retry, no breaker, no cache, no
  * timeout — so existing call sites and tests are unaffected.
@@ -80,7 +80,7 @@ export interface ProviderResilienceOptions {
 }
 
 /**
- * All constructor options: resilience (#25) + runtime hooks (async routing
+ * All constructor options: resilience + runtime hooks (async routing
  * resolver, enablement gate) merged into one flat object.
  */
 export type ProviderRouterOptions = ProviderResilienceOptions & {
@@ -102,18 +102,18 @@ export type ProviderRouterOptions = ProviderResilienceOptions & {
  * timeout + bounded retry, an open circuit breaker skips it instantly, fresh
  * cache entries short-circuit the chain, and a stale cache entry is served
  * ONLY after every live candidate fails — with `provenance.stale = true` and
- * a `failoverTrail` explaining the downgrade (#25).
+ * a `failoverTrail` explaining the downgrade.
  */
 export class ProviderRouter implements FinancialProviderRouter {
   private readonly registry = new ProviderRegistry();
   private routing: ProviderRoutingConfig = { primary: '' };
 
-  // Runtime hooks (PR #70)
+  // Runtime hooks
   private readonly resolveRouting?: () => Promise<ProviderRoutingConfig>;
   private readonly isEnabled?: (providerId: string) => Promise<boolean>;
   private readonly recentResults = new Map<string, ProviderRuntimeResult>();
 
-  // Resilience (#25)
+  // Resilience
   private readonly capabilityRouting = new Map<CapabilityId, ProviderRoutingConfig>();
   private readonly now: () => number;
   private readonly timeoutMs?: number;
@@ -157,14 +157,14 @@ export class ProviderRouter implements FinancialProviderRouter {
     return { primary: this.routing.primary, fallback: this.routing.fallback };
   }
 
-  /** Last routing snapshot for one provider (observability, PR #70). */
+  /** Last routing snapshot for one provider (observability). */
   lastResultFor(providerId: string): ProviderRuntimeResult | undefined {
     const result = this.recentResults.get(providerId);
     return result ? { ...result } : undefined;
   }
 
   /**
-   * Per-capability provider preference (#25): overrides the global
+   * Per-capability provider preference: overrides the global
    * primary/fallback chain for one capability only.
    */
   setCapabilityRouting(capabilityId: CapabilityId, config: ProviderRoutingConfig): void {
@@ -237,7 +237,7 @@ export class ProviderRouter implements FinancialProviderRouter {
     for (const id of candidates) {
       const provider = this.get(id) as AnyProvider;
 
-      // Async enablement gate (PR #70): disabled providers are skipped.
+      // Async enablement gate: disabled providers are skipped.
       if (this.isEnabled && !(await this.isEnabled(id))) {
         continue;
       }
@@ -294,7 +294,7 @@ export class ProviderRouter implements FinancialProviderRouter {
     }
 
     // 3) Every live candidate failed: serve a STALE cache entry only as an
-    //    explicit downgrade, never disguised as a live value (#25 AC).
+    //    explicit downgrade, never disguised as a live value.
     if (this.cache) {
       const stale = await this.readStale<T>(candidates, capabilityId, input, trail);
       if (stale) return stale;

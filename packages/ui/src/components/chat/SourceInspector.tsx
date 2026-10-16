@@ -11,7 +11,7 @@ type SourceGroup = 'financial' | 'news' | 'document' | 'tool';
 const GROUP_ORDER: SourceGroup[] = ['financial', 'news', 'document', 'tool'];
 
 /**
- * Source Inspector (#30): the provenance surface for one assistant message.
+ * Source Inspector: the provenance surface for one assistant message.
  * Lists every citable origin (financial evidence envelopes, news/document
  * tool calls) and expands the selected one into its full evidence record —
  * values, lineage, redacted query, snapshot hash. Opened from the message

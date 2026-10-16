@@ -3,7 +3,7 @@
 // to their per-metric breakdown — a single number must never mask a critical
 // metric regression (§111).
 //
-// Execution validity is kept separate from quality (issue #113): a run that
+// Execution validity is kept separate from quality: a run that
 // never executed (spawn/config/credential failure) is not evidence about the
 // agent, so it is excluded from pass rate, composite, and metric aggregates.
 // A run that *did* start is evidence: a completed run that answered badly and
@@ -159,7 +159,7 @@ export function summarizeExperiment(
  * and exhausted its wall-clock budget is a task-level quality failure, not a
  * broken runtime. The catch-all `PI_RUNTIME_ERROR` is excluded too — after a
  * start it covers both process failures and in-run failures, too broad to
- * classify as infrastructure without guessing (#113 review).
+ * classify as infrastructure without guessing (review).
  */
 function isExplicitInfrastructureError(code: string | undefined): boolean {
   if (code === undefined) return false;
@@ -172,7 +172,7 @@ function isExplicitInfrastructureError(code: string | undefined): boolean {
  * a spawn/config/credential rejection) or, after starting, failed for an
  * explicit runtime/process reason. Started task failures — timeout, tool
  * loop, budget exhaustion, generic runtime errors — are *valid* negative
- * quality results and stay in the quality aggregates (#113 review).
+ * quality results and stay in the quality aggregates (review).
  */
 export function isInfrastructureRun(run: EvaluationRun): boolean {
   if (run.execution === 'not-started') return true;

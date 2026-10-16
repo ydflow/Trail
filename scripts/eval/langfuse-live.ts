@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Live / local Langfuse smoke for Deep Research (issue #14).
+// Live / local Langfuse smoke for Deep Research.
 //
 // Always runs the production ResearchRunner. If LANGFUSE_PUBLIC_KEY/SECRET_KEY
 // are set, traces are written to that host; otherwise a local mock Langfuse

@@ -1,4 +1,4 @@
-// Stream Event Protocol v1 — 持久化事件日志单测（issue #75）。
+// Stream Event Protocol v1 — 持久化事件日志单测。
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';

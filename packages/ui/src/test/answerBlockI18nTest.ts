@@ -1,5 +1,5 @@
 /**
- * Test-scoped i18next instance for typed answer block components (#31).
+ * Test-scoped i18next instance for typed answer block components.
  * Registers only the `agent` namespace the block renderers read from,
  * following the isolation pattern of i18nTest.ts.
  */

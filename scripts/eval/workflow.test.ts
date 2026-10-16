@@ -1,4 +1,4 @@
-// Nightly workflow guards (issue #113): the live eval must be able to fail
+// Nightly workflow guards: the live eval must be able to fail
 // the job, and the pipeline must preserve the CLI's exit code.
 import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
@@ -9,7 +9,7 @@ const workflow = readFileSync(
   'utf8'
 );
 
-describe('eval-nightly workflow (issue #113)', () => {
+describe('eval-nightly workflow', () => {
   it('does not wrap the live eval step in continue-on-error', () => {
     expect(workflow).not.toContain('continue-on-error');
   });

@@ -1,5 +1,5 @@
 // AgentEvent → Stream Event Protocol v1 转换器（仅运行期映射，无副作用）。
-// 供 RunManager 在现有 AgentEvent 广播旁并行产出协议事件（issue #27，
+// 供 RunManager 在现有 AgentEvent 广播旁并行产出协议事件（
 // docs/adr/0001-stream-event-protocol.md，Migration step 2）。
 
 import type { AgentEvent, StreamCancelReason, StreamEvent } from '@finagent/core';
@@ -21,7 +21,7 @@ const CANCEL_REASON_BY_CODE: Record<string, StreamCancelReason> = {
 /**
  * 把单个 AgentEvent 映射为一条或多条 StreamEvent。
  * - 时间戳：AgentEvent 用 epoch 毫秒 number，协议层用 ISO 8601 UTC string。
- * - 身份（对齐 issue #34）：runId 恒有；messageId 仅注入到 message 级事件
+ * - 身份（对齐 ADR 0001）：runId 恒有；messageId 仅注入到 message 级事件
  *   （message_started / text_delta / message_completed / cancelled），
  *   取 run 对应的真实 assistant message id；run 级事件不携带 messageId。
  * - run_failed 按 error.code 归一：主动取消 → cancelled（带 partial 文本），

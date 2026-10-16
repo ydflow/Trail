@@ -78,7 +78,7 @@ describe('StreamEventHistory', () => {
     const h = new StreamEventHistory();
     for (let i = 0; i < 32; i += 1) fill(h, `run-${i}`, 1, 1);
     // run-0 重新活跃：必须刷新到 LRU 队尾，而不是被下一个新 run 按
-    // 首次出现顺序淘汰（issue #146 的复现路径）。
+    // 首次出现顺序淘汰（复现路径）。
     h.append(make('run-0', 2, 'text_delta'));
     fill(h, 'run-32', 1, 1);
     const result = h.replay('run-0', 1);

@@ -1,4 +1,4 @@
-// Typed financial answer blocks (#31) — real-app Copilot E2E.
+// Typed financial answer blocks — real-app Copilot E2E.
 //
 // Runs the packaged-path Electron app with the deterministic local provider
 // and FINAGENT_DEMO_DATA=1 (offline sample data, labeled 'demo'), then drives

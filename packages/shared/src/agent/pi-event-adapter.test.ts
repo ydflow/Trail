@@ -5,7 +5,7 @@ function adapter(): PiEventAdapter {
   return new PiEventAdapter({ sessionId: 's1', runId: 'r1', now: () => 1 });
 }
 
-describe('PiEventAdapter provider usage (#17)', () => {
+describe('PiEventAdapter provider usage', () => {
   it('carries provider-reported usage into the completed message', () => {
     const events = adapter().consume({
       type: 'agent_end',

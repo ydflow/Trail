@@ -16,7 +16,7 @@ import { applyStreamEventAtom } from '../../atoms/streamAtoms';
  * Rendered once under the client provider: hydrates the session list from the
  * kernel, loads messages for the active session (and on session switches), and
  * feeds every kernel agent event through the run reducer. Also subscribes to
- * the Stream Event Protocol v1 channel (issue #27) into a parallel idempotent
+ * the Stream Event Protocol v1 channel into a parallel idempotent
  * log for progressive renderer adoption.
  */
 export const KernelBridge: React.FC<{ client: FinagentClient }> = ({ client }) => {

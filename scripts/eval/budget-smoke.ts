@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Run-budget smoke test (#17): a REAL provider run through the production agent
+// Run-budget smoke test: a REAL provider run through the production agent
 // path (AgentKernel -> RunManager -> Pi runtime), with budgets small enough that
 // the run must be stopped by the guard rather than by the model finishing.
 //

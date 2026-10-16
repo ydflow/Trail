@@ -525,7 +525,7 @@ function buildPrompt(
 }
 
 /**
- * #31: teach the model the optional typed-answer-block format. Blocks render
+ * Teach the model the optional typed-answer-block format. Blocks render
  * as KPI cards / tables / charts in the Copilot panel; anything malformed
  * degrades to text on the renderer side, so a wrong block can never break the
  * message — but the instruction keeps emission conservative.
@@ -553,7 +553,7 @@ const UNTRUSTED_CONTENT_INSTRUCTION = [
 ].join('\n');
 
 /**
- * #30: inline citation contract. Each successful tool result ends with an
+ * Inline citation contract. Each successful tool result ends with an
  * EVIDENCE line; the renderer turns cite markers into numbered superscripts and
  * resolves them against the run's evidence records. Unknown ids degrade
  * silently, but the instruction keeps emission anchored to ids the model

@@ -37,7 +37,7 @@ export const lastRunSummaryAtom = atom<LastRunSummary | null>(null);
 
 export const runViewAtom = atom<RunView | null>(null);
 
-/** Codes the run-budget guard sets on `run_failed` (#17): a guard stop is not an error. */
+/** Codes the run-budget guard sets on `run_failed`: a guard stop is not an error. */
 const GUARD_STOP_CODES = new Set(['BUDGET_EXHAUSTED', 'LOOP_DETECTED', 'RETRY_STORM']);
 
 /**

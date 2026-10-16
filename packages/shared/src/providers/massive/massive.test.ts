@@ -85,7 +85,7 @@ describe('MassiveFinancialDataProvider', () => {
     expect(result.provenance.delayed).toBe(true)
     expect(result.provenance.stale).toBe(false)
     // Quote.timestamp is epoch SECONDS; provenance.marketTime is epoch MS
-    // (issue #179) — the magnitude assertion pins the unit conversion.
+    // — the magnitude assertion pins the unit conversion.
     expect(result.provenance.marketTime).toBe(1699559040_000)
     expect(result.provenance.marketTime! > 1e12).toBe(true)
 
@@ -170,7 +170,7 @@ describe('MassiveFinancialDataProvider', () => {
     expect(result.data[1].close).toBe(74.3575)
     expect(result.data[1].volume).toBe(146535512)
     // Kline timestamps are epoch SECONDS; provenance.marketTime is epoch MS
-    // (issue #179). The last (most recent) bar is the market time.
+    // The last (most recent) bar is the market time.
     expect(result.provenance.marketTime).toBe(1578027600_000)
     expect(result.provenance.marketTime! > 1e12).toBe(true)
   })

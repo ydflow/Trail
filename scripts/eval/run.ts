@@ -12,7 +12,7 @@
 //             ANTHROPIC_API_KEY / FINAGENT_PROVIDER_OVERRIDES). Live runs
 //             execute a preflight first (Pi health, model availability,
 //             credentials, data source, judge) and refuse to report a
-//             headline score when nothing was measurable (issue #113).
+//             headline score when nothing was measurable.
 //
 // Exit codes: 0 = valid run, no gate regression (or no baseline configured);
 //             1 = quality gate regression, cancelled experiment, or a usage
@@ -701,7 +701,7 @@ function printSummary(
 }
 
 /**
- * Requested vs effective config transparency (#114): print the runtime
+ * Requested vs effective config transparency: print the runtime
  * readback per run. Runs without an effectiveConfig are historical-unknown —
  * labeled as such, never backfilled with the requested values.
  */
@@ -795,7 +795,7 @@ async function main(): Promise<number> {
   // Judge: FINAGENT_JUDGE_* env or explicit flags. `resolveJudgeConfigStatus`
   // distinguishes "not requested" from "requested but incomplete" so the live
   // preflight can fail loudly instead of silently downgrading to
-  // deterministic-only (issue #113).
+  // deterministic-only.
   const judgeResolution = resolveJudgeConfigStatus(process.env, {
     provider: options.judgeProvider,
     model: options.judgeModel,
@@ -877,7 +877,7 @@ async function main(): Promise<number> {
           requestTimeoutMs: options.timeoutMs ?? 120_000,
           // A cold start (first `bunx` download, CI cold cache) can take far
           // longer than the 5s default; a health timeout there is an infra
-          // failure, not a dead runtime (issue #113).
+          // failure, not a dead runtime.
           healthTimeoutMs: 60_000,
         },
       });
@@ -888,8 +888,8 @@ async function main(): Promise<number> {
     // `--model provider/model-id` is a CLI shorthand: split it into the two
     // dimensions the runtime control surface takes (setModel(provider, id))
     // BEFORE anything touches ExperimentConfig — the prefixed id must never
-    // reach the runtime or the run metadata (#114; the same normalization
-    // #116/#122 need, kept in one place).
+    // reach the runtime or the run metadata (the same normalization
+    // these paths need, kept in one place).
     const selection = normalizeModelSelection(options.model, options.provider);
     const config: ExperimentConfig = {
       mode: options.mode,
@@ -903,7 +903,7 @@ async function main(): Promise<number> {
       timeoutMs: options.timeoutMs,
     };
 
-    // Live preflight (issue #113): nothing runs until the runtime, model,
+    // Live preflight: nothing runs until the runtime, model,
     // credentials, data source, and requested judge are proven ready. A
     // missing install/credential is an explicit invalid state, never a suite
     // that "ran" with zero tool calls.
@@ -934,7 +934,7 @@ async function main(): Promise<number> {
       }
       // The preflight probe already switched the runtime to this model; apply
       // it explicitly so every case runs against the validated model instead
-      // of Pi's ambient default (issue #113). A failure here is fatal.
+      // of Pi's ambient default. A failure here is fatal.
       if (config.provider && config.model) {
         await kernel.getLlmApi()?.setModel(config.provider, config.model);
       }
@@ -978,7 +978,7 @@ async function main(): Promise<number> {
 
     // Baseline handling: a gate comparison only makes sense on a fully valid
     // run. Invalid/inconclusive experiments keep their diagnostics but never
-    // emit a passing headline or a stored baseline (issue #113).
+    // emit a passing headline or a stored baseline.
     let regressions: GateEvaluation['regressions'] | undefined;
     let gatePassed = true;
     if (options.baseline && experiment.summary?.validity === 'valid') {
@@ -1087,7 +1087,7 @@ async function loadCommittedBaseline(id: string): Promise<EvaluationBaseline | u
   }
 }
 
-// Testable as a module (#114 chain test imports parseFlags without running
+// Testable as a module (the chain test imports parseFlags without running
 // the CLI); executes only when invoked directly.
 if (import.meta.main) {
   const exitCode = await main();

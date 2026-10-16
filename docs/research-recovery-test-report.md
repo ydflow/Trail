@@ -1,8 +1,8 @@
 # Research recovery acceptance report
 
-## Latest rebase validation (2026-09-11, after #81)
+## Latest rebase validation (2026-09-11)
 
-Rebased onto `6a9a288`, which includes #81. Git applied the existing research change without conflicts; `git range-diff` confirmed the implementation patch was unchanged from the previously approved `442d08a`. The #73 blocked report-write regression remains unchanged, and report persistence still precedes terminal checkpoint/summary publication.
+Rebased onto `6a9a288`. Git applied the existing research change without conflicts; `git range-diff` confirmed the implementation patch was unchanged from the previously approved `442d08a`. The blocked report-write regression remains unchanged, and report persistence still precedes terminal checkpoint/summary publication.
 
 - Focused command below: **116 pass / 0 fail**, 414 assertions, 18 files.
 - `bun node_modules/typescript/bin/tsc --noEmit`: **exit 0**.
@@ -11,7 +11,7 @@ Rebased onto `6a9a288`, which includes #81. Git applied the existing research ch
 
 ## Earlier rebase validation (2026-09-11)
 
-Rebased onto `f9309ac` (latest main at validation), including #73's report-before-terminal fix. Its deterministic blocked `saveReport()` regression remains unchanged. The recovery service saves the report and derived records before committing its terminal checkpoint/summary. The new main's `onRunComplete` telemetry hook receives the committed terminal result afterward; a focused regression verifies that telemetry failure cannot interrupt the persisted result. Configuration identity now reads the persisted routing introduced by main.
+Rebased onto `f9309ac` (latest main at validation), including the report-before-terminal fix. Its deterministic blocked `saveReport()` regression remains unchanged. The recovery service saves the report and derived records before committing its terminal checkpoint/summary. The new main's `onRunComplete` telemetry hook receives the committed terminal result afterward; a focused regression verifies that telemetry failure cannot interrupt the persisted result. Configuration identity now reads the persisted routing introduced by main.
 
 - `bun test --isolate packages/shared/src/research packages/ui/src/components/research packages/pi-extension/src --timeout 20000`: **116 pass / 0 fail**, 414 assertions, 18 files.
 - `bun node_modules/typescript/bin/tsc --noEmit`: **exit 0**.

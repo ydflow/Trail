@@ -497,7 +497,7 @@ describe('ProviderRouter.coverage + capabilityMapping', () => {
 /**
  * JsonFileStore whose reads yield before completing, widening the
  * read-modify-write window so that a lost-update regression interleaves
- * deterministically under Promise.all (issue #145).
+ * deterministically under Promise.all.
  */
 class SlowReadJsonFileStore extends JsonFileStore {
   constructor(dir: string, private readonly delayMs: number) {
@@ -588,7 +588,7 @@ describe('ConnectionStore', () => {
     expect(JSON.stringify(raw)).not.toContain('canary-secret-123');
   });
 
-  it('persists endpoints without cleartext userinfo credentials (issue #93)', async () => {
+  it('persists endpoints without cleartext userinfo credentials', async () => {
     const connections = new ConnectionStore(store);
     await connections.setConfig('massive', {
       enabled: true,
@@ -608,7 +608,7 @@ describe('ConnectionStore', () => {
     expect(config?.endpoint).toBe('https://[REDACTED]@db.host.internal:5432/api');
   });
 
-  it('sanitizes legacy cleartext-userinfo configs on read (issue #93)', async () => {
+  it('sanitizes legacy cleartext-userinfo configs on read', async () => {
     // Simulate a file written before the fix.
     await store.write('connections.json', {
       connections: [],
@@ -622,7 +622,7 @@ describe('ConnectionStore', () => {
     );
   });
 
-  it('leaves endpoints without userinfo untouched (issue #93)', async () => {
+  it('leaves endpoints without userinfo untouched', async () => {
     const connections = new ConnectionStore(store);
     await connections.setConfig('massive', {
       enabled: true,
@@ -633,7 +633,7 @@ describe('ConnectionStore', () => {
     );
   });
 
-  it('serializes concurrent setConfig so no provider config is silently dropped (issue #145)', async () => {
+  it('serializes concurrent setConfig so no provider config is silently dropped', async () => {
     const connections = new ConnectionStore(new SlowReadJsonFileStore(dir, 20));
     await Promise.all([
       connections.setConfig('massive', {
@@ -656,7 +656,7 @@ describe('ConnectionStore', () => {
     expect(file.configs?.longbridge).toMatchObject({ enabled: false, region: 'HK' });
   });
 
-  it('serializes concurrent update and setConfig so both land (issue #145)', async () => {
+  it('serializes concurrent update and setConfig so both land', async () => {
     const connections = new ConnectionStore(new SlowReadJsonFileStore(dir, 20));
     await Promise.all([
       connections.setConfig('massive', { enabled: true }),
@@ -671,7 +671,7 @@ describe('ConnectionStore', () => {
     expect(file.configs?.massive).toMatchObject({ enabled: true });
   });
 
-  it('serializes concurrent setRouting and setConfig so both land (issue #145)', async () => {
+  it('serializes concurrent setRouting and setConfig so both land', async () => {
     const connections = new ConnectionStore(new SlowReadJsonFileStore(dir, 20));
     await Promise.all([
       connections.setConfig('massive', { enabled: true }),

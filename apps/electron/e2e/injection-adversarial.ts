@@ -1,4 +1,4 @@
-// Live, opt-in adversarial acceptance for the Deep Research injection defense (#16).
+// Live, opt-in adversarial acceptance for the Deep Research injection defense.
 // Real AgentKernel (Pi runtime, real model) + real ResearchService production path:
 // real capability manifests, real ingestion sanitizer, real trust-labeled data
 // bundle, real buildSynthesisPrompt guard rails, real synthesis tool containment

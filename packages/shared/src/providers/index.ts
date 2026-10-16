@@ -1,5 +1,5 @@
 // Financial Provider Platform (V4) — router, registry, coverage, connections,
-// router-backed fetchers, health aggregation, and the #25 resilience layer.
+// router-backed fetchers, health aggregation, and the resilience layer.
 export { ProviderRegistry, type AnyProvider } from './registry.ts';
 export { ProviderRouter, type ProviderResilienceOptions } from './router.ts';
 export { BROKER_CAPABILITY_IDS, capabilityMapping } from './coverage.ts';

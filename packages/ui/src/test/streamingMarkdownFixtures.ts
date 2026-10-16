@@ -1,5 +1,5 @@
 /**
- * Reproducible streaming Markdown inputs for #28. A Copilot stream can leave
+ * Reproducible streaming Markdown inputs. A Copilot stream can leave
  * any block in a half-open state for a frame, so these fixtures pin what must
  * keep rendering and what the joined answer must look like once complete.
  */
@@ -60,7 +60,7 @@ export const STREAMING_MARKDOWN_FIXTURES: StreamingMarkdownFixture[] = [
 ];
 
 /**
- * A long agent-style answer with the mix #28 lists: headings, tables, lists,
+ * A long agent-style answer with the mix lists: headings, tables, lists,
  * blockquotes, code, links, citation-style references, and hostile HTML/URLs
  * that must never execute or become clickable.
  *

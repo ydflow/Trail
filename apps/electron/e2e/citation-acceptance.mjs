@@ -1,4 +1,4 @@
-// Live, opt-in Copilot citation acceptance (#30): drives the REAL app
+// Live, opt-in Copilot citation acceptance: drives the REAL app
 // (Electron renderer + main-process kernelHost + Pi runtime with a real
 // model) through a mixed-source question — structured financial quote +
 // news — and captures the full citation path:

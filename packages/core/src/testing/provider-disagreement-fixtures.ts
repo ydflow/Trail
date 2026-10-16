@@ -5,7 +5,7 @@ import type { FinancialFactCandidate, ReconciliationPolicy, ReconciliationState 
  * exist to exercise the priority policy, and nothing here is captured live
  * provider output.
  *
- * Reproducible provider disagreement cases for #26. Each fixture pins the
+ * Reproducible provider disagreement cases. Each fixture pins the
  * reconciliation policy and expected classification so route-level audits can
  * rerun the same disagreement in CI instead of relying on live provider data.
  *

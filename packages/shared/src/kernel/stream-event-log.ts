@@ -1,4 +1,4 @@
-// Stream Event Protocol v1 — 持久化事件日志（issue #75）。
+// Stream Event Protocol v1 — 持久化事件日志。
 //
 // ADR 0001 open question #1：v1 的 replay 数据源是纯内存 StreamEventHistory，
 // 进程重启后即丢。本模块补上磁盘层：
@@ -104,7 +104,7 @@ export class StreamEventLog {
 
     // 收缩：只保留最近 maxRuns 个 run（按首次出现顺序），并重写文件控制磁盘。
     // 注意：这是 load 唯一的写路径，且只裁剪超限 run；恢复历史本身绝不回写
-    // （issue #75 review），因此连续重启不会让文件增长。
+    // 因此连续重启不会让文件增长。
     if (runOrder.length > this.maxRuns) {
       const keep = new Set(runOrder.slice(-this.maxRuns));
       const kept = events.filter((e) => keep.has(e.runId));

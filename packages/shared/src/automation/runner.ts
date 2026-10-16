@@ -47,7 +47,7 @@ export interface MaterialSignals {
 export function signalsAreMaterial(signals: MaterialSignals): boolean {
   if (signals.diffMaterial || signals.ratingChanged || signals.earningsAnnounced) return true
   // Number.isFinite also rejects NaN produced by dirty quotes — a NaN move
-  // must read as "no usable signal", never as a crossed bar (issue #185).
+  // must read as "no usable signal", never as a crossed bar.
   return (
     signals.priceMovePct !== undefined &&
     Number.isFinite(signals.priceMovePct) &&
@@ -93,7 +93,7 @@ export async function runAutomation(
   // scope or the materiality evaluation itself. Delivery-side problems
   // (research/notification) are recorded in `failures` only, so one noisy OS
   // notification failure cannot degrade a decided run into incomplete and
-  // silently drop it from the daily brief (issue #185).
+  // silently drop it from the daily brief.
   const evaluationFailures: string[] = []
   const fail = (message: string, decisive = true) => {
     failures.push(message)
@@ -252,7 +252,7 @@ function makeScopeSnapshot(
  * the quote itself is unavailable. The optional calendar probe degrades to
  * no-signal when the capability is absent; a failing probe call is surfaced
  * via `probeFailed` so the run can distinguish "no event" from "could not
- * probe" instead of silently reading an error as no signal (issue #185).
+ * probe" instead of silently reading an error as no signal.
  */
 async function evaluateSymbol(
   symbol: string,
@@ -294,9 +294,9 @@ async function fetchQuote(symbol: string, ctx: AutomationRunContext): Promise<Qu
  * means an earnings announcement the research diff may not cover yet. Without
  * the freshness lower bound, any historical event still sitting in the "recent
  * 5" list kept `earningsAnnounced` true forever, re-triggering research and
- * notifications every single day (#168). The capability being absent degrades
+ * notifications every single day. The capability being absent degrades
  * to no-signal; a failing call throws so the run can record a probe failure
- * rather than silently reporting "no event" (issue #185).
+ * rather than silently reporting "no event".
  */
 const EARNINGS_PROBE_WINDOW_SECONDS = 7 * 86_400;
 
@@ -320,7 +320,7 @@ async function calendarProbe(symbol: string, ctx: AutomationRunContext): Promise
 /**
  * Abs percent move vs previous close; undefined when either price is unusable.
  * Dirty data can carry NaN — a NaN move must read as "unusable baseline"
- * (→ recorded failure), not as a silent no-signal (issue #185).
+ * (→ recorded failure), not as a silent no-signal.
  */
 function priceMovePct(quote: Quote): number | undefined {
   const lastPrice = quote.lastPrice

@@ -12,7 +12,7 @@ import { ANSWER_BLOCK_FENCE_LANG } from '@finagent/core';
 
 /**
  * Deterministic builders that turn local-provider tool results into typed
- * answer blocks (#31). The Copilot UI renders these as KPI cards, tables, and
+ * answer blocks. The Copilot UI renders these as KPI cards, tables, and
  * charts; the Pi runtime path receives the same fence format through its
  * system prompt so both backends share one presentation contract.
  */

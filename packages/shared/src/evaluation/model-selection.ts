@@ -1,11 +1,11 @@
-// CLI model selection → runtime parameters (#114, shared with #122).
+// CLI model selection → runtime parameters.
 //
 // The eval CLI accepts `--model <provider>/<model-id>` as a shorthand, while
 // the runtime control surface takes the two dimensions separately
 // (`setModel(provider, modelId)`). The split has to happen at the CLI boundary:
 // forwarding the prefixed id as the model would ask the runtime for
 // `provider/provider/model-id`, a label no provider serves — exactly the
-// mislabeled comparison #114 exists to prevent.
+// mislabeled comparison this module exists to prevent.
 //
 // Only the FIRST segment is the provider; model ids may themselves contain `/`
 // (e.g. `openrouter/anthropic/claude-sonnet-4-5` → provider `openrouter`,

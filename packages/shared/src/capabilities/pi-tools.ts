@@ -41,7 +41,7 @@ export function createCapabilityTools(capabilities: FinanceCapability[]): Capabi
       const summary = result.summary ? sanitizeUntrustedText(result.summary).text : undefined;
       const json = JSON.stringify(data);
       const base = summary ? `${summary}\n\nDATA: ${json}` : `DATA: ${json}`;
-      // #30: surface the tool-call id so the model can cite this exact origin.
+      // surface the tool-call id so the model can cite this exact origin.
       const text = `${base}\n\nEVIDENCE: ${toolCallId}`;
       return {
         content: [{ type: 'text', text }],

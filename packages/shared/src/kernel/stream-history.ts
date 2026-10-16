@@ -1,12 +1,12 @@
 // Stream Event Protocol v1 — 运行期内存事件历史（reconnect/重连补发）。
 //
-// 依据维护者 #43 review 与 ADR 0001：reconnect 需要一个明确的 replay
+// 依据 ADR 0001：reconnect 需要一个明确的 replay
 // source + “无法恢复”的失败路径。v1 采用 run 级内存缓冲：
 // - append 时按 run 累积（每 run 上限 MAX_EVENTS_PER_RUN，超出截断最旧）；
 // - replay(runId, lastSequence) 只补发“连续且已存在”的段；
 // - 截断/未知 run/段不连续 → recoverable=false，调用方应呈现明确失败。
 //
-// issue #75 review：磁盘恢复（restore）与实时追加（append）必须是两条路径。
+// review：磁盘恢复（restore）与实时追加（append）必须是两条路径。
 // 恢复只装入内存、绝不回写日志，否则每次启动都会把刚读出的历史再写一遍
 // （[1,2] → [1,2,1,2] → …），第二次重启起 replay 连续性检查即失败。
 
@@ -19,7 +19,7 @@ const MAX_RUNS = 32;
 const MAX_EVENTS_PER_RUN = 2000;
 
 export interface StreamEventHistoryOptions {
-  /** 磁盘恢复的事件（issue #75：跨重启补齐历史）。只装入内存，不落盘。 */
+  /** 磁盘恢复的事件（跨重启补齐历史）。只装入内存，不落盘。 */
   persisted?: Iterable<StreamEvent>;
   /** 挂载的持久化日志：append 时与内存并行落盘。 */
   log?: StreamEventLog;
@@ -77,7 +77,7 @@ export class StreamEventHistory {
       const last = list[list.length - 1];
       if (event.sequence <= last.sequence) return false;
       list.push(event);
-      // 已有 run 再次成功追加 → 刷新到 LRU 队尾（issue #146）：否则淘汰
+      // 已有 run 再次成功追加 → 刷新到 LRU 队尾：否则淘汰
       // 实际按首次出现顺序 FIFO，最近仍活跃的 run 会先于陈旧 run 被淘汰。
       const orderIndex = this.order.indexOf(event.runId);
       if (orderIndex >= 0) this.order.splice(orderIndex, 1);

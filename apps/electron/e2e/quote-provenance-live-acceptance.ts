@@ -1,4 +1,4 @@
-// Opt-in live quote acceptance for #101.
+// Opt-in live quote acceptance.
 //
 // This is intentionally not a fixture, shim, fake provider, or hand-built
 // structured result. It starts the real Pi RPC runtime with the repository's

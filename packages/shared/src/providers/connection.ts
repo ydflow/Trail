@@ -3,7 +3,7 @@ import type { JsonFileStore } from '../storage/json-file-store.ts';
 
 /**
  * Strip URL userinfo credentials (`scheme://user:pass@host`) from an
- * endpoint before it reaches disk or the UI (issue #93). `ProviderConfig`
+ * endpoint before it reaches disk or the UI. `ProviderConfig`
  * is the non-secret settings channel — credentials belong in the OS-backed
  * CredentialStore — and userinfo is a credential shape. Scheme, host and
  * path are preserved so the endpoint stays readable; hosts without
@@ -20,7 +20,7 @@ export function sanitizeEndpoint(endpoint: string): string {
  * instances — same idiom as the publish locks in `JsonFileStore`. Every
  * mutating method reads the whole file, edits it and writes it back, so
  * two overlapping updates would otherwise both base their write on the
- * same snapshot and silently drop each other's changes (issue #145).
+ * same snapshot and silently drop each other's changes.
  */
 const connectionWriteLocks = new Map<string, Promise<unknown>>();
 
@@ -106,7 +106,7 @@ export class ConnectionStore {
   async getConfig(providerId: string): Promise<ProviderConfig | undefined> {
     const file = await this.store.read<ConnectionsFile>(ConnectionStore.FILE, { connections: [] });
     const config = file.configs?.[providerId];
-    // Lazy sanitization: files written before issue #93 may still carry
+    // Lazy sanitization: files written before this change may still carry
     // cleartext userinfo in endpoints — never surface it, even at rest.
     if (!config) return config;
     return {
@@ -121,7 +121,7 @@ export class ConnectionStore {
       const configs = { ...(file.configs ?? {}) };
       // Copy only the allowlisted non-secret fields. This prevents accidental
       // credential persistence even when an untyped caller supplies apiKey.
-      // Endpoints additionally lose userinfo credentials (issue #93).
+      // Endpoints additionally lose userinfo credentials.
       configs[providerId] = {
         enabled: config.enabled,
         endpoint: config.endpoint !== undefined ? sanitizeEndpoint(config.endpoint) : undefined,

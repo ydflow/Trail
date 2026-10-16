@@ -1,4 +1,4 @@
-// Unified inline citations (#30).
+// Unified inline citations.
 //
 // Copilot answers reference evidence with explicit, self-describing markers
 // embedded in the Markdown text: `⟦cite:<tool-call-id>⟧`. Markers are parsed

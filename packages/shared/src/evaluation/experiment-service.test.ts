@@ -101,7 +101,7 @@ class FakeKernel implements ExperimentKernel {
   private readonly sessionTitles = new Map<string, string>();
   private readonly scripts = new Map<string, ScriptedRun>();
 
-  // ── #114: observable LLM control surface ─────────────────────────────────
+  // ── observable LLM control surface ─────────────────────────────────
   /** Every control call and run start, in order (ordering assertions). */
   readonly llmCalls: string[] = [];
   llmEnabled = true;
@@ -245,7 +245,7 @@ function scoreMap(result: { scores: Array<{ metric: string; score: number | null
   return Object.fromEntries(result.scores.map((score) => [score.metric, score.score]));
 }
 
-// ── Stalled kernel (#115): a runtime that stops emitting mid-run ───────────
+// ── Stalled kernel: a runtime that stops emitting mid-run ───────────
 
 interface StalledScript {
   /** Last answer emitted before the stall (partial evidence). */
@@ -428,7 +428,7 @@ describe('ExperimentService.runExperiment', () => {
     const experiment = await service.runExperiment({ dataset, config: makeConfig() });
 
     // The agent started and then exhausted its wall-clock budget: a real
-    // negative quality result, not infrastructure (#113 review).
+    // negative quality result, not infrastructure (review).
     expect(experiment.summary).toMatchObject({
       validity: 'valid',
       passRate: 0.5,
@@ -477,7 +477,7 @@ describe('ExperimentService.runExperiment', () => {
   it('treats a started generic runtime error as a quality failure, not infra', async () => {
     // `PI_RUNTIME_ERROR` is too broad to exclude from quality once the run
     // started: only `not-started` or an explicit process failure is infra
-    // (#113 review).
+    // (review).
     const dataset = makeDataset([makeCase('ok'), makeCase('runtime')]);
     const kernel = new FakeKernel();
     scriptSuccess(kernel, 'ok');
@@ -659,7 +659,7 @@ describe('ExperimentService.runExperiment', () => {
     expect(experiment.runIds).toHaveLength(1);
     expect(kernel.startedRuns).toBe(1);
     // A cancelled run is not acceptable evidence: skipped cases make the
-    // summary inconclusive and the CLI exits non-zero (issue #113).
+    // summary inconclusive and the CLI exits non-zero.
     expect(experiment.summary?.validity).toBe('inconclusive');
     expect(experiment.summary?.execution.skipped).toBe(1);
   });
@@ -693,7 +693,7 @@ describe('ExperimentService.runExperiment', () => {
   });
 });
 
-describe('#114 requested vs effective config', () => {
+describe('requested vs effective config', () => {
   it('applies model+provider BEFORE startRun and records the readback-confirmed effective config', async () => {
     const dataset = makeDataset([makeCase('cfg-ok')]);
     const kernel = new FakeKernel();
@@ -734,7 +734,7 @@ describe('#114 requested vs effective config', () => {
     expect(runs[0].error?.code).toBe('CONFIG_APPLY_FAILED');
     expect(runs[0].failureModes).toContain('runtime_error');
     expect(kernel.startedRuns).toBe(0); // never executed under the wrong model
-    // #113: a not-started config failure is unmeasurable, not a zero score.
+    // a not-started config failure is unmeasurable, not a zero score.
     expect(experiment.summary?.validity).toBe('invalid');
     expect(experiment.summary?.passRate).toBeNull();
   });
@@ -869,7 +869,7 @@ describe('#114 requested vs effective config', () => {
   });
 });
 
-describe('#114 CLI model shorthand → runtime control → run metadata', () => {
+describe('CLI model shorthand → runtime control → run metadata', () => {
   it('splits provider + bare model id at the CLI boundary before the control call', async () => {
     // What `--model provA/m1` means.
     expect(normalizeModelSelection('provA/m1')).toEqual({ model: 'm1', provider: 'provA' });
@@ -1098,7 +1098,7 @@ describe('ExperimentService gate evaluation (spec §109)', () => {
     expect(experiment2.summary?.passRate).toBe(1);
   });
 
-  it('refuses to create a baseline from an invalid experiment (issue #113)', async () => {
+  it('refuses to create a baseline from an invalid experiment', async () => {
     const dataset = makeDataset([makeCase('i1')]);
     const kernel = new FakeKernel();
     kernel.startRunError = { code: 'PI_RUNTIME_NOT_FOUND', message: 'missing' };
@@ -1150,7 +1150,7 @@ describe('JudgeClient wiring', () => {
   });
 });
 
-describe('ExperimentService case timeout teardown (#115)', () => {
+describe('ExperimentService case timeout teardown', () => {
   it('times out, cancels the underlying run, and records the partial answer', async () => {
     const kernel = new StalledKernel();
     kernel.script('a1', { partialAnswer: 'partial answer', toolCalls: [QUOTE_TOOLCALL] });

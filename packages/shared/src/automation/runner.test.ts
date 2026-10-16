@@ -176,7 +176,7 @@ describe('signalsAreMaterial', () => {
     expect(signalsAreMaterial({ ...base, earningsAnnounced: true })).toBe(true)
   })
 
-  it('never crosses the price bar on a NaN move (#185)', () => {
+  it('never crosses the price bar on a NaN move', () => {
     expect(
       signalsAreMaterial({
         priceMovePct: Number.NaN,
@@ -276,7 +276,7 @@ describe('runAutomation scope resolution', () => {
     expect(run.failures).toEqual(['AAPL.US: previous close unavailable'])
   })
 
-  it('does not report no material change when the last price is NaN (#185)', async () => {
+  it('does not report no material change when the last price is NaN', async () => {
     const { context } = makeContext({ quotes: { 'AAPL.US': quote(Number.NaN, 100) } })
     context.portfolioSnapshot = async () => ({
       symbols: ['AAPL.US'],
@@ -398,7 +398,7 @@ describe('runAutomation material filter', () => {
     expect(researchCalls).toEqual(['AAPL.US'])
   })
 
-  it('ignores historical earnings events outside the freshness window (#168)', async () => {
+  it('ignores historical earnings events outside the freshness window', async () => {
     const stale: CalendarEvent = {
       id: 'e-old',
       date: 1_700_000_000 - 30 * 86_400, // 30 days ago — still in the "recent 5" list
@@ -484,11 +484,11 @@ describe('runAutomation material filter', () => {
       'MSFT.US: notification failed',
     ])
     // Delivery failures stay recorded but no longer flip a decided outcome
-    // into incomplete (issue #185).
+    // into incomplete.
     expect(run.outcome).toBe('material_update')
   })
 
-  it('records a failing calendar probe instead of reading it as no event (#185)', async () => {
+  it('records a failing calendar probe instead of reading it as no event', async () => {
     const { context, researchCalls } = makeContext({
       quotes: { 'AAPL.US': quote(100, 100) },
     })
@@ -505,7 +505,7 @@ describe('runAutomation material filter', () => {
     expect(researchCalls).toEqual([])
   })
 
-  it('keeps a delivery failure from degrading a decided no-change outcome (#185)', async () => {
+  it('keeps a delivery failure from degrading a decided no-change outcome', async () => {
     const { context, notifications } = makeContext({
       quotes: { 'AAPL.US': quote(100, 100) },
     })

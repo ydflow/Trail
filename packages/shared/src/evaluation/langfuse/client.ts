@@ -1,4 +1,4 @@
-// Failure-isolated Langfuse REST client (issue #14).
+// Failure-isolated Langfuse REST client.
 //
 // Every method swallows network/HTTP errors and returns a status object.
 // Observability must never break Agent / Deep Research (spec §87).

@@ -1,4 +1,4 @@
-// Langfuse EvaluationBackend + run exporter (issue #14).
+// Langfuse EvaluationBackend + run exporter.
 import type { PrivacyLevel, TraceReference } from '@finagent/core';
 import type {
   BackendStatus,

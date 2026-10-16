@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-// Capture Settings → Evaluation Langfuse cards for the PR (issue #14).
+// Capture Settings → Evaluation Langfuse cards for the PR.
 import { mkdir } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
