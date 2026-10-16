@@ -25,7 +25,7 @@ Quotes, news, financial statements and chat answers often live in separate windo
 
 **研迹 (yán jì) combines research and traces.** A trail is a research path you can follow again, back to the evidence behind a judgment.
 
-> Beta source project. Trail provides read-only research and decision support, with no order placement or automated trading. Model analysis and confidence scores are not guarantees of accuracy or investment returns.
+> Beta, with Windows x64 installer and portable downloads. Trail provides read-only research and decision support, with no order placement or automated trading. Model analysis and confidence scores are not guarantees of accuracy or investment returns.
 
 ## Product preview
 
@@ -162,9 +162,15 @@ flowchart TB
 
 ## Quick start
 
+### Windows downloads
+
+Get **v0.4.0-beta.2**: [Installer](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.2/Trail-0.4.0-beta.2-windows-x64-setup.exe) · [Portable](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.2/Trail-0.4.0-beta.2-windows-x64-portable.exe) · [Release notes and SHA-256](https://github.com/ydflow/Trail/releases/tag/v0.4.0-beta.2).
+
+These Windows packages are unsigned; Windows may report an unknown publisher. Install [Bun](https://bun.sh) and configure a model for AI features; install and authorize Longbridge CLI separately for market data. The desktop app, 13 skills and Pi extensions are included. Pi may download its runtime on first use. See the [Windows release record](docs/releases/v0.4.0-beta.2-windows.md).
+
 ### Run from source
 
-Install Git, [Bun](https://bun.sh) and Node.js (used by Electron E2E scripts). The source channel is `0.4.0-beta.2`; this does not imply an installer for that version is published. Check actual assets on the [releases page](https://github.com/ydflow/Trail/releases).
+Install Git, [Bun](https://bun.sh) and Node.js (used by Electron E2E scripts). The current version is `0.4.0-beta.2`, available as source and Windows packages.
 
 ```bash
 git clone https://github.com/ydflow/Trail.git
@@ -230,7 +236,7 @@ Optionally set `FINAGENT_DEMO_DATA=1` for capability-level sample fallback when 
 - **Recoverable execution:** checksummed checkpoints, atomic writes, saved-evidence reuse, configuration identity checks and persistent budgets. Remote reads may be retried; neither exactly-once execution nor every power-loss scenario is guaranteed.
 - **Inspectable output:** tool progress, source inspection, report export and optional tracing. Tracing defaults off, with separate privacy and credential settings.
 - **Visible gaps:** live research can be partial. Pre-market, delayed and timestamp-free quotes require source context. Model output can trigger structured-block fallback, and report language depends on the model response.
-- **Delivery scope:** the Windows source desktop path runs; macOS arm64 packaging is configured. Installers, signing and notarization need platform-specific validation. This refresh has its own [verification record](docs/screenshots/README.md), without treating historical test totals as current acceptance.
+- **Delivery scope:** Windows x64 Beta installer and portable builds have been checked for installation outside the repo, a live-model quote response and persistent records; see the [Windows release record](docs/releases/v0.4.0-beta.2-windows.md). Windows packages are unsigned. macOS arm64 packaging is configured, with no accepted installer for this version. Product screenshots have a separate [verification record](docs/screenshots/README.md).
 
 ## Documentation and contributing
 

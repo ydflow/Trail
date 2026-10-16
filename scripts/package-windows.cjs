@@ -1,0 +1,19 @@
+// v0.4.0-beta.2 Windows packaging recipe. Build renderer/main/extensions first.
+// Does not publish or modify the existing release tag. See docs/releases/v0.4.0-beta.2-windows.md.
+const fs=require('node:fs');const path=require('node:path');const cp=require('node:child_process');
+const root=path.resolve(__dirname,'..');const out=path.join(root,'artifacts/release-v0.4.0-beta.2/windows');const appDir=path.join(out,'app');fs.mkdirSync(appDir,{recursive:true});
+const sourcePkg=JSON.parse(fs.readFileSync(path.join(root,'apps/electron/package.json'),'utf8'));
+const sha=cp.execFileSync('git',['rev-parse','v0.4.0-beta.2^{commit}'],{cwd:root,encoding:'utf8'}).trim();
+const pkg={name:'trail-desktop',version:sourcePkg.version,description:'Trail · 研迹 — AI investment research desktop',author:'ydflow',type:'module',main:'src/main/windows-entry.cjs',private:true,trail:{channel:'beta',buildSha:sha,packagingRevision:'windows.1'}};
+fs.writeFileSync(path.join(appDir,'package.json'),JSON.stringify(pkg,null,2));
+for(const rel of ['src/main/index.js','src/preload/index.cjs']){const dest=path.join(appDir,rel);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,'apps/electron',rel),dest);}
+fs.cpSync(path.join(root,'apps/electron/dist/renderer'),path.join(appDir,'dist/renderer'),{recursive:true});
+const config={appId:sourcePkg.build.appId,productName:'Trail',electronVersion:require(path.join(root,'node_modules/electron/package.json')).version,electronDist:path.join(root,'node_modules/electron/dist'),directories:{output:path.join(root,'dist/windows-v0.4.0-beta.2'),buildResources:path.join(root,'apps/electron/assets')},files:['package.json','src/main/index.js','src/main/windows-entry.cjs','src/preload/index.cjs','dist/renderer/**/*'],extraResources:[{from:path.join(root,'skills'),to:'skills',filter:['**/*','!**/*.test.*']},{from:path.join(root,'apps/electron/build/extensions'),to:'extensions'}],asar:true,npmRebuild:false,toolsets:{winCodeSign:'1.1.0'},win:{target:[{target:'nsis',arch:['x64']},{target:'portable',arch:['x64']}],icon:path.join(root,'packages/ui/src/assets/trail-logo.png'),artifactName:'Trail-${version}-windows-${arch}.${ext}',requestedExecutionLevel:'asInvoker'},nsis:{oneClick:false,perMachine:false,allowElevation:false,allowToChangeInstallationDirectory:true,createDesktopShortcut:false,createStartMenuShortcut:true,shortcutName:'Trail · 研迹',deleteAppDataOnUninstall:false,runAfterFinish:false,artifactName:'Trail-${version}-windows-${arch}-setup.${ext}'},portable:{requestExecutionLevel:'user',artifactName:'Trail-${version}-windows-${arch}-portable.${ext}'}};
+fs.writeFileSync(path.join(out,'electron-builder.json'),JSON.stringify(config,null,2));console.log(JSON.stringify({appDir,sha,version:pkg.version,electronVersion:config.electronVersion,config:path.join(out,'electron-builder.json')},null,2));
+
+
+
+fs.writeFileSync(path.join(appDir,'src/main/windows-entry.cjs'),"// Windows packaging entry: mirrors start-trail.cmd from the source tag.\nconst fs = require('node:fs');\nconst path = require('node:path');\nif (!process.env.FINAGENT_PI_COMMAND && process.env.APPDATA) {\n  const bunx = path.join(process.env.APPDATA, 'npm', 'node_modules', 'bun', 'bin', 'bunx.exe');\n  if (fs.existsSync(bunx)) process.env.FINAGENT_PI_COMMAND = bunx;\n}\nif (process.env.LOCALAPPDATA) {\n  const cli = path.join(process.env.LOCALAPPDATA, 'Programs', 'longbridge');\n  if (fs.existsSync(path.join(cli, 'longbridge.exe'))) process.env.PATH = cli + path.delimiter + (process.env.PATH || '');\n}\nimport('./index.js');\n");
+if (!process.argv.includes('--prepare-only')) {
+  cp.execFileSync(process.execPath,[path.join(root,'node_modules/electron-builder/cli.js'),'--projectDir',appDir,'--config',path.join(out,'electron-builder.json'),'--win','--x64','--publish','never'],{cwd:root,stdio:'inherit',env:{...process.env,CSC_IDENTITY_AUTO_DISCOVERY:'false'}});
+}

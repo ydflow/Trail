@@ -25,7 +25,7 @@
 
 **研迹＝研＋迹。研究留下痕迹。** Trail 既是一条研究路径，也是一条能回头核验的证据轨迹。
 
-> 当前为 Beta 源码项目。Trail 提供只读研究与决策支持，不提供下单或自动交易。模型分析与置信度不代表投资收益或正确率保证。
+> 当前为 Beta，提供 Windows x64 安装版与便携版。Trail 提供只读研究与决策支持，不提供下单或自动交易。模型分析与置信度不代表投资收益或正确率保证。
 
 ## 产品预览
 
@@ -162,9 +162,15 @@ flowchart TB
 
 ## 快速开始
 
+### Windows 下载
+
+下载 **v0.4.0-beta.2**：[安装版](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.2/Trail-0.4.0-beta.2-windows-x64-setup.exe) · [便携版](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.2/Trail-0.4.0-beta.2-windows-x64-portable.exe) · [发布说明与 SHA-256](https://github.com/ydflow/Trail/releases/tag/v0.4.0-beta.2)。
+
+安装包尚未进行 Windows 数字签名，系统可能显示发布者未知。AI 功能需安装 [Bun](https://bun.sh) 并配置模型；行情需另行安装和授权 Longbridge CLI。桌面程序、13 个技能及 Pi 扩展已打包，首次启动 Pi 可能需要联网下载运行时。详见 [Windows 发布记录](docs/releases/v0.4.0-beta.2-windows.md)。
+
 ### 从源码启动
 
-需要 Git、[Bun](https://bun.sh) 和 Node.js（Electron E2E 脚本使用 Node）。仓库当前源码通道为 `0.4.0-beta.2`，不表示已有同版本安装包发布；[发布页](https://github.com/ydflow/Trail/releases)以实际资产为准。
+需要 Git、[Bun](https://bun.sh) 和 Node.js（Electron E2E 脚本使用 Node）。当前版本为 `0.4.0-beta.2`；源码运行与安装包均可使用。
 
 ```bash
 git clone https://github.com/ydflow/Trail.git
@@ -230,7 +236,7 @@ start-trail.cmd
 - **可恢复执行：** checkpoint 校验和、原子写入、已完成依据复用、配置身份检查及持久预算。远端读取可能重试，不承诺 exactly-once 或所有断电场景的数据恢复。
 - **可观察、可导出：** 流式工具状态、来源检查器、报告导出与可选追踪；追踪默认关闭，隐私级别和密钥单独配置。
 - **诚实的缺口：** 真实研究可能生成部分报告；盘前/延迟/无时间戳报价应结合来源状态理解，不能一概称为实时成交价。模型结构化输出偶尔会触发文本降级，报告语言也受模型输出影响。
-- **交付范围：** Windows 源码桌面路径可运行，仓库包含 macOS arm64 打包配置；跨平台安装、签名与公证仍需各自验证。本次文档更新的测试和截图证据见[验证记录](docs/screenshots/README.md)，不以旧测试总数代表当前完整验收。
+- **交付范围：** 已提供 Windows x64 Beta 安装版与便携版，并完成独立目录安装、真实模型行情回答及持久记录检查，见 [Windows 发布记录](docs/releases/v0.4.0-beta.2-windows.md)。Windows 包未签名；macOS arm64 仍为打包配置，未提供本版已验收安装包。产品截图证据见[验证记录](docs/screenshots/README.md)。
 
 ## 文档与贡献
 
