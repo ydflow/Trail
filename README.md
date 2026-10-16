@@ -1,293 +1,245 @@
 <h1 align="center">Trail · 研迹</h1>
 
+<p align="center"><img src="packages/ui/src/assets/trail-logo.png" alt="Trail · 研迹" width="104" /></p>
+<p align="center"><a href="README.en.md">English</a> · 简体中文</p>
 <p align="center">
-  <img src="packages/ui/src/assets/trail-logo.png" alt="Trail · 研迹" width="104" />
+  <strong>从市场线索到投资判断，让每一次研究都有迹可循。</strong><br />
+  本地优先的 AI 投资研究桌面工作台，连接行情、图表、Agent、证据与持续复核。
+</p>
+<p align="center">
+  <a href="#产品预览">产品预览</a> · <a href="#核心功能">核心功能</a> ·
+  <a href="#快速开始">快速开始</a> · <a href="docs/architecture.zh-CN.md">系统架构</a> ·
+  <a href="CONTRIBUTING.md">参与贡献</a>
+</p>
+<p align="center">
+  <a href="https://github.com/ydflow/Trail/actions/workflows/pr.yml"><img src="https://github.com/ydflow/Trail/actions/workflows/pr.yml/badge.svg?branch=main" alt="Main checks" /></a>
+  <img src="https://img.shields.io/badge/channel-0.4.0--beta.2-0f5749" alt="0.4.0-beta.2 source channel" />
+  <img src="https://img.shields.io/badge/Electron-React%20%2B%20TypeScript-477b74" alt="Electron, React and TypeScript" />
 </p>
 
-<p align="center">
-  <a href="README.en.md">English</a> · 简体中文
-</p>
+## 为什么做研迹
 
-<p align="center">
-  <strong>本地优先的 AI 原生投资研究工作台</strong><br />
-  研究市场、理解你的敞口，并持续保有基于证据的判断——清楚看到什么发生了变化。
-</p>
+价格、新闻、财报和聊天回答往往散落在不同窗口里。研究完成后，留下的通常只有一句结论：当时依据什么、哪些数据已经过时、下一次变化是否推翻原判断，都需要重新整理。
 
-<p align="center">
-  <a href="https://github.com/ydflow/Trail/releases">发布版本</a> ·
-  <a href="docs/architecture.zh-CN.md">系统架构</a> ·
-  <a href="docs/PRD.md">产品需求</a>
-</p>
+**研迹把这条工作链放回同一个桌面：发现线索 → 查看证券 → 发起研究 → 核验证据 → 保存投资逻辑 → 持续复核。** 面向需要反复研究公开市场标的的个人投资者，也为 Agent 应用开发者提供一套可检查的桌面工程实现。
 
-> 一句话：行情终端告诉你 **What happened**；研迹的 Agent 帮你回答 **Why does this matter to you**，记录 **What did you believe before**，并持续追踪 **What changed**。
+**研迹＝研＋迹。研究留下痕迹。** Trail 既是一条研究路径，也是一条能回头核验的证据轨迹。
 
-## 关于名字
+> 当前为 Beta 源码项目。Trail 提供只读研究与决策支持，不提供下单或自动交易。模型分析与置信度不代表投资收益或正确率保证。
 
-**研迹 ＝ 研 ＋ 迹。** 研究留下痕迹。
+## 产品预览
 
-市场每天都在提供新的数据，但真正稀缺的不是数据，而是「上一次我为什么这么判断」和「这次变化推翻了哪一条前提」。研迹把研究过程本身当作一等公民：每一次研究、每一条证据、每一个被修正的论点都会留下可回溯的轨迹。
+### 深度研究：行情、证据与判断，在同一工作区
 
-英文名 **Trail** 取的就是这层含义——一条被走过、可被重走的路径。
+<p align="center"><img src="docs/screenshots/research.png" alt="新版深度研究工作区：NVDA K线、依据表与判断侧栏" width="1200" /></p>
 
-## 我们的产品
+以证券为中心展开 K 线、研究依据和判断侧栏；报告完成后可以查看分项结论、风险、催化剂，并继续保存为投资逻辑。
 
-研迹是为公开市场投资者打造的桌面研究环境。它将安静整洁的金融工作区与 Agent 副驾驶（copilot）相结合——Agent 可以获取结构化的行情数据、解释证据，并将研究持续推进到投资论点、提醒与投资组合决策中。
+### 证券工作台与 AI 副驾驶
 
-研迹本地优先：会话、凭证与研究状态默认保存在设备本地。行情数据与模型提供商是明确的集成项，而非隐藏的依赖。
+<p align="center"><img src="docs/screenshots/workspace.png" alt="长桥真实行情和K线，右侧DeepSeek助手回答并附来源入口" width="1200" /></p>
 
-> 研迹是研究与决策支持工具，设计上只读，不提供下单或交易能力。
+自选、报价、财务、新闻与图表共享当前证券上下文。右侧助手可以读取结构化数据，以流式回答补充解释；来源入口保留在回答旁边。
 
-## 截图
+### 数据来源可以打开检查
 
-<p align="center">
-  <img src="docs/screenshots/today.png" alt="研迹 Today 工作区" width="900" />
-</p>
+<p align="center"><img src="docs/screenshots/sources.png" alt="来源检查器：金融数值、提供商、获取时间、规范化链路与快照哈希" width="1000" /></p>
 
-<p align="center">
-  <em>Today——投资组合关注事项、市场脉搏、事件与快速研究操作。</em>
-</p>
+从引用进入来源检查器，查看数值、提供商、获取时间、规范化链路与快照哈希。价格时间缺失、来源过期与数据不可用会保留在可见状态中。
 
-<p align="center">
-  <img src="docs/screenshots/workspace.png" alt="研迹 证券工作区" width="49%" />
-  <img src="docs/screenshots/events.png" alt="研迹 事件与催化" width="49%" />
-</p>
+<details>
+<summary><strong>展开更多界面：今日、发现、组合、事件、技能、评测与设置</strong></summary>
 
-<p align="center">
-  <img src="docs/screenshots/portfolio.png" alt="研迹 投资组合" width="49%" />
-  <img src="docs/screenshots/profile.png" alt="研迹 个人资料与健康检查" width="49%" />
-</p>
+| 今日概览 | 机会发现 |
+| --- | --- |
+| ![今日概览](docs/screenshots/today.png) | ![机会发现任务目录](docs/screenshots/discover.png) |
+| 自选异动、事件、简报与下一步研究入口。 | 按市场、基本面、技术与事件组织筛选任务。 |
 
-<p align="center">
-  <img src="docs/screenshots/settings.png" alt="研迹 设置中心" width="49%" />
-  <img src="docs/screenshots/evaluation.png" alt="研迹 Agent 评测设置" width="49%" />
-</p>
+| 投资组合 | 事件与催化剂 |
+| --- | --- |
+| ![示例投资组合](docs/screenshots/portfolio.png) | ![事件与催化剂](docs/screenshots/events.png) |
+| 资产配置、持仓和进入研究的操作。 | 财报、宏观事件与研究上下文。 |
 
-<p align="center">
-  <img src="docs/screenshots/skills.png" alt="研迹 技能中心" width="49%" />
-  <img src="docs/screenshots/discover.png" alt="研迹 发现页" width="49%" />
-</p>
+| 技能中心 | 评测中心 |
+| --- | --- |
+| ![技能中心](docs/screenshots/skills.png) | ![评测中心](docs/screenshots/evaluation.png) |
+| 按能力依赖显示技能就绪情况。 | 实验、基线、失败模式与人工反馈入口。 |
 
-<p align="center">
-  <em>从证券工作区、事件与催化、组合总览，到设置中心、技能状态与评测追踪——未接入任何服务时，以上页面均以内置示例数据（带“示例数据”徽标）完整呈现。</em>
-</p>
+| 设置中心 | 追踪与隐私设置 |
+| --- | --- |
+| ![设置中心](docs/screenshots/settings.png) | ![评测设置](docs/screenshots/evaluation-settings.png) |
+| 模型、语言、主题、连接与诊断。 | 可选 Langfuse / LangSmith 连接与隐私控制。 |
+
+<p align="center"><img src="docs/screenshots/profile.png" alt="个人与安全：本地工作区与集成健康检查" width="1000" /></p>
+
+</details>
+
+**截图说明：** 以上均来自当前源码构建的真实 Windows Electron 界面。研究、证券工作台与来源检查器使用长桥公开证券数据和已配置的 DeepSeek 模型；今日、组合、发现与事件展示独立演示配置下的内置示例内容，组合金额与持仓不是实际账户资产。评测中心展示 15 个离线 fixture 案例的样例实验；设置图片仅展示配置入口，不代表真实模型质量或云端追踪验收。截图中的价格、新闻、报告立场及置信度均为采集当时的快照，详见[截图记录](docs/screenshots/README.md)。
 
 ## 核心功能
 
-### 研究工作区
+### 1. 以证券为中心的研究工作台
 
-- 自选清单、行情、K 线图、财务报表、新闻与证券概览。
-- 三栏桌面布局：导航、市场工作区与 Agent 副驾驶；顶部常驻资产页签（K 线 / 报表 / 新闻 / 报告），任何页面都能一键切换视角。
-- 在估值、成长性、利润率、ROE、股息、回报、评级与动量等维度对比 2–4 只标的。
-- 数据新鲜度可见；缺失值显示为 `—`，不会凭空猜测。
+- 自选列表与证券搜索，联动报价、K 线、概览、财务和新闻。
+- 图表支持多周期、OHLCV 读数与均线；刷新、浅色/深色主题和助手收起入口常驻顶部。
+- 新研究界面把图表、依据表、判断、置信度、风险和下一步放在同一视野；未形成结论的目标价、周期等字段保留为 `—`。
+- 2–4 只标的横向对比，覆盖估值、成长、盈利能力、股息、评级及动量等维度；可用字段取决于提供商覆盖。
 
-### 开箱即用的示例数据（离线回退）
+### 2. 深度研究：先收集事实，再综合分析
 
-- 未接入行情提供商或 LLM 时，Today、组合总览、市场脉搏、事件与每日简报自动展示内置示例数据，应用从第一次启动起就是完整的。
-- 所有示例内容都带有醒目的“示例数据”徽标（含接入指引 tooltip），错误信息保留在底层状态中，真实数据一旦可用立即覆盖示例。
-- 不在示例集内的代码（如 `0700.HK`）保持诚实的空态/错误态，绝不编造数据。
+- **8 种策略**：全面、价值投资、成长、技术面、财报、事件驱动、风险复核、稳健收益。
+- 策略选择类型化能力计划，按有界并发获取数据，再交给 Agent 综合；支持超时、取消和部分完成状态。
+- 报告包含总体立场、置信度、分项判断、看多/看空理由、催化剂、风险与能力执行依据。
+- 报告历史与 Research Diff 支持复查结论、估值、风险和置信度的变化；支持 Markdown 导出及分享卡片。
+- 持久化 checkpoint 保存执行计划与已完成依据；意外中断后可以恢复、重新开始或丢弃。恢复会复用已保存的结果，保留不确定请求的重试与预算记录。[恢复机制](docs/research-recovery.md)
 
-### 深度研究
+### 3. 上下文感知的 Agent 副驾驶
 
-- 从聚焦的证券一键发起研究。
-- 并行能力调用：有界并发、超时、取消与诚实的部分失败状态。
-- 结构化数据包 → Agent 综合 → 基于证据的 `ResearchReport`。
-- 报告包含立场、置信度、章节、看多论点、看空论点、催化剂、风险，以及每条论断背后对应能力执行记录的链接。
+- Pi runtime 驱动持久会话、流式输出、模型切换、思考等级与停止操作；本地确定性 runtime 用于开发和演示。
+- 当前证券、页面与选中持仓作为工作区上下文传入，减少反复解释“正在看什么”。
+- 支持 Markdown、结构化行情/组合卡片、工具执行状态与运行追踪入口；格式不合法的数据块会降级显示。
+- 会话、消息和运行由主进程管理，重启后可重新加载；内部研究综合会话不混入可见聊天记录。
 
-### Agent 副驾驶
+### 4. 引用与证据链
 
-- 由 Pi Agent 运行时驱动的持久会话与流式回答。
-- 模型与思考级别控制、停止/取消、工作区上下文，以及结构化的行情/投资组合卡片。
-- Markdown 回答支持标题、列表、表格、链接与代码块。
-- 内部综合会话不会出现在可见的对话历史中。
+- 金融数据经过提供商规范化和能力层进入 UI 与 Agent，共享同一套数据契约。
+- 引用可定位到工具来源；来源检查器展示数值、来源、时间、新鲜度、证据链和快照哈希。
+- 缺失数据、失败能力与部分报告保留显式状态，避免把“没有数据”写成“负面结论”。
+- 外部新闻按不可信内容处理，相关防护与验证边界见[提示注入防护](docs/security-prompt-injection.md)。
 
-### Agent 评测与可观测性
+### 5. 从发现线索到持续复核
 
-- 内置 Evaluation Center：查看实验、基线、模型对比、失败模式、案例详情与人工反馈。
-- 评测覆盖任务完成、工具选择与参数、证据/来源、时延、失败恢复、研究完整性与决策可用性。
-- 支持本地离线评测与可选 LangSmith 追踪；追踪默认关闭，隐私级别与 API 密钥在设置中单独管理。
-- `trail-agent-v1` 基准集包含 86 个黄金路径、困难、长尾、工具失败、回归与对抗案例；固定 bug 会沉淀为回归门槛。
-- PR 使用零成本、确定性的 smoke eval，完整 benchmark 与模型/策略实验按需或定时运行。
+- **17 个确定性筛选任务**覆盖异动、基本面、技术与事件；候选携带依据和理由进入研究、对比或自选。规则在所选证券范围内运行，不等同于全市场扫描。
+- 今日概览聚合自选异动、市场脉搏、组合关注事项、提醒、事件、近期研究与待复核投资逻辑。
+- 报告可保存为可编辑的投资逻辑，结合新数据重新评估；提醒覆盖价格、新闻、财报、评级、股息、持仓权重和回撤。
+- 投资组合支持券商只读接入与手动导入，查看配置、集中度、大额持仓、敞口及风险信号。
 
-### 技能与能力层
+### 6. 能扩展，也能评测
 
-- 单一能力注册表驱动提供商执行、Agent 工具、UI 可用性与技能就绪状态。
-- 技能声明所需与可选能力；技能中心展示就绪、部分就绪与已禁用状态。
-- 渐进式加载让技能指令与参考资料随时可用，而无需把每份文档都塞进每个提示词。
-- Agent 绝不会声称某个缺失的能力可用。
-
-### 发现与学习循环
-
-- 覆盖市场异动、基本面、技术面与事件的 17 个确定性筛选任务。
-- 八种研究策略：综合、价值、成长、技术、财报、事件驱动、风险复盘与收益。
-- 候选操作连同证据与理由流入研究、对比与自选清单。
-- 研究差异对比（Research Diff）突出显示结论变化、估值变动、新风险与置信度变化。
-
-### 投资组合、论点与监控
-
-- 投资组合配置、集中度、赫芬达尔指数、大额持仓、财报、新闻、回撤与敞口信号。
-- 将报告保存为可编辑的投资论点，并基于新数据重新评估。
-- 针对价格、新闻、财报、评级、股息、持仓权重与回撤的提醒规则。
-- Today 整合投资组合关注事项、自选异动、提醒、即将到来的事件、近期研究与待复审的论点。
-- 独立的 **Events & Catalysts 页面**：财报、宏观数据与央行日历，一键带上下文跳转研究。
-- **个人资料页**：本地工作区健康检查（AI / 行情 / 技能 / Agent 运行时）一目了然。
+- 单一能力注册表连接提供商、Agent 工具、研究流程、UI 与技能就绪状态。
+- `SKILL.md` 技能包声明能力依赖，按需加载指令与参考资料，支持启用/禁用。
+- 内置评测中心支持实验、基线、模型对比、失败模式、案例详情与人工反馈；`trail-agent-v1` 基准集含 **86 个案例**，另有深度研究黄金案例集。
+- 可运行离线 fixture 评测与真实模型实验；可选 Langfuse / LangSmith 追踪。评测工作流当前为手动触发，离线结果与真实模型结果分别核验。[评测文档](docs/EVALUATION.md) · [Langfuse 接线](docs/langfuse-tracing.zh-CN.md)
 
 ## 工作原理
 
-```text
-Longbridge / Massive 提供商
-              │
-              ▼
-     能力注册表（Capability Registry）
-              │
-       ┌──────┼───────────────┐
-       ▼      ▼               ▼
-    Agent   研究            产品 UI
-    工具   + 论点           + 技能
-           + 提醒           + 对比
-           + 风险           + Today
-              │
-              ▼
-      基于证据的报告
+```mermaid
+flowchart TB
+  UI[React 桌面工作区与 Copilot] <-->|白名单 IPC / 事件流| HOST[Electron 主进程 · AgentKernelHost]
+  HOST --> KERNEL[AgentKernel · 会话 / 运行 / 事件]
+  KERNEL --> PI[Pi Runtime · LLM 提供商]
+  KERNEL --> LOCAL[本地确定性 Runtime]
+  HOST --> WORK[研究 / 筛选 / 对比 / 投资逻辑 / 提醒]
+  WORK --> CAP[类型化能力注册表]
+  PI -->|工具调用| CAP
+  CAP --> ROUTER[Provider Router]
+  ROUTER --> LB[Longbridge · 行情与只读账户]
+  ROUTER --> MASSIVE[Massive · 部分美股数据]
+  HOST --> STORE[本地 JSON 存储 / 研究 Checkpoint]
+  PI --> SESSIONS[Pi JSONL 会话]
+  HOST -. 可选追踪 .-> OBS[Langfuse / LangSmith]
 ```
 
-核心边界刻意保持很小：提供商返回带来源（provenance）的规范化数据，能力暴露类型化操作，产品工作流消费这些契约，而不是导入厂商专属代码。
+**主进程拥有业务状态，渲染进程负责展示与交互。** React/Jotai 是视图层，预加载桥只暴露白名单接口；市场数据与研究工作流通过统一能力契约衔接提供商，供应商细节留在适配器内。会话和研究采用本地文件持久化，凭证由主进程通过 Electron `safeStorage` 加密管理。[详细架构](docs/architecture.zh-CN.md)
 
-## 灵活集成
-
-- **行情数据：** Longbridge 是美股/港股/内地市场数据与券商投资组合访问的主要连接器；Massive 是美股市场的备选数据提供商。
-- **Agent 运行时：** 为已配置的 LLM 提供商提供 Pi 运行时，另有用于开发与离线黄金路径的确定性本地提供商。
-- **桌面端：** Electron，含 macOS arm64 打包构建。渲染进程、预加载桥与主进程内核通过上下文隔离与白名单化 IPC 接口面分离。
-- **技能：** 内置 `SKILL.md` 资源，含引用、启用/禁用状态、触发器与能力要求。
-- **Agent 评测：** 通过本地 Evaluation Backend 或 LangSmith 记录 trace、dataset、evaluator、experiment 与 regression gate；工程指标与投资结果保持可链接但不宣称因果关系。
+| 目录 | 职责 |
+| --- | --- |
+| `apps/electron` | 桌面主进程、预加载桥、渲染入口与 E2E |
+| `packages/core` | 领域模型、能力与提供商契约 |
+| `packages/shared` | 内核、运行时、存储、研究及产品服务 |
+| `packages/ui` | React/Jotai 工作台、图表与助手界面 |
+| `packages/longbridge-tools` | 长桥 CLI 执行、校验与数据接线 |
+| `packages/pi-extension` | Pi 工具与研究综合边界 |
+| `packages/skill-hub` · `skills` | 技能发现、依赖与渐进加载 |
+| `packages/i18n` | 中英文资源与语言设置 |
 
 ## 快速开始
 
-### 面向用户
+### 从源码启动
 
-从[发布页面](https://github.com/ydflow/Trail/releases)下载最新的 macOS 构建。启动研迹后：
-
-1. 首次启动即可浏览完整工作台——未接入服务前展示内置示例数据（带“示例数据”徽标）。
-2. 在 **设置 → 模型** 中配置 LLM 提供商，或使用本地提供商进行确定性演示。
-3. 如需实时行情数据与投资组合访问，在 **设置 → 连接** 中连接 Longbridge；连接后示例数据自动切换为真实数据。
-4. 从自选清单中选择标的，打开**深度研究**。
-
-Longbridge 认证也可以在终端完成：
+需要 Git、[Bun](https://bun.sh) 和 Node.js（Electron E2E 脚本使用 Node）。仓库当前源码通道为 `0.4.0-beta.2`，不表示已有同版本安装包发布；[发布页](https://github.com/ydflow/Trail/releases)以实际资产为准。
 
 ```bash
-longbridge auth login
-```
-
-### 面向开发者
-
-前置条件：[Bun](https://bun.sh)、用于实时数据的 [Longbridge CLI](https://open.longbridge.com/longbridge/longbridge-terminal/install)，以及用于 Pi 运行时的 LLM 提供商。
-
-> **Windows**：建议在普通（非管理员）开发终端下先开启「开发人员模式」（设置 → 系统 → 开发者选项）。否则本项目使用 Bun 安装 workspace/symlink 依赖时可能出现 `node_modules` 空目录、缺少 `.bin`、`tsc not found` 等问题；具有相应符号链接权限或以提升权限运行的进程不受此限制。
-
-```bash
-# 克隆并安装
 git clone https://github.com/ydflow/Trail.git
 cd Trail
 bun install
-
-# 以开发模式运行桌面应用
-bun run dev
-
-# 确定性本地 Agent 路径——无需外部 LLM
-FINAGENT_AGENT_PROVIDER=local bun run dev
-
-# 离线演示模式：真实供应商不可用时回退到内置示例数据（Copilot 回答带 Sample data 标注）
-FINAGENT_AGENT_PROVIDER=local FINAGENT_DEMO_DATA=1 bun run dev
+bun run build:electron
 ```
 
-Windows CMD 打开已构建的桌面工作台：
+**Windows CMD：**
 
 ```cmd
-bun.cmd run build:electron
 start-trail.cmd
 ```
 
-`start-trail.cmd` 会优先使用 npm 安装的原生 `bunx.exe`，避免 Windows 的 `bunx.cmd` 包装脚本无法被 Pi 子进程启动；若长桥安装在标准用户目录，也会补齐当前进程的 PATH。Pi CLI、模型凭据及长桥 CLI / 账户授权仍需单独配置。
+启动器补齐标准目录中的长桥 PATH，并优先使用可供 Pi 子进程启动的原生 `bunx.exe`。Windows 安装 workspace 依赖时需要符号链接权限，建议先开启系统开发人员模式。
 
-### 命令
-
-| 命令 | 说明 |
-| --- | --- |
-| `bun run dev` | 以开发模式启动 Electron 渲染进程 |
-| `bun test` | 运行完整单元与集成测试套件 |
-| `bun run typecheck` | 对所有工作区包执行类型检查 |
-| `bun run build` | 构建包、渲染进程、预加载与主进程 |
-| `bun run test:e2e` | 运行 Electron 黄金路径 E2E 套件 |
-| `bun run test:typed-blocks` | 运行 typed answer blocks 的真实应用 Copilot E2E（apps/electron） |
-| `bun run eval:smoke` | 运行 PR 级确定性 Agent 回归评测 |
-| `bun run eval:full` | 运行完整 Agent benchmark 与实验流程 |
-| `bun run release:check` | 运行发布门槛检查 |
-| `bun run release:package` | 构建 macOS arm64 应用、DMG 与 SHA256 校验和 |
-
-打包产物暂存于 `dist/release/`。
-
-## 安全与产品边界
-
-- Electron 以 `contextIsolation: true`、`nodeIntegration: false` 运行，并采用白名单化预加载桥。
-- API 密钥与自定义提供商凭证在主进程中使用 Electron `safeStorage` 加密存储。
-- Longbridge 命令使用 argv 安全执行、标的校验与只读能力注册。
-- 技能资源路径安全：拒绝路径穿越与符号链接逃逸。
-- 研究报告区分“数据不可用”与“负面证据”，绝不编造缺失的数字。
-- Agent 追踪默认关闭；标准隐私级别会脱敏 prompt、答案、参数与组合工具结果，完整追踪必须显式启用。
-- 未签名的本地构建可能触发 macOS 安全提示；签名与公证是发布阶段的可选步骤。
-
-## 项目状态
-
-研迹处于测试版（beta）。当前仓库包含 V5 研究、发现、监控、结果与自适应校准相关功能面，以及落地 Stitch「Minimalist Personal Portfolio」设计语言的全新视觉系统：重绘的侧栏与顶部工作区栏、Events & Catalysts 与个人资料页面、统一的组件库与圆角阶梯，以及离线示例数据回退。
-
-Agent 工程评测（V7）已接入设置与评测中心：支持 LangSmith 连接、隐私控制、基准实验、失败模式分析、案例级 trace 与人工反馈。
-
-- 单元与集成测试：**1157+ 项通过**
-- 类型检查：**通过**
-- Electron E2E 与打包冒烟门槛：可通过发布脚本运行
-- 当前包通道：`0.4.0-beta.2`
-
-已知限制与发布决策记录在 [`docs/release-gates.zh-CN.md`](docs/release-gates.zh-CN.md)（[英文原文](docs/release-gates.md)）与 [`docs/provider-b-decision.zh-CN.md`](docs/provider-b-decision.zh-CN.md)（[英文原文](docs/provider-b-decision.md)）。
-
-## 路线图
-
-### 近期
-
-- 在同一能力契约下覆盖更多提供商。
-- 更好的报告导航与证据检视。
-- 证券工作台的估值对比表（CURRENT vs 5Y AVG）与目标价卡片（见 [`docs/design-comparison.md`](docs/design-comparison.md)）。
-- 更有用的组合感知研究提示，同时不把内部运行时指令泄漏进用户对话。
-
-### 长期
-
-- 跨平台打包构建。
-- 更多研究策略与结果校准样本。
-- 更丰富的定时简报、通知渠道与用户自定义监控规则。
-- 便于贡献者使用的技能与提供商扩展模型。
-
-## 文档
-
-- [`docs/architecture.zh-CN.md`](docs/architecture.zh-CN.md) — 系统架构与运行时边界 · [English](docs/architecture.md)
-- [`docs/PRD.md`](docs/PRD.md) — 产品需求与不变式（本文档为中文）
-- [`docs/UI-SYSTEM.zh-CN.md`](docs/UI-SYSTEM.zh-CN.md) — 视觉系统与组件规则 · [English](docs/UI-SYSTEM.md)
-- [`docs/longbridge-auth.zh-CN.md`](docs/longbridge-auth.zh-CN.md) — Longbridge 认证 · [English](docs/longbridge-auth.md)
-- [`docs/longbridge-skill-setup.zh-CN.md`](docs/longbridge-skill-setup.zh-CN.md) — 技能安装与能力覆盖 · [English](docs/longbridge-skill-setup.md)
-- [`docs/release-gates.zh-CN.md`](docs/release-gates.zh-CN.md) — 发布验证清单 · [English](docs/release-gates.md)
-- [`docs/EVALUATION.md`](docs/EVALUATION.md) — Agent 评测、LangSmith 可观测性与实验架构 · [CI 策略](docs/EVALUATION-CI.md) · [基准集](docs/EVALUATION-BENCHMARK.md)
-- [`docs/design-comparison.md`](docs/design-comparison.md) — Stitch 设计稿与当前实现的逐屏对比
-
-## 参与贡献
-
-欢迎提交 Issue 与 Pull Request。提交改动前请运行：
+**macOS / Linux 源码运行入口：**
 
 ```bash
-bun test
-bun run typecheck
+FINAGENT_FORCE_PROD_LOAD=1 bunx electron apps/electron/src/main/index.js
 ```
 
-UI 改动请附上截图或简要的视觉 QA 说明（当布局或交互发生实质性变化时）。
+这是源码启动命令，不代表各平台均已通过打包验收。`bun run dev` 只启动 Vite 渲染开发服务器；使用热更新时，另开终端运行 `bunx electron apps/electron/src/main/index.js`，并确保未设置 `FINAGENT_FORCE_PROD_LOAD=1`。普通浏览器打开 Vite 页面无法提供完整 Electron IPC 能力。
+
+### 接入模型与行情
+
+1. 在 **设置 → LLM** 中配置提供商、测试连接并选择模型；支持内置提供商和自定义兼容提供商。Pi CLI/runtime 需可被当前进程启动。
+2. 安装官方 [Longbridge CLI](https://open.longbridge.com/longbridge/longbridge-terminal/install)，通过 **设置 → 连接** 完成授权，也可以执行 `longbridge auth login`。
+3. 从自选中打开证券，查看 K 线或进入**研究**，选择策略并发起深度研究。
+4. 打开报告依据或聊天来源；将需要持续跟踪的判断保存为**投资逻辑**。
+
+未接入服务时，部分产品页提供内置示例回退；不在示例覆盖范围内的数据保留空态或错误。真实市场覆盖、延迟、财务与账户权限取决于提供商和账户授权。
+
+只运行本地确定性 Agent 的 Windows CMD 示例：
+
+```cmd
+set "FINAGENT_AGENT_PROVIDER=local"
+start-trail.cmd
+```
+
+如需能力层的示例数据回退，可另外设置 `FINAGENT_DEMO_DATA=1`；它在真实提供商不可用时生效。停止使用后清除相应环境变量即可切回已配置的真实 runtime。
+
+### 开发与验证命令
+
+| 命令 | 用途 |
+| --- | --- |
+| `bun run dev` | Vite 渲染开发服务器 |
+| `bun run build` | 工作区包与 Electron 构建 |
+| `bun run typecheck` | 工作区类型检查 |
+| `bun run test:unit` | 隔离执行单元与集成测试 |
+| `bun run test:e2e` | Electron 黄金路径 E2E |
+| `bun run --cwd apps/electron test:typed-blocks` | 结构化回答块 Electron 验证 |
+| `bun run i18n:check` | 中英文资源一致性 |
+| `bun run eval:smoke -- --mode fixture` | 离线确定性评测 |
+| `bun run eval:full` | 完整评测入口；真实模型模式需要单独配置 |
+| `bun run release:check` | 发布门槛检查 |
+| `bun run release:package` | 当前 macOS arm64 打包流程 |
+
+## 工程落地与当前边界
+
+- **本地优先：** 会话、消息、报告与 checkpoint 保存在本机。使用外部模型、行情或启用追踪后，相应请求仍会发往配置的服务；本地优先不等于所有处理离线。
+- **桌面隔离：** `contextIsolation: true`、`nodeIntegration: false`、沙盒与白名单预加载桥；凭证只在主进程处理。
+- **可恢复执行：** checkpoint 校验和、原子写入、已完成依据复用、配置身份检查及持久预算。远端读取可能重试，不承诺 exactly-once 或所有断电场景的数据恢复。
+- **可观察、可导出：** 流式工具状态、来源检查器、报告导出与可选追踪；追踪默认关闭，隐私级别和密钥单独配置。
+- **诚实的缺口：** 真实研究可能生成部分报告；盘前/延迟/无时间戳报价应结合来源状态理解，不能一概称为实时成交价。模型结构化输出偶尔会触发文本降级，报告语言也受模型输出影响。
+- **交付范围：** Windows 源码桌面路径可运行，仓库包含 macOS arm64 打包配置；跨平台安装、签名与公证仍需各自验证。本次文档更新的测试和截图证据见[验证记录](docs/screenshots/README.md)，不以旧测试总数代表当前完整验收。
+
+## 文档与贡献
+
+| 文档 | 内容 |
+| --- | --- |
+| [系统架构](docs/architecture.zh-CN.md) · [English](docs/architecture.md) | 进程、内核、IPC、运行时与本地存储 |
+| [产品需求](docs/PRD.md) · [UI 系统](docs/UI-SYSTEM.zh-CN.md) | 产品目标与界面规范 |
+| [长桥授权](docs/longbridge-auth.zh-CN.md) · [技能接入](docs/longbridge-skill-setup.zh-CN.md) | 数据源和能力配置 |
+| [研究恢复](docs/research-recovery.md) · [已有验收报告](docs/research-recovery-test-report.md) | checkpoint 机制与不同验证层级 |
+| [Agent 评测](docs/EVALUATION.md) · [基准集](docs/EVALUATION-BENCHMARK.md) | 评测体系、数据集与实验 |
+| [Langfuse 追踪](docs/langfuse-tracing.zh-CN.md) | 可选追踪接线与隐私边界 |
+| [发布门槛](docs/release-gates.zh-CN.md) · [提供商覆盖](docs/provider-b-decision.zh-CN.md) | 发布检查与已知限制 |
+| [贡献指南](CONTRIBUTING.md) | 提交规范、测试报告与截图要求 |
+
+欢迎围绕提供商适配、研究质量、来源核验、桌面体验和可复现回归用例提交 Issue 或 PR。后续重点是更完整的提供商覆盖、研究报告阅读与比较、模型输出契约稳定性，以及跨平台分发。
 
 ---
 
-<p align="center">
-  <sub>Trail · 研迹 — 研究留下痕迹。</sub>
-</p>
+<p align="center"><sub>Trail · 研迹 — 研究留下痕迹。</sub></p>
