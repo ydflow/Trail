@@ -27,7 +27,7 @@ export const TitleBar: React.FC = () => {
             className="h-[18px] w-[18px] rounded-[5px] shadow-sm"
             draggable={false}
           />
-          <span className="text-[13px] font-semibold text-foreground/78">Trail</span>
+          <span className="text-[13px] font-semibold text-foreground/78">Trail · 研迹</span>
         </div>
       </div>
 

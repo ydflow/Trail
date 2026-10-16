@@ -2,7 +2,7 @@
 
 - **Status:** Proposed (awaiting review on #27)
 - **Date:** 2026-09-11
-- **Deciders:** Trail maintainers
+- **Deciders:** ydflow/Trail maintainers, contributor for #27
 
 ## Context
 

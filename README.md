@@ -1,11 +1,11 @@
-# Trail
+<h1 align="center">Trail · 研迹</h1>
 
 <p align="center">
-  <img src="packages/ui/src/assets/trail-logo.png" alt="Trail logo" width="96" />
+  <img src="packages/ui/src/assets/trail-logo.png" alt="Trail · 研迹" width="104" />
 </p>
 
 <p align="center">
-  <a href="README.en.md">English</a> · <a href="README.md">简体中文</a>
+  <a href="README.en.md">English</a> · 简体中文
 </p>
 
 <p align="center">
@@ -19,20 +19,28 @@
   <a href="docs/PRD.md">产品需求</a>
 </p>
 
-> 一句话：行情终端告诉你 **What happened**；Trail 的 Agent 帮你回答 **Why does this matter to you**，记录 **What did you believe before**，并持续追踪 **What changed**。
+> 一句话：行情终端告诉你 **What happened**；研迹的 Agent 帮你回答 **Why does this matter to you**，记录 **What did you believe before**，并持续追踪 **What changed**。
+
+## 关于名字
+
+**研迹 ＝ 研 ＋ 迹。** 研究留下痕迹。
+
+市场每天都在提供新的数据，但真正稀缺的不是数据，而是「上一次我为什么这么判断」和「这次变化推翻了哪一条前提」。研迹把研究过程本身当作一等公民：每一次研究、每一条证据、每一个被修正的论点都会留下可回溯的轨迹。
+
+英文名 **Trail** 取的就是这层含义——一条被走过、可被重走的路径。
 
 ## 我们的产品
 
-Trail 是为公开市场投资者打造的桌面研究环境。它将安静整洁的金融工作区与 Agent 副驾驶（copilot）相结合——Agent 可以获取结构化的行情数据、解释证据，并将研究持续推进到投资论点、提醒与投资组合决策中。
+研迹是为公开市场投资者打造的桌面研究环境。它将安静整洁的金融工作区与 Agent 副驾驶（copilot）相结合——Agent 可以获取结构化的行情数据、解释证据，并将研究持续推进到投资论点、提醒与投资组合决策中。
 
-Trail 本地优先：会话、凭证与研究状态默认保存在设备本地。行情数据与模型提供商是明确的集成项，而非隐藏的依赖。
+研迹本地优先：会话、凭证与研究状态默认保存在设备本地。行情数据与模型提供商是明确的集成项，而非隐藏的依赖。
 
-> Trail 是研究与决策支持工具，设计上只读，不提供下单或交易能力。
+> 研迹是研究与决策支持工具，设计上只读，不提供下单或交易能力。
 
 ## 截图
 
 <p align="center">
-  <img src="docs/screenshots/today.png" alt="Trail Today 工作区" width="900" />
+  <img src="docs/screenshots/today.png" alt="研迹 Today 工作区" width="900" />
 </p>
 
 <p align="center">
@@ -40,23 +48,23 @@ Trail 本地优先：会话、凭证与研究状态默认保存在设备本地�
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/workspace.png" alt="Trail 证券工作区" width="49%" />
-  <img src="docs/screenshots/events.png" alt="Trail 事件与催化" width="49%" />
+  <img src="docs/screenshots/workspace.png" alt="研迹 证券工作区" width="49%" />
+  <img src="docs/screenshots/events.png" alt="研迹 事件与催化" width="49%" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/portfolio.png" alt="Trail 投资组合" width="49%" />
-  <img src="docs/screenshots/profile.png" alt="Trail 个人资料与健康检查" width="49%" />
+  <img src="docs/screenshots/portfolio.png" alt="研迹 投资组合" width="49%" />
+  <img src="docs/screenshots/profile.png" alt="研迹 个人资料与健康检查" width="49%" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" alt="Trail 设置中心" width="49%" />
-  <img src="docs/screenshots/evaluation.png" alt="Trail Agent 评测设置" width="49%" />
+  <img src="docs/screenshots/settings.png" alt="研迹 设置中心" width="49%" />
+  <img src="docs/screenshots/evaluation.png" alt="研迹 Agent 评测设置" width="49%" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/skills.png" alt="Trail 技能中心" width="49%" />
-  <img src="docs/screenshots/discover.png" alt="Trail 发现页" width="49%" />
+  <img src="docs/screenshots/skills.png" alt="研迹 技能中心" width="49%" />
+  <img src="docs/screenshots/discover.png" alt="研迹 发现页" width="49%" />
 </p>
 
 <p align="center">
@@ -156,7 +164,7 @@ Longbridge / Massive 提供商
 
 ### 面向用户
 
-从[发布页面](https://github.com/ydflow/Trail/releases)下载最新的 macOS 构建。启动 Trail 后：
+从[发布页面](https://github.com/ydflow/Trail/releases)下载最新的 macOS 构建。启动研迹后：
 
 1. 首次启动即可浏览完整工作台——未接入服务前展示内置示例数据（带“示例数据”徽标）。
 2. 在 **设置 → 模型** 中配置 LLM 提供商，或使用本地提供商进行确定性演示。
@@ -178,7 +186,7 @@ longbridge auth login
 ```bash
 # 克隆并安装
 git clone https://github.com/ydflow/Trail.git
-cd trail
+cd Trail
 bun install
 
 # 以开发模式运行桌面应用
@@ -220,7 +228,7 @@ FINAGENT_AGENT_PROVIDER=local FINAGENT_DEMO_DATA=1 bun run dev
 
 ## 项目状态
 
-Trail 处于测试版（beta）。当前仓库包含 V5 研究、发现、监控、结果与自适应校准相关功能面，以及落地 Stitch「Minimalist Personal Portfolio」设计语言的全新视觉系统：重绘的侧栏与顶部工作区栏、Events & Catalysts 与个人资料页面、统一的组件库与圆角阶梯，以及离线示例数据回退。
+研迹处于测试版（beta）。当前仓库包含 V5 研究、发现、监控、结果与自适应校准相关功能面，以及落地 Stitch「Minimalist Personal Portfolio」设计语言的全新视觉系统：重绘的侧栏与顶部工作区栏、Events & Catalysts 与个人资料页面、统一的组件库与圆角阶梯，以及离线示例数据回退。
 
 Agent 工程评测（V7）已接入设置与评测中心：支持 LangSmith 连接、隐私控制、基准实验、失败模式分析、案例级 trace 与人工反馈。
 
@@ -268,3 +276,9 @@ bun run typecheck
 ```
 
 UI 改动请附上截图或简要的视觉 QA 说明（当布局或交互发生实质性变化时）。
+
+---
+
+<p align="center">
+  <sub>Trail · 研迹 — 研究留下痕迹。</sub>
+</p>

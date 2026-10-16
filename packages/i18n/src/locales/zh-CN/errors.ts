@@ -9,7 +9,7 @@ export const errors = {
     '此区域发生意外错误。请重试,或打开「诊断」检查应用状态并导出支持包。',
   sectionOpenDiagnostics: '打开诊断',
   invalidArgument: '请求参数无效。',
-  storageReadFailed: '无法读取 Trail 数据,请重试。',
+  storageReadFailed: '无法读取研迹数据,请重试。',
   storageWriteFailed: '无法保存更改,请重试。',
   piRuntimeNotFound: 'Agent 运行时不可用。',
   piRuntimeError: 'Agent 运行时发生错误。',

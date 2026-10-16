@@ -3,29 +3,29 @@ import type { onboarding as enOnboarding } from '../en-US/onboarding.ts';
 
 /** First-run onboarding — Simplified Chinese (spec §27–30, §71–72). Provider/model ids stay untranslated (§11). */
 export const onboarding = {
-  setupAria: 'Trail 设置',
-  setupTitle: '设置 Trail',
+  setupAria: '研迹设置',
+  setupTitle: '设置研迹',
   stepPrefix: '第 {{index}} 步，共 {{total}} 步',
   skip: '暂时跳过',
   back: '返回',
   continue: '继续',
-  startTrail: '开始使用 Trail',
+  startTrail: '开始使用研迹',
   language: '语言',
   welcome: {
-    title: '欢迎使用 Trail',
+    title: '欢迎使用研迹',
     titleShort: '欢迎',
     subtitle:
       '只需几分钟即可完成设置，让市场数据和 AI 完成连接。你可以跳过任何步骤，稍后在设置中返回。',
     accept: '我理解并接受这些条款。',
     disclaimerPrivacyTitle: '隐私',
     disclaimerPrivacyBody:
-      'Trail 在本地设备上运行。API 密钥和凭据存储在你的机器上，绝不会被共享。市场数据提供方只会收到通过你自己的账户发起的请求。',
+      '研迹在本地设备上运行。API 密钥和凭据存储在你的机器上，绝不会被共享。市场数据提供方只会收到通过你自己的账户发起的请求。',
     disclaimerAiTitle: 'AI 分析',
     disclaimerAiBody:
       'AI 生成的分析仅供参考，可能不准确或不完整。在依赖其结论前请务必核实。',
     disclaimerFinancialTitle: '金融信息',
     disclaimerFinancialBody:
-      'Trail 中的任何内容均不构成投资建议。市场数据可能有延迟。你对自身的投资决策负全部责任。',
+      '研迹中的任何内容均不构成投资建议。市场数据可能有延迟。你对自身的投资决策负全部责任。',
   },
   connectAi: {
     title: '连接 AI',

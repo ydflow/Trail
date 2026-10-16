@@ -82,9 +82,9 @@ jobs:
       - name: Write release notes
         run: |
           if [ "${{ steps.buildtype.outputs.internal }}" = "true" ]; then
-            printf '%s\n\n%s\n' "# Trail ${{ github.ref_name }}" "INTERNAL BUILD — NOT RELEASEABLE" > release-notes.md
+            printf '%s\n\n%s\n' "# Trail · 研迹 ${{ github.ref_name }}" "INTERNAL BUILD — NOT RELEASEABLE" > release-notes.md
           else
-            printf '%s\n\n%s\n' "# Trail ${{ github.ref_name }}" "Signed and notarized." > release-notes.md
+            printf '%s\n\n%s\n' "# Trail · 研迹 ${{ github.ref_name }}" "Signed and notarized." > release-notes.md
           fi
 
       - name: Upload release assets

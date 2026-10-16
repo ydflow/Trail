@@ -48,11 +48,11 @@ export const automation = {
   disabled: '已禁用',
   notification: {
     triggeredTitle: '{{type}} 已触发',
-    materialBody: '检测到重要变化。打开 Trail 查看最新研究。',
-    allBody: '自动化研究已完成。打开 Trail 查看最新结果。',
+    materialBody: '检测到重要变化。打开研迹查看最新研究。',
+    allBody: '自动化研究已完成。打开研迹查看最新结果。',
     materialTitle: '{{symbol}} 需要关注',
     noMaterialTitle: '{{symbol}} 已完成复核',
-    materialBodyDetail: '{{type}} 检测到重要变化{{pct}}。打开 Trail 查看。',
+    materialBodyDetail: '{{type}} 检测到重要变化{{pct}}。打开研迹查看。',
     noMaterialBodyDetail: '未发现高于重要阈值的变化({{type}})。',
   },
 } satisfies SameKeysAs<typeof enAutomation>;

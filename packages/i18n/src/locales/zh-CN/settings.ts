@@ -4,11 +4,11 @@ import type { settings as enSettings } from '../en-US/settings.ts';
 /** Settings surface — Simplified Chinese. */
 export const settings = {
   language: '语言',
-  languageDescription: '选择 Trail 的界面语言。',
+  languageDescription: '选择研迹的界面语言。',
   languageSystem: '系统默认',
   languageChanged: '语言已切换',
   theme: '主题',
-  themeDescription: '选择 Trail 跟随桌面主题的方式。',
+  themeDescription: '选择研迹跟随桌面主题的方式。',
   themeLight: '浅色',
   themeDark: '深色',
   themeSystem: '跟随系统',
@@ -28,7 +28,7 @@ export const settings = {
   disabled: '已禁用',
   title: '设置',
   preferences: '偏好设置',
-  subtitle: '无需离开金融工作台即可配置 Trail。',
+  subtitle: '无需离开金融工作台即可配置研迹。',
   tabs: {
     general: '通用',
     llm: 'LLM',
@@ -159,7 +159,7 @@ export const settings = {
     couldNotRemoveApiKey: '无法移除 API 密钥。',
     langfuseConnection: 'Langfuse 连接',
     langfuseDesc:
-      '面向 Copilot 与深度研究的 Trail 侧追踪：输入、检索/工具 span、综合、报告与评测分数。写入失败不会阻断 Agent。',
+      '面向 Copilot 与深度研究的研迹侧追踪：输入、检索/工具 span、综合、报告与评测分数。写入失败不会阻断 Agent。',
     langfuseTracing: 'Langfuse 追踪',
     langfuseTracingEnabledDesc: '将 Agent 与深度研究运行导出到 Langfuse。',
     langfuseTracingDisabledDesc: '在下方添加 Langfuse public / secret key 后即可启用追踪。',

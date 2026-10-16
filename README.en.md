@@ -1,11 +1,11 @@
-# Trail
+<h1 align="center">Trail · 研迹</h1>
 
 <p align="center">
-  <img src="packages/ui/src/assets/trail-logo.png" alt="Trail logo" width="96" />
+  <img src="packages/ui/src/assets/trail-logo.png" alt="Trail · 研迹" width="104" />
 </p>
 
 <p align="center">
-  <a href="README.en.md">English</a> · <a href="README.md">简体中文</a>
+  English · <a href="README.md">简体中文</a>
 </p>
 
 <p align="center">
@@ -19,15 +19,23 @@
   <a href="docs/PRD.md">Product requirements</a>
 </p>
 
-> 一句话：行情终端告诉你 **What happened**；Trail 的 Agent 帮你回答 **Why does this matter to you**，记录 **What did you believe before**，并持续追踪 **What changed**。
+> In one line: a market terminal tells you **What happened**; Trail's agent helps you answer **Why does this matter to you**, records **What did you believe before**, and keeps tracking **What changed**.
 
-## Our Product
+## About the name
 
-Trail is a desktop research environment for public-market investors. It combines a quiet finance workspace with an agent copilot that can fetch structured market data, explain the evidence, and carry research forward into theses, alerts, and portfolio decisions.
+**研迹 (yán jì) ＝ 研 (research) ＋ 迹 (traces).** Research that leaves a trace.
 
-Trail is local-first: sessions, credentials, and research state stay on the device by default. Market data and model providers are explicit integrations, not hidden dependencies.
+The market produces new data every day. What is actually scarce is not the data — it is *why I made that call last time* and *which assumption the latest change just invalidated*. Trail treats the research process itself as a first-class citizen: every study, every piece of evidence, and every revised thesis leaves a trace you can walk back.
 
-> Trail is a research and decision-support tool. It is read-only by design and does not expose order or trading capabilities.
+The English name **Trail** carries the same idea — a path that has been walked, and can be walked again.
+
+## Our product
+
+Trail is a desktop research environment for public-market investors. It pairs a quiet, tidy financial workspace with an agent copilot — one that can pull structured market data, explain the evidence, and carry research forward into theses, alerts, and portfolio decisions.
+
+Trail is local-first: sessions, credentials, and research state live on your device by default. Market data and model providers are explicit integrations, not hidden dependencies.
+
+> Trail is a research and decision-support tool. It is read-only by design and provides no order placement or trading capability.
 
 ## Screenshots
 
@@ -40,155 +48,155 @@ Trail is local-first: sessions, credentials, and research state stay on the devi
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/workspace.png" alt="Trail security workspace" width="49%" />
-  <img src="docs/screenshots/events.png" alt="Trail Events & Catalysts" width="49%" />
+  <img src="docs/screenshots/workspace.png" alt="Trail securities workspace" width="49%" />
+  <img src="docs/screenshots/events.png" alt="Trail events and catalysts" width="49%" />
 </p>
 
 <p align="center">
   <img src="docs/screenshots/portfolio.png" alt="Trail portfolio" width="49%" />
-  <img src="docs/screenshots/profile.png" alt="Trail profile & workspace health" width="49%" />
+  <img src="docs/screenshots/profile.png" alt="Trail profile and health checks" width="49%" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" alt="Trail settings center" width="49%" />
-  <img src="docs/screenshots/evaluation.png" alt="Trail Agent evaluation settings" width="49%" />
+  <img src="docs/screenshots/settings.png" alt="Trail settings hub" width="49%" />
+  <img src="docs/screenshots/evaluation.png" alt="Trail agent evaluation settings" width="49%" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/skills.png" alt="Trail skills center" width="49%" />
+  <img src="docs/screenshots/skills.png" alt="Trail skill hub" width="49%" />
   <img src="docs/screenshots/discover.png" alt="Trail discover" width="49%" />
 </p>
 
 <p align="center">
-  <em>From the security workspace, events & catalysts, and portfolio overview to settings, skill readiness, and evaluation tracing — with no services connected, every page above renders built-in sample data (badged “Sample data”).</em>
+  <em>From the securities workspace and events &amp; catalysts through the portfolio overview, the settings hub, skill status, and evaluation tracking — with no service connected, all of the above render fully on built-in sample data (marked with a “Sample data” badge).</em>
 </p>
 
-## Key Features
+## Core capabilities
 
-### Research Workspace
+### Research workspace
 
-- Watchlists, quotes, K-line charts, financial statements, news, and security overviews.
-- A three-pane desktop layout: navigation, market workspace, and Agent copilot, with persistent asset tabs (K-Lines / Statements / News / Reports) in the workspace topbar.
-- Compare 2–4 symbols across valuation, growth, margins, ROE, dividends, returns, ratings, and momentum.
-- Data freshness is visible; missing values render as `—` instead of being guessed.
+- Watchlists, quotes, K-line charts, financials, news, and security overviews.
+- Three-column desktop layout: navigation, market workspace, and agent copilot; a persistent asset tab strip (K-line / statements / news / reports) switches your view from anywhere.
+- Compare 2–4 securities across valuation, growth, margins, ROE, dividends, returns, ratings, and momentum.
+- Data freshness is visible; missing values show as `—` and are never guessed.
 
-### Built-in Sample Data (offline fallback)
+### Sample data out of the box (offline fallback)
 
-- With no market-data provider or LLM connected, Today, the portfolio card, Market Pulse, events, and the daily brief render built-in sample data — the workspace is complete from the very first launch.
-- Every sample surface carries a visible “Sample data” badge (with a tooltip explaining how to connect real sources); error details stay in the underlying state, and live data replaces samples the moment it becomes available.
-- Symbols outside the sample set (e.g. `0700.HK`) keep their honest empty/error states — nothing is fabricated.
+- Without a market-data provider or LLM, Today, the portfolio overview, market pulse, events, and the daily brief render built-in sample data — the app is complete from first launch.
+- Every sample item carries a prominent “Sample data” badge (with a setup-guidance tooltip); the underlying error state is preserved and real data replaces samples as soon as it is available.
+- Symbols outside the sample set (for example `0700.HK`) stay in an honest empty/error state. Numbers are never invented.
 
-### Deep Research
+### Deep research
 
-- One-click research from a focused security.
-- Parallel capability fetches with bounded concurrency, timeouts, cancellation, and honest partial-failure states.
-- Structured data bundle → agent synthesis → evidence-backed `ResearchReport`.
-- Reports contain stance, confidence, sections, bull case, bear case, catalysts, risks, and links back to the capability run behind each claim.
+- Start research from a focused security in one action.
+- Parallel capability calls: bounded concurrency, timeouts, cancellation, and honest partial-failure states.
+- Structured data pack → agent synthesis → evidence-backed `ResearchReport`.
+- Reports carry stance, confidence, sections, bull case, bear case, catalysts, risks, and a link from every claim to the capability execution record behind it.
 
-### Agent Copilot
+### Agent copilot
 
-- Persistent sessions and streamed answers powered by the Pi Agent runtime.
-- Model and thinking-level controls, stop/cancel, workspace context, and structured quote/portfolio cards.
-- Markdown answers render with headings, lists, tables, links, and code blocks.
-- Internal synthesis sessions stay out of the visible conversation history.
+- Persistent sessions and streamed answers powered by the Pi agent runtime.
+- Model and reasoning-level controls, stop/cancel, workspace context, and structured quote/portfolio cards.
+- Markdown answers support headings, lists, tables, links, and code blocks.
+- Internal synthesis sessions never appear in the visible conversation history.
 
-### Agent Evaluation & Observability
+### Agent evaluation and observability
 
-- An integrated Evaluation Center for experiments, baselines, model comparisons, failure modes, case details, and human feedback.
-- Coverage includes task completion, tool selection and arguments, evidence/provenance, latency, failure recovery, research completeness, and decision usefulness.
-- Supports local offline evaluation and optional LangSmith tracing; tracing is off by default, with privacy level and API-key controls in Settings.
-- The `trail-agent-v1` benchmark contains 86 golden, difficult, long-tail, tool-failure, regression, and adversarial cases; fixed bugs become regression gates.
-- Pull requests use a zero-cost deterministic smoke eval, while the full benchmark and model/strategy experiments run on demand or on a schedule.
+- Built-in Evaluation Center: experiments, baselines, model comparisons, failure modes, case detail, and human feedback.
+- Evaluations cover task completion, tool choice and arguments, evidence/provenance, latency, failure recovery, research completeness, and decision usefulness.
+- Local offline evaluation plus optional LangSmith tracing; tracing is off by default, and privacy level and API keys are managed separately in settings.
+- The `trail-agent-v1` benchmark holds 86 golden-path, hard, long-tail, tool-failure, regression, and adversarial cases; fixed bugs become regression gates.
+- PRs run a zero-cost deterministic smoke eval; the full benchmark and model/strategy experiments run on demand or on a schedule.
 
-### Skills & Capability Layer
+### Skills and capability layer
 
-- A single capability registry powers provider execution, agent tools, UI availability, and skill readiness.
-- Skills declare required and optional capabilities; the Skills Center shows Ready, Partial, and Disabled states.
-- Progressive loading keeps skill instructions and reference material available without putting every document into every prompt.
-- The agent never claims a missing capability is available.
+- A single capability registry drives provider execution, agent tools, UI availability, and skill readiness.
+- Skills declare required and optional capabilities; the skill hub shows ready, partially ready, and disabled states.
+- Progressive loading keeps skill instructions and references available without cramming every document into every prompt.
+- The agent never claims a capability is available when it is missing.
 
-### Discover & Learning Loop
+### Discovery and learning loop
 
-- 17 deterministic screening tasks across market movers, fundamentals, technicals, and events.
-- Eight research strategies: Comprehensive, Value, Growth, Technical, Earnings, Event Driven, Risk Review, and Income.
-- Candidate actions flow into Research, Compare, and Watchlist with evidence and reasons attached.
-- Research Diff highlights changed verdicts, valuation moves, new risks, and confidence deltas.
+- 17 deterministic screening tasks spanning market moves, fundamentals, technicals, and events.
+- Eight research strategies: comprehensive, value, growth, technical, earnings, event-driven, risk review, and income.
+- Candidate actions flow with evidence and rationale into research, comparison, and watchlists.
+- Research Diff highlights conclusion changes, valuation shifts, new risks, and confidence moves.
 
-### Portfolio, Thesis & Monitoring
+### Portfolio, theses, and monitoring
 
-- Portfolio allocation, concentration, Herfindahl, large-position, earnings, news, drawdown, and exposure signals.
-- Save a report as an editable investment thesis and re-evaluate it against fresh data.
+- Portfolio allocation, concentration, Herfindahl index, large positions, earnings, news, drawdown, and exposure signals.
+- Save reports as editable investment theses and re-evaluate them against new data.
 - Alert rules for price, news, earnings, ratings, dividends, position weight, and drawdown.
-- Today combines portfolio attention items, watchlist movers, alerts, upcoming events, recent research, and theses needing review.
-- A dedicated **Events & Catalysts page**: earnings, macro releases, and central-bank calendar events, with one-click context handoff into Research.
-- A **Profile page** with at-a-glance local workspace health (AI / market data / skills / agent runtime).
+- Today consolidates portfolio attention items, watchlist moves, alerts, upcoming events, recent research, and theses due for review.
+- A dedicated **Events &amp; Catalysts page**: earnings, macro releases, and central-bank calendars, one click into research with context attached.
+- **Profile page**: local workspace health checks (AI / market data / skills / agent runtime) at a glance.
 
-## How It Works
+## How it works
 
 ```text
 Longbridge / Massive providers
               │
               ▼
-     Capability Registry
+      Capability Registry
               │
        ┌──────┼───────────────┐
        ▼      ▼               ▼
-    Agent   Research       Product UI
-    tools   + Thesis       + Skills
-             + Alerts      + Compare
-             + Risk        + Today
+    Agent   Research        Product UI
+    tools   + Theses        + Skills
+            + Alerts        + Compare
+            + Risk          + Today
               │
               ▼
-     Evidence-backed reports
+      Evidence-backed reports
 ```
 
-The core boundary is deliberately small: providers return normalized data with provenance, capabilities expose typed operations, and product workflows consume those contracts instead of importing vendor-specific code.
+The core boundary is deliberately small: providers return normalized data with provenance, capabilities expose typed operations, and product workflows consume those contracts rather than importing vendor-specific code.
 
-## Flexible Integrations
+## Flexible integrations
 
-- **Market data:** Longbridge is the primary connector for US/HK/CN market data and brokerage portfolio access; Massive is available as a secondary US market-data provider.
-- **Agent runtime:** Pi runtime for configured LLM providers, with a deterministic local provider for development and offline golden paths.
-- **Desktop:** Electron with a macOS arm64 packaged build. The renderer, preload bridge, and main-process kernel are separated by context isolation and a whitelisted IPC surface.
-- **Skills:** Vendored `SKILL.md` resources with references, enable/disable state, triggers, and capability requirements.
-- **Agent evaluation:** Local or LangSmith-backed evaluation records traces, datasets, evaluators, experiments, and regression gates; engineering metrics can be linked to investment outcomes without claiming causation.
+- **Market data:** Longbridge is the primary connector for US / Hong Kong / mainland China market data and brokerage portfolio access; Massive is the alternative provider for US equities.
+- **Agent runtime:** the Pi runtime for configured LLM providers, plus a deterministic local provider for development and offline golden paths.
+- **Desktop:** Electron, with a packaged macOS arm64 build. Renderer, preload bridge, and main-process kernel are separated through context isolation and a whitelisted IPC surface.
+- **Skills:** built-in `SKILL.md` resources with references, enabled/disabled state, triggers, and capability requirements.
+- **Agent evaluation:** traces, datasets, evaluators, experiments, and regression gates recorded through a local Evaluation Backend or LangSmith; engineering metrics and investment outcomes stay linkable without claiming causality.
 
-## Quick Start
+## Quick start
 
-### For Users
+### For users
 
 Download the latest macOS build from the [Releases page](https://github.com/ydflow/Trail/releases). After launching Trail:
 
-1. The full workspace is browsable on first launch — built-in sample data (badged “Sample data”) is shown until services are connected.
+1. The full workbench is browsable on first launch — built-in sample data (with a “Sample data” badge) appears before any service is connected.
 2. Configure an LLM provider in **Settings → Models**, or use the local provider for a deterministic demo.
-3. Connect Longbridge in **Settings → Connections** for live market data and portfolio access; sample data switches to live data automatically.
-4. Select a symbol from the Watchlist and open **Deep Research**.
+3. For live market data and portfolio access, connect Longbridge in **Settings → Connections**; sample data switches to real data automatically once connected.
+4. Pick a symbol from a watchlist and open **Deep research**.
 
-Longbridge authentication can also be completed from the terminal:
+Longbridge authentication can also be completed in a terminal:
 
 ```bash
 longbridge auth login
 ```
 
-### For Developers
+### For developers
 
 Prerequisites: [Bun](https://bun.sh), the [Longbridge CLI](https://open.longbridge.com/longbridge/longbridge-terminal/install) for live data, and an LLM provider for the Pi runtime.
 
-> **Windows**: When developing from a standard (non-administrator) terminal, enable Developer Mode first (Settings → System → For developers). Otherwise, installing this project's workspace/symlink dependencies with Bun may leave empty directories under `node_modules`, omit `.bin`, or fail with `tsc not found`. Processes with the required symlink privilege or elevated permissions are not affected.
+> **Windows**: in a normal (non-administrator) developer terminal, enable Developer Mode first (Settings → System → For developers). Otherwise Bun workspace/symlink installs may produce an empty `node_modules`, a missing `.bin`, or `tsc not found`; processes with symlink privileges or elevated rights are unaffected.
 
 ```bash
 # Clone and install
 git clone https://github.com/ydflow/Trail.git
-cd trail
+cd Trail
 bun install
 
-# Run the desktop app in development
+# Run the desktop app in development mode
 bun run dev
 
 # Deterministic local agent path — no external LLM required
 FINAGENT_AGENT_PROVIDER=local bun run dev
 
-# Offline demo mode: fall back to built-in sample data when no real provider
-# is available (Copilot answers are labeled "Sample data")
+# Offline demo mode: fall back to built-in sample data when real providers
+# are unavailable (copilot answers annotated as Sample data)
 FINAGENT_AGENT_PROVIDER=local FINAGENT_DEMO_DATA=1 bun run dev
 ```
 
@@ -198,74 +206,80 @@ FINAGENT_AGENT_PROVIDER=local FINAGENT_DEMO_DATA=1 bun run dev
 | --- | --- |
 | `bun run dev` | Start the Electron renderer in development mode |
 | `bun test` | Run the full unit and integration suite |
-| `bun run typecheck` | Typecheck every workspace package |
+| `bun run typecheck` | Type-check all workspace packages |
 | `bun run build` | Build packages, renderer, preload, and main process |
 | `bun run test:e2e` | Run the Electron golden-path E2E suite |
-| `bun run test:typed-blocks` | Run the real-app typed answer blocks Copilot E2E (apps/electron) |
-| `bun run eval:smoke` | Run the deterministic PR-level Agent regression eval |
-| `bun run eval:full` | Run the full Agent benchmark and experiment flow |
-| `bun run release:check` | Run the release gates |
+| `bun run test:typed-blocks` | Run the real-app copilot E2E for typed answer blocks (apps/electron) |
+| `bun run eval:smoke` | Run the PR-level deterministic agent regression eval |
+| `bun run eval:full` | Run the full agent benchmark and experiment flow |
+| `bun run release:check` | Run release gate checks |
 | `bun run release:package` | Build the macOS arm64 app, DMG, and SHA256 checksums |
 
-The packaged artifacts are staged in `dist/release/`.
+Packaging output is staged in `dist/release/`.
 
-## Security & Product Boundaries
+## Security and product boundaries
 
 - Electron runs with `contextIsolation: true`, `nodeIntegration: false`, and a whitelisted preload bridge.
-- API keys and custom provider credentials are encrypted at rest with Electron `safeStorage` in the main process.
-- Longbridge commands use argv-safe execution, symbol validation, and read-only capability registration.
-- Skill resources are path-safe: traversal and symlink escapes are rejected.
-- Research reports distinguish unavailable data from negative evidence and never fabricate missing numbers.
-- Agent tracing is off by default; standard privacy redacts prompts, answers, arguments, and portfolio tool results, while full tracing requires explicit opt-in.
-- Unsigned local builds may trigger a macOS security prompt; signing and notarization are opt-in release steps.
+- API keys and custom provider credentials are encrypted at rest in the main process using Electron `safeStorage`.
+- Longbridge commands execute with argv safety, symbol validation, and read-only capability registration.
+- Skill asset path safety: path traversal and symlink escapes are rejected.
+- Research reports distinguish “data unavailable” from “negative evidence” and never invent missing numbers.
+- Agent tracing is off by default; the standard privacy level redacts prompts, answers, arguments, and portfolio tool results, and full tracing must be enabled explicitly.
+- Unsigned local builds may trigger macOS security prompts; signing and notarization are optional release-stage steps.
 
-## Project Status
+## Project status
 
-Trail is in beta. The current repository includes the V5 research, discovery, monitoring, outcome, and adaptive-calibration surfaces, plus a refreshed visual system implementing the Stitch “Minimalist Personal Portfolio” design language: a redrawn sidebar and workspace topbar, new Events & Catalysts and Profile pages, a unified component library and radius scale, and the offline sample-data fallback.
+Trail is in beta. The repository currently covers the V5 research, discovery, monitoring, results, and adaptive-calibration surfaces, plus a new visual system implementing the Stitch “Minimalist Personal Portfolio” design language: a redrawn sidebar and top workspace bar, the Events &amp; Catalysts and Profile pages, a unified component library with a corner-radius scale, and the offline sample-data fallback.
 
-Agent engineering evaluation (V7) is now wired into Settings and the Evaluation Center: LangSmith connection, privacy controls, benchmark experiments, failure-mode analysis, case-level traces, and human feedback are available as an advanced workflow.
+Agent engineering evaluation (V7) is wired into settings and the Evaluation Center: LangSmith connectivity, privacy controls, benchmark experiments, failure-mode analysis, case-level traces, and human feedback.
 
 - Unit and integration tests: **1157+ passing**
-- Typecheck: **green**
-- Electron E2E and packaged smoke gates: available through the release scripts
+- Type check: **passing**
+- Electron E2E and packaging smoke gates: runnable through the release scripts
 - Current package channel: `0.4.0-beta.2`
 
-Known limitations and release decisions are documented in [`docs/release-gates.md`](docs/release-gates.md) ([简体中文](docs/release-gates.zh-CN.md)) and [`docs/provider-b-decision.md`](docs/provider-b-decision.md) ([简体中文](docs/provider-b-decision.zh-CN.md)).
+Known limitations and release decisions are recorded in [`docs/release-gates.md`](docs/release-gates.md) ([中文](docs/release-gates.zh-CN.md)) and [`docs/provider-b-decision.md`](docs/provider-b-decision.md) ([中文](docs/provider-b-decision.zh-CN.md)).
 
 ## Roadmap
 
-### Near Term
+### Near term
 
-- More provider coverage behind the same capability contracts.
+- More providers behind the same capability contract.
 - Better report navigation and evidence inspection.
-- Valuation comparison table (CURRENT vs 5Y AVG) and target-price cards for the security workspace (see [`docs/design-comparison.md`](docs/design-comparison.md)).
-- More useful portfolio-aware research prompts without leaking internal runtime instructions into the user conversation.
+- Valuation comparison table (CURRENT vs 5Y AVG) and target-price cards in the securities workspace (see [`docs/design-comparison.md`](docs/design-comparison.md)).
+- More useful portfolio-aware research prompts without leaking internal runtime instructions into user conversations.
 
-### Longer Term
+### Longer term
 
 - Cross-platform packaged builds.
-- More research strategies and outcome calibration samples.
+- More research strategies and outcome-calibration samples.
 - Richer scheduled briefs, notification channels, and user-defined monitoring rules.
-- A contributor-friendly skill and provider extension model.
+- A skill and provider extension model that is easy for contributors to use.
 
 ## Documentation
 
-- [`docs/architecture.md`](docs/architecture.md) — system architecture and runtime boundaries · [简体中文](docs/architecture.zh-CN.md)
-- [`docs/PRD.md`](docs/PRD.md) — product requirements and invariants (document is in Chinese)
-- [`docs/UI-SYSTEM.md`](docs/UI-SYSTEM.md) — visual system and component rules · [简体中文](docs/UI-SYSTEM.zh-CN.md)
-- [`docs/longbridge-auth.md`](docs/longbridge-auth.md) — Longbridge authentication · [简体中文](docs/longbridge-auth.zh-CN.md)
-- [`docs/longbridge-skill-setup.md`](docs/longbridge-skill-setup.md) — skill setup and capability coverage · [简体中文](docs/longbridge-skill-setup.zh-CN.md)
-- [`docs/release-gates.md`](docs/release-gates.md) — release validation checklist · [简体中文](docs/release-gates.zh-CN.md)
-- [`docs/EVALUATION.md`](docs/EVALUATION.md) — Agent evaluation, LangSmith observability, and experiment architecture · [CI strategy](docs/EVALUATION-CI.md) · [benchmark](docs/EVALUATION-BENCHMARK.md)
-- [`docs/design-comparison.md`](docs/design-comparison.md) — screen-by-screen comparison between the Stitch designs and the current implementation
+- [`docs/architecture.md`](docs/architecture.md) — system architecture and runtime boundaries · [中文](docs/architecture.zh-CN.md)
+- [`docs/PRD.md`](docs/PRD.md) — product requirements and invariants (Chinese)
+- [`docs/UI-SYSTEM.md`](docs/UI-SYSTEM.md) — visual system and component rules · [中文](docs/UI-SYSTEM.zh-CN.md)
+- [`docs/longbridge-auth.md`](docs/longbridge-auth.md) — Longbridge authentication · [中文](docs/longbridge-auth.zh-CN.md)
+- [`docs/longbridge-skill-setup.md`](docs/longbridge-skill-setup.md) — skill installation and capability coverage · [中文](docs/longbridge-skill-setup.zh-CN.md)
+- [`docs/release-gates.md`](docs/release-gates.md) — release verification checklist · [中文](docs/release-gates.zh-CN.md)
+- [`docs/EVALUATION.md`](docs/EVALUATION.md) — agent evaluation, LangSmith observability, and experiment architecture · [CI policy](docs/EVALUATION-CI.md) · [Benchmark](docs/EVALUATION-BENCHMARK.md)
+- [`docs/design-comparison.md`](docs/design-comparison.md) — screen-by-screen comparison of the Stitch design and the current implementation
 
 ## Contributing
 
-Issues and pull requests are welcome. Before opening a change, run:
+Issues and pull requests are welcome. Before submitting changes, run:
 
 ```bash
 bun test
 bun run typecheck
 ```
 
-For UI changes, include a screenshot or a short visual QA note when the layout or interaction changes materially.
+For UI changes, include screenshots or a brief visual QA note when layout or interaction changes materially.
+
+---
+
+<p align="center">
+  <sub>Trail · 研迹 — research that leaves a trace.</sub>
+</p>

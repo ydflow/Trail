@@ -54,7 +54,7 @@
   },
   "build": {
     "appId": "com.finagent.app",
-    "productName": "Trail",
+    "productName": "Trail · 研迹",
     "directories": {
       "output": "../../dist/electron"
     },

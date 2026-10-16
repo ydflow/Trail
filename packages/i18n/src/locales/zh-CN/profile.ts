@@ -4,8 +4,8 @@ import type { profile as enProfile } from '../en-US/profile.ts';
 export const profile = {
   eyebrow: '工作区身份',
   title: '个人与安全',
-  subtitle: '查看本地 Trail 工作区、已连接的提供商和运行时健康状态。',
-  localWorkspace: '本地 Trail 工作区',
+  subtitle: '查看本地研迹工作区、已连接的提供商和运行时健康状态。',
+  localWorkspace: '本地研迹工作区',
   localWorkspaceDescription: '研究数据和凭据由当前桌面安装管理。',
   application: '应用',
   channel: '渠道',

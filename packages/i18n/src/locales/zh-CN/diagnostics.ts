@@ -40,7 +40,7 @@ export const diagnostics = {
   no: '否',
   markets: '市场：{{list}}',
   capabilities: '能力：{{list}}',
-  summaryTrail: 'Trail {{version}}（{{os}}/{{arch}}）',
+  summaryTrail: '研迹 {{version}}（{{os}}/{{arch}}）',
   summaryAgentRuntime: 'Agent 运行时：{{provider}}（{{state}}）',
   summaryLlm: 'LLM：{{provider}} / {{model}}',
   summaryBroker: '券商：{{status}}（{{count}} 个账户）',
