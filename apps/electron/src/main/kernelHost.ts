@@ -84,6 +84,7 @@ import {
   CapabilityExecutor,
   computeSkillReadiness,
   createAgentEvaluator,
+  createAgentSynthesizer,
   createFullRegistry,
   createLocalThesisEvaluator,
   createRouterFetchers,
@@ -364,7 +365,12 @@ export class AgentKernelHost {
       synthesizer:
         provider === 'local'
           ? new LocalResearchSynthesizer()
-          : { synthesize: this.runResearchSynthesis },
+          : createAgentSynthesizer(this.runResearchSynthesis, {
+              onFallback: (error) => mainErrorLog.push({
+                at: Date.now(), source: 'main', stack: null,
+                message: 'Research used local synthesis: ' + redactSecrets(error instanceof Error ? error.message : String(error)),
+              }),
+            }),
       repository: new ResearchReportRepository(new JsonFileStore(join(userData, 'store'))),
       getIdentity: async () => {
         const state = provider === 'local' ? undefined : await this.requireLlm().getState();

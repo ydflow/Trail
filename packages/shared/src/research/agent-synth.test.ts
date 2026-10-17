@@ -72,4 +72,26 @@ describe('createAgentSynthesizer', () => {
     expect(synthesis.stance).toBe('bullish');
     expect(synthesis.sections[0].verdict).toBe('positive');
   });
+  it('discloses local fallback and retains the model failure for diagnostics', async () => {
+    const failure = new Error('model unavailable');
+    const seen: unknown[] = [];
+    const synthesizer = createAgentSynthesizer(async () => { throw failure; }, { onFallback: (error) => { seen.push(error); } });
+    const synthesis = await synthesizer.synthesize(synthesisInput());
+    expect(synthesis.summary).toContain('local rules');
+    expect(synthesis.risks[0]).toContain('Model synthesis unavailable');
+    expect(seen).toEqual([failure]);
+  });
+
+  it('does not turn user cancellation into a fallback report', async () => {
+    const controller = new AbortController();
+    const failure = new Error('user cancelled');
+    let fellBack = false;
+    const synthesizer = createAgentSynthesizer(async () => {
+      controller.abort(failure);
+      throw failure;
+    }, { onFallback: () => { fellBack = true; } });
+    await expect(synthesizer.synthesize(synthesisInput(), controller.signal)).rejects.toBe(failure);
+    expect(fellBack).toBe(false);
+  });
+
 });
