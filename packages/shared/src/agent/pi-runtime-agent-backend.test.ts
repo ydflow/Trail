@@ -1,7 +1,8 @@
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'bun:test';
 import type { SpawnOptionsWithoutStdio } from 'node:child_process';
 import { PiRuntimeAdapter } from './pi-runtime-adapter.ts';
@@ -107,7 +108,8 @@ describe('PiRpcClient', () => {
   it('uses the project default pi runtime command and args', () => {
     process.env.ANTHROPIC_MODEL = 'MiniMax-M2.7';
 
-    expect(readDefaultPiCommand()).toBe('bunx');
+    expect(readDefaultPiCommand({}, 'linux')).toBe('bunx');
+    expect(readDefaultPiCommand({}, 'win32')).toBe('bunx');
     expect(readDefaultPiArgs()).toEqual([
       '@mariozechner/pi-coding-agent',
       '--mode',
@@ -119,6 +121,42 @@ describe('PiRpcClient', () => {
       '--extension',
       '.pi/extensions/finagent/index.ts',
     ]);
+  });
+
+  it('resolves a native Windows Bun shim without a launcher PATH override', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'trail-pi-command-'));
+    const native = join(root, 'npm', 'node_modules', 'bun', 'bin', 'bunx.exe');
+    try {
+      await mkdir(dirname(native), { recursive: true });
+      await writeFile(native, 'test executable placeholder');
+      expect(readDefaultPiCommand({ APPDATA: root }, 'win32')).toBe(native);
+      expect(readDefaultPiCommand({ APPDATA: root, FINAGENT_PI_COMMAND: 'custom-pi' }, 'win32')).toBe('custom-pi');
+    } finally {
+      if (dirname(resolve(root)) !== resolve(tmpdir()) || !root.includes('trail-pi-command-')) {
+        throw new Error('Refusing to remove an unexpected fixture directory.');
+      }
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it('removes a failed streaming spawn before the next id-less reply arrives', async () => {
+    let starts = 0;
+    const client = new PiRpcClient({
+      requestTimeoutMs: 100,
+      spawnProcess: createSpawn(() => {
+        if (++starts === 1) throw Object.assign(new Error('missing runtime'), { code: 'ENOENT' });
+        return new FakePiProcess((line, proc) => {
+          if (line.type === 'prompt') proc.writeEvent({
+            type: 'agent_end', messages: [{ role: 'assistant', content: [{ type: 'text', text: 'recovered' }] }],
+          });
+        });
+      }),
+    });
+    try {
+      const stream = client.promptStreaming('first');
+      await expect(stream[Symbol.asyncIterator]().next()).rejects.toMatchObject({ code: 'PI_RUNTIME_NOT_FOUND' });
+      await expect(client.prompt('second')).resolves.toMatchObject({ answer: 'recovered' });
+    } finally { await client.dispose(); }
   });
 
   it('honors explicit FINAGENT_PI_COMMAND and FINAGENT_PI_ARGS overrides', () => {

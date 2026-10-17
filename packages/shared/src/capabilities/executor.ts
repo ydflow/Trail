@@ -16,6 +16,10 @@ const UNAVAILABLE_ERROR_CODES = {
   LONGBRIDGE_NOT_AUTHED: true,
   LONGBRIDGE_RATE_LIMITED: true,
   LONGBRIDGE_TIMEOUT: true,
+  LONGBRIDGE_PERMISSION_DENIED: true,
+  PERMISSION_DENIED: true,
+  AUTH_EXPIRED: true,
+  CONFIG_MISSING: true,
 } as const;
 
 export interface CapabilityExecutorOptions {

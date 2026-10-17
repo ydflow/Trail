@@ -62,6 +62,19 @@ describe('CapabilityExecutor.run', () => {
     expect(record.status).toBe('unavailable');
   });
 
+  it('maps missing account permissions to unavailable', async () => {
+    const executor = new CapabilityExecutor();
+    const cap = makeCap('portfolio.positions', 'get_positions', async () => {
+      throw Object.assign(new Error('Longbridge account scope is missing'), {
+        code: 'PERMISSION_DENIED',
+      });
+    });
+
+    const { record } = await executor.run(cap, {});
+
+    expect(record.status).toBe('unavailable');
+  });
+
   it('records cancelled when a capability exceeds its timeout', async () => {
     const executor = new CapabilityExecutor();
     const cap = makeCap('market.quote', 'get_quote', async (_input, ctx) => {

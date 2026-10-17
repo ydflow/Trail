@@ -97,14 +97,21 @@ function scrub(text: string): string {
  * fallback: any failure (agent unavailable, malformed output, parse error)
  * degrades to the honest local synthesizer — never fabricated prose.
  */
-export function createAgentSynthesizer(run: ResearchAgentRunner): ResearchSynthesizer {
+export function createAgentSynthesizer(
+  run: ResearchAgentRunner,
+  options: { onFallback?: (error: unknown) => void } = {}
+): ResearchSynthesizer {
   const fallback = new LocalResearchSynthesizer();
   return {
     async synthesize(input, signal) {
       try {
         return await run(input, signal);
-      } catch {
-        return fallback.synthesize(input, signal);
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        try { options.onFallback?.(error); } catch { /* Diagnostics cannot prevent fallback. */ }
+        const synthesis = await fallback.synthesize(input, signal);
+        const notice = 'Model synthesis unavailable; this report uses local rules applied to the saved evidence.';
+        return { ...synthesis, summary: `${notice} ${synthesis.summary}`, risks: [notice, ...synthesis.risks] };
       }
     },
   };

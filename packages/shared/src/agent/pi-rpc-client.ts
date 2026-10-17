@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { spawn, type ChildProcessWithoutNullStreams, type SpawnOptionsWithoutStdio } from 'node:child_process';
 import type { AgentTraceEvent, LlmModel, ToolCallRecord } from '@finagent/core';
 import { createCodeError } from './errors.ts';
@@ -351,7 +353,10 @@ export class PiRpcClient {
       try {
         proc = await spawnPromise;
       } catch (error) {
-        pending.reject(error);
+        // Spawn failures must settle and remove this prompt immediately. If we
+        // only reject the iterator, the old request timer can remain active and
+        // turn a missing runtime into a misleading 60-second timeout.
+        self.finishPrompt(pending, error);
         throw error;
       }
       self.writeJson(proc, { type: 'prompt', id, message: content }, pending);
@@ -781,8 +786,18 @@ function parseArgs(value: string | undefined) {
   return value.split(' ').map((part) => part.trim()).filter(Boolean);
 }
 
-function readDefaultPiCommand() {
-  return process.env.FINAGENT_PI_COMMAND ?? 'bunx';
+function readDefaultPiCommand(env: NodeJS.ProcessEnv = process.env, platform = process.platform) {
+  const configured = env.FINAGENT_PI_COMMAND;
+  if (configured) return configured;
+  if (platform !== 'win32') return 'bunx';
+
+  // Desktop launches do not inherit start-trail.cmd's PATH edits. Resolve the
+  // Bun shim directly so a normal shortcut/installer launch can still start Pi.
+  const candidates = [
+    env.APPDATA ? join(env.APPDATA, 'npm', 'node_modules', 'bun', 'bin', 'bunx.exe') : undefined,
+    env.LOCALAPPDATA ? join(env.LOCALAPPDATA, 'Programs', 'bun', 'bunx.exe') : undefined,
+  ].filter((candidate): candidate is string => Boolean(candidate));
+  return candidates.find((candidate) => existsSync(candidate)) ?? 'bunx';
 }
 
 /**

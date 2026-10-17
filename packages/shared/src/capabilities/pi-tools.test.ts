@@ -118,4 +118,84 @@ describe('createCapabilityTools', () => {
       expect.objectContaining({ title: expect.stringContaining('Revenue rises') }),
     ]);
   });
+
+  it('returns an unavailable tool result when a provider call fails', async () => {
+    const [tool] = createCapabilityTools([{
+      id: 'market.quote',
+      name: 'Quote',
+      description: 'Read a quote.',
+      category: 'market',
+      riskLevel: 'read',
+      auth: 'public',
+      toolName: 'get_quote',
+      inputSchema: Type.Object({}),
+      async execute() {
+        throw Object.assign(new Error('account scope is missing'), {
+          code: 'PERMISSION_DENIED',
+        });
+      },
+    }]);
+
+    const result = await tool!.execute('tool-1', {}, new AbortController().signal);
+    expect(result.details).toMatchObject({ status: 'unavailable', code: 'PERMISSION_DENIED' });
+    expect(result.content[0]!.text).toContain('[TOOL_UNAVAILABLE]');
+    expect(result.content[0]!.text).toContain('remaining tools');
+  });
+
+  it('keeps cancellation terminal instead of converting it into a data gap', async () => {
+    const controller = new AbortController();
+    controller.abort(new Error('cancelled'));
+    const [tool] = createCapabilityTools([{
+      id: 'market.quote',
+      name: 'Quote',
+      description: 'Read a quote.',
+      category: 'market',
+      riskLevel: 'read',
+      auth: 'public',
+      toolName: 'get_quote',
+      inputSchema: Type.Object({}),
+      async execute() {
+        return {
+          data: { price: 1 },
+          provenance: { provider: 'test', fetchedAt: 1, stale: false },
+        };
+      },
+    }]);
+
+    await expect(tool!.execute('tool-1', {}, controller.signal)).rejects.toThrow('cancelled');
+  });
+  it('times out an unresponsive tool and allows the next tool to execute', async () => {
+    let childSignal: AbortSignal | undefined;
+    const cap = defineCapability({
+      id: 'market.quote', name: 'Quote', description: 'Read a quote.',
+      category: 'market', riskLevel: 'read', auth: 'public', toolName: 'get_quote',
+      inputSchema: Type.Object({}),
+      async execute(_input, ctx) {
+        childSignal = ctx?.signal;
+        return await new Promise<never>(() => {});
+      },
+    });
+    const [slow, next] = createCapabilityTools([cap, {
+      ...cap, id: 'market.status', toolName: 'get_market_status',
+      async execute() { return { data: ['closed'], provenance: { provider: 'test', fetchedAt: 1, stale: false } }; },
+    }], { timeoutMs: 5 });
+    const result = await slow.execute('slow', {}, new AbortController().signal);
+    expect(result.details).toMatchObject({ status: 'unavailable', code: 'CAPABILITY_TIMEOUT' });
+    expect(childSignal?.aborted).toBe(true);
+    expect((await next.execute('next', {}, new AbortController().signal)).details).toEqual(['closed']);
+  });
+
+  it('cancels in-flight waiting even when the capability ignores its signal', async () => {
+    const controller = new AbortController();
+    const cap = defineCapability({
+      id: 'market.quote', name: 'Quote', description: 'Read a quote.',
+      category: 'market', riskLevel: 'read', auth: 'public', toolName: 'get_quote',
+      inputSchema: Type.Object({}), async execute() { return await new Promise<never>(() => {}); },
+    });
+    const [tool] = createCapabilityTools([cap], { timeoutMs: 100 });
+    const running = tool.execute('cancel', {}, controller.signal);
+    controller.abort(new Error('user cancelled'));
+    await expect(running).rejects.toThrow('user cancelled');
+  });
+
 });
