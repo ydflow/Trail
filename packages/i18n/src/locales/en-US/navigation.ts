@@ -39,6 +39,8 @@ export const navigation = {
   news: 'News',
   reports: 'Reports',
   watchlist: 'Watchlist',
+  resizeWatchlist: 'Resize watchlist height',
+  resizeWatchlistHint: 'Drag up or down to resize; double-click to reset. Use arrow keys to resize or Home to reset.',
   sessions: 'Sessions',
   newSession: 'New Session',
   noSessions: 'No sessions yet',

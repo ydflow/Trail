@@ -42,6 +42,8 @@ export const navigation = {
   news: '新闻',
   reports: '报告',
   watchlist: '自选',
+  resizeWatchlist: '调整自选区域高度',
+  resizeWatchlistHint: '上下拖动调整自选区域高度；双击恢复默认。也可使用上下方向键，Home 恢复默认。',
   sessions: '会话',
   newSession: '新建会话',
   noSessions: '暂无会话',

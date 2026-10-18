@@ -27,11 +27,13 @@ import {
   createSessionAtom,
   deleteSessionAtom,
   navSectionAtom,
+  watchlistAtom,
   type NavSection,
 } from '../../atoms';
 import { useFinagentClient } from '../../client';
 import { Watchlist } from '../stock/Watchlist';
 import { TrailLogo } from '../brand/TrailIdentity';
+import { SidebarWorkspaceSplit } from './SidebarWorkspaceSplit';
 
 type SidebarItem = { key: NavSection; labelKey: string; icon: LucideIcon };
 
@@ -79,6 +81,7 @@ export const Sidebar: React.FC = () => {
   const createSession = useSetAtom(createSessionAtom);
   const deleteSession = useSetAtom(deleteSessionAtom);
   const [navSection, setNavSection] = useAtom(navSectionAtom);
+  const [watchlist] = useAtom(watchlistAtom);
   const showWorkspaceContext = navSection === 'sessions' || navSection === 'watchlist';
 
   return (
@@ -103,61 +106,70 @@ export const Sidebar: React.FC = () => {
           <span>{t('navigation.newSession')}</span>
         </button>
 
-        <nav aria-label={t('navigation.globalNavAria')} className="trail-sidebar-nav flex min-h-0 flex-1 flex-col gap-1">
-          {SIDEBAR_ITEMS.map((item) => (
-            <SidebarNavButton
-              key={item.key}
-              item={item}
-              label={t(`navigation.${item.labelKey}`)}
-              active={navSection === item.key}
-              onClick={() => setNavSection(item.key)}
-            />
-          ))}
-          <SidebarNavButton
-            item={{ key: 'profile', labelKey: 'profile', icon: UserRound }}
-            label={t('navigation.profile')}
-            active={navSection === 'profile'}
-            onClick={() => setNavSection('profile')}
-          />
-        </nav>
+        <SidebarWorkspaceSplit
+          enabled={showWorkspaceContext}
+          upper={
+            <>
+              <nav aria-label={t('navigation.globalNavAria')} className="trail-sidebar-nav flex min-h-0 flex-1 flex-col gap-1">
+                {SIDEBAR_ITEMS.map((item) => (
+                  <SidebarNavButton
+                    key={item.key}
+                    item={item}
+                    label={t(`navigation.${item.labelKey}`)}
+                    active={navSection === item.key}
+                    onClick={() => setNavSection(item.key)}
+                  />
+                ))}
+                <SidebarNavButton
+                  item={{ key: 'profile', labelKey: 'profile', icon: UserRound }}
+                  label={t('navigation.profile')}
+                  active={navSection === 'profile'}
+                  onClick={() => setNavSection('profile')}
+                />
+              </nav>
 
-        {showWorkspaceContext && (
-          <section className="trail-sidebar-context mt-4 min-h-0 border-t border-border pt-3">
-            <div className="flex items-center justify-between px-2 pb-2">
-              <span className="trail-sidebar-section-label">{t('navigation.sessions')}</span>
-              <span className="tnum text-[10px] text-foreground/40">{sessions.length}</span>
-            </div>
-            <div className="trail-sidebar-sessions max-h-28 overflow-y-auto">
-              {sessions.map((session) => (
-                <div key={session.id} className="group relative">
-                  <button
-                    type="button"
-                    onClick={() => setActiveSessionId(session.id)}
-                    className={`flex w-full items-center rounded-[4px] px-2 py-1.5 pr-7 text-left text-[11px] ${session.id === activeSessionId ? 'bg-surface-muted text-foreground' : 'text-foreground/60 hover:bg-surface-muted'}`}
-                  >
-                    <span className="min-w-0 truncate">{session.title}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(event) => { event.stopPropagation(); void deleteSession(client, session.id); }}
-                    aria-label={t('navigation.deleteSession', { title: session.title })}
-                    className="absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-[4px] text-foreground/35 opacity-0 group-hover:opacity-100 hover:bg-negative/10 hover:text-negative"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
-              {sessions.length === 0 && <div className="px-2 py-2 text-[11px] text-foreground/40">{t('navigation.noSessions')}</div>}
-            </div>
-            <button type="button" onClick={() => setNavSection('watchlist')} className="trail-sidebar-context-heading mt-3 flex w-full items-center gap-2 px-2 text-left">
-              <Activity className="h-3.5 w-3.5" />
-              <span>{t('navigation.watchlist')}</span>
-            </button>
-            <div className="trail-sidebar-watchlist mt-1 min-h-0 flex-1">
-              <Watchlist showHeader={false} />
-            </div>
-          </section>
-        )}
+              {showWorkspaceContext && (
+                <section className="trail-sidebar-context min-h-0 border-t border-border pt-3">
+                  <div className="flex items-center justify-between px-2 pb-2">
+                    <span className="trail-sidebar-section-label">{t('navigation.sessions')}</span>
+                    <span className="tnum text-[10px] text-foreground/40">{sessions.length}</span>
+                  </div>
+                  <div className="trail-sidebar-sessions max-h-28 overflow-y-auto">
+                    {sessions.map((session) => (
+                      <div key={session.id} className="group relative">
+                        <button
+                          type="button"
+                          onClick={() => setActiveSessionId(session.id)}
+                          className={`flex w-full items-center rounded-[4px] px-2 py-1.5 pr-7 text-left text-[11px] ${session.id === activeSessionId ? 'bg-surface-muted text-foreground' : 'text-foreground/60 hover:bg-surface-muted'}`}
+                        >
+                          <span className="min-w-0 truncate">{session.title}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => { event.stopPropagation(); void deleteSession(client, session.id); }}
+                          aria-label={t('navigation.deleteSession', { title: session.title })}
+                          className="absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-[4px] text-foreground/35 opacity-0 group-hover:opacity-100 hover:bg-negative/10 hover:text-negative"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {sessions.length === 0 && <div className="px-2 py-2 text-[11px] text-foreground/40">{t('navigation.noSessions')}</div>}
+                  </div>
+                </section>
+              )}
+            </>
+          }
+        >
+          <button type="button" onClick={() => setNavSection('watchlist')} className="trail-sidebar-context-heading flex w-full items-center gap-2 px-2 text-left">
+            <Activity className="h-3.5 w-3.5" />
+            <span>{t('navigation.watchlist')}</span>
+            <span className="trail-sidebar-watchlist-count tnum">{watchlist.length}</span>
+          </button>
+          <div className="trail-sidebar-watchlist mt-1 min-h-0 flex-1">
+            <Watchlist showHeader={false} />
+          </div>
+        </SidebarWorkspaceSplit>
 
         <div className="trail-sidebar-footer mt-auto border-t border-border pt-3">
           <SidebarNavButton
