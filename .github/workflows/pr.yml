@@ -38,7 +38,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Typecheck
-        run: bun run typecheck
+        run: |
+          bun run typecheck
+          bun node_modules/typescript/bin/tsc --project scripts/bench/tsconfig.json
 
   focused-tests:
     name: Focused tests
@@ -70,6 +72,7 @@ jobs:
             awk -F/ '
               /^packages\/[^/]+\// { print $1 "/" $2 }
               /^apps\/electron\// { print "apps/electron" }
+              /^scripts\/bench\// { print "scripts/bench" }
             ' /tmp/changed-files.txt | sort -u
           )
 

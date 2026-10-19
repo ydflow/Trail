@@ -1,0 +1,73 @@
+{
+  "schema": "trail-research-fetch/v1",
+  "startedAt": "2026-10-19T08:36:55.943Z",
+  "project": "Trail",
+  "head": "324dc4ed958f73a0637a68e2e3d2334a6d7d1ba9",
+  "trackedChangesAtStart": "",
+  "environment": {
+    "platform": "win32",
+    "release": "10.0.26100",
+    "arch": "x64",
+    "cpu": "AMD Ryzen 9 7945HX with Radeon Graphics        ",
+    "logicalCpus": 32,
+    "totalMemoryGiB": 15.68802261352539,
+    "bun": "1.4.2",
+    "node": "v26.3.0",
+    "longbridge": "longbridge 0.30.0",
+    "timezone": "Asia/Shanghai"
+  },
+  "sourceHashes": {
+    "packages/shared/src/research/runner.ts": "cf5d92e5e51d8e9a260a6ac78dcef8b9bb4f4b041604e6d5855f887b3b804477",
+    "packages/shared/src/research/planner.ts": "e53205e2c165b92cf9a43e12ed108cfd55d974cd5d7c2f6537e7e0f9cfa9c28f",
+    "packages/shared/src/capabilities/executor.ts": "cbc5bb919993b23be1b4e23767f7acf4c7b7d5801ef412f9dfc39dc7ffd417e5",
+    "packages/shared/src/strategies/presets.ts": "b53c63074e2be39b544041e50e0eee7be63922a3ecff47fe91c68a30401c6fef",
+    "packages/shared/src/providers/router.ts": "b603d13b93309ef9b843d74aaddd7284dd8fd3a24912d4616291d4ef041ba552",
+    "packages/shared/src/providers/router-fetchers.ts": "2fe5edbb176458f48ec8dd9168ce7d2266bbc01d735d72b4a21ac5ab0bfaec6c",
+    "packages/shared/src/providers/longbridge/adapter.ts": "0b7df3e3401e58407858491ebe2a66aef0eff2479891b3fc99c313753a1c5746",
+    "scripts/bench/research-fetch.ts": "46346cd207288674fd5e543c54df1baaeda45a3ac793bbadd393a0a026cb2c29"
+  },
+  "protocol": {
+    "preflight": false,
+    "repeats": 10,
+    "warmupPairsPerCase": 1,
+    "cooldownMs": 2000,
+    "cases": [
+      {
+        "id": "value-AAPL",
+        "symbol": "AAPL.US",
+        "strategyId": "value"
+      },
+      {
+        "id": "risk-review-NVDA",
+        "symbol": "NVDA.US",
+        "strategyId": "risk-review"
+      },
+      {
+        "id": "growth-MSFT",
+        "symbol": "MSFT.US",
+        "strategyId": "growth"
+      }
+    ],
+    "primaryMetric": "monotonic time from fetching status callback to synthesizing status callback; ms",
+    "comparison": "unchanged ResearchRunner: FIFO-gated CapabilityExecutor (one active call) vs native worker pool (four)",
+    "baselineIsHistoricalVersion": false,
+    "provider": "Longbridge only via production ProviderRouter/createRouterFetchers",
+    "appCache": "disabled (router default; no MarketDataService cache)",
+    "providerCache": "uncontrolled/unknown",
+    "retries": "none (router default one attempt)",
+    "capabilityTimeoutMs": 20000,
+    "synthesis": "local deterministic synthesizer AFTER primary timing; no remote LLM",
+    "excluded": [
+      "Electron/UI",
+      "model planning",
+      "LLM synthesis",
+      "durable checkpoint IO",
+      "broker/private account calls"
+    ],
+    "order": "alternate serial/parallel order by (round + caseIndex) parity; rotate case order each round",
+    "eligibility": "only matched pairs where BOTH runs and all capabilities succeed AND all semantic payload checks pass",
+    "failures": "every attempt retained; no retries, replacement, or selective deletion",
+    "payloadStorage": "public normalized data snapshots stored for equivalence audit; no auth/status output or account data",
+    "caseSelection": "Before paired measurement: comprehensive NVDA preflight failed market.intraday and research.events. Chose value/risk-review/growth presets using available capabilities; failures remain in separate preflight artifacts. No full-comprehensive or event-driven success claim."
+  }
+}
