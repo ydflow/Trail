@@ -1,0 +1,9 @@
+{
+  "recordedAt": "2026-10-19T08:45:41.5425787Z",
+  "testsExitCode": 0,
+  "typecheckExitCode": 0,
+  "diffCheckExitCode": 0,
+  "tests": "34 tests: existing research/executor/strategy behavior and independent benchmark validation",
+  "typecheck": "scripts/bench/tsconfig.json with transitive production imports",
+  "scope": "local targeted checks, not full CI or full app suite"
+}

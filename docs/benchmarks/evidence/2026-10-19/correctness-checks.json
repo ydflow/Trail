@@ -1,0 +1,26 @@
+[
+  {
+    "caseId": "value-AAPL",
+    "status": "completed",
+    "capabilities": 4,
+    "evidenceCount": 4,
+    "everyReferenceResolves": true,
+    "numericDataValid": true
+  },
+  {
+    "caseId": "risk-review-NVDA",
+    "status": "completed",
+    "capabilities": 4,
+    "evidenceCount": 4,
+    "everyReferenceResolves": true,
+    "numericDataValid": true
+  },
+  {
+    "caseId": "growth-MSFT",
+    "status": "completed",
+    "capabilities": 3,
+    "evidenceCount": 3,
+    "everyReferenceResolves": true,
+    "numericDataValid": true
+  }
+]

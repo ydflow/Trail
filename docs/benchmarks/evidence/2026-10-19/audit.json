@@ -1,0 +1,364 @@
+{
+  "schema": "trail-research-fetch-audit/v1",
+  "auditedAt": "2026-10-19T08:42:26.300Z",
+  "errors": [],
+  "payloadFailures": [],
+  "measuredRuns": 60,
+  "warmupRuns": 6,
+  "eligiblePairs": 30,
+  "uniquePublicPayloads": 11,
+  "successfulCapabilityCalls": 220,
+  "failedCapabilityCalls": 0,
+  "sourceReferencesChecked": 220,
+  "sourceReferenceChecksAllPassed": true,
+  "serial": {
+    "n": 30,
+    "medianMs": 4540.249450000003,
+    "meanMs": 4271.8550300000015,
+    "minMs": 3180.60070000001,
+    "maxMs": 5181.745700000029
+  },
+  "parallel": {
+    "n": 30,
+    "medianMs": 1344.13440000001,
+    "meanMs": 1398.4650033333362,
+    "minMs": 1193.6149000000441,
+    "maxMs": 2242.4937999999966
+  },
+  "reductionOfMediansPct": 70.3951420554655,
+  "medianPairedReductionPct": 68.15619864538218,
+  "pairedBootstrap95Pct": [
+    68.3746858192681,
+    71.37729396410703
+  ],
+  "bootstrapMeaning": "10,000 paired resamples, stratified by fixed case; seed 20261019; within-session uncertainty only",
+  "exactPayloadMatchPairs": 30,
+  "pairs": [
+    {
+      "caseId": "value-AAPL",
+      "round": 1,
+      "eligible": true,
+      "serialMs": 4668.169199999997,
+      "parallelMs": 1424.3169000000016,
+      "reductionPct": 69.48874732304043,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 2,
+      "eligible": true,
+      "serialMs": 4587.116500000004,
+      "parallelMs": 1195.3412000000098,
+      "reductionPct": 73.94133765732767,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 3,
+      "eligible": true,
+      "serialMs": 4353.385999999999,
+      "parallelMs": 1229.6255000000092,
+      "reductionPct": 71.75473298255635,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 4,
+      "eligible": true,
+      "serialMs": 4874.042300000001,
+      "parallelMs": 1321.6437999999907,
+      "reductionPct": 72.88403098184047,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 5,
+      "eligible": true,
+      "serialMs": 4724.4347000000125,
+      "parallelMs": 1295.7318999999843,
+      "reductionPct": 72.57382137168747,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 6,
+      "eligible": true,
+      "serialMs": 4809.862300000008,
+      "parallelMs": 1332.6609000000171,
+      "reductionPct": 72.29315899542456,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 7,
+      "eligible": true,
+      "serialMs": 4204.586299999995,
+      "parallelMs": 1362.8900999999896,
+      "reductionPct": 67.58563143299043,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 8,
+      "eligible": true,
+      "serialMs": 4298.91439999998,
+      "parallelMs": 1332.3643000000156,
+      "reductionPct": 69.00695905924476,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 9,
+      "eligible": true,
+      "serialMs": 4526.393700000015,
+      "parallelMs": 1415.549699999974,
+      "reductionPct": 68.72676585777394,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "value-AAPL",
+      "round": 10,
+      "eligible": true,
+      "serialMs": 4244.506599999964,
+      "parallelMs": 1323.1083000000217,
+      "reductionPct": 68.82774784706346,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 1,
+      "eligible": true,
+      "serialMs": 5072.9444,
+      "parallelMs": 2044.6770000000033,
+      "reductionPct": 59.69447250397613,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 2,
+      "eligible": true,
+      "serialMs": 5026.340800000005,
+      "parallelMs": 1442.1893999999957,
+      "reductionPct": 71.3073693689852,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 3,
+      "eligible": true,
+      "serialMs": 4797.903399999996,
+      "parallelMs": 1376.7719999999972,
+      "reductionPct": 71.30471613913697,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 4,
+      "eligible": true,
+      "serialMs": 5067.349900000001,
+      "parallelMs": 1658.335699999996,
+      "reductionPct": 67.27410317570539,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 5,
+      "eligible": true,
+      "serialMs": 4843.681199999992,
+      "parallelMs": 1508.7062999999907,
+      "reductionPct": 68.8520726756337,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 6,
+      "eligible": true,
+      "serialMs": 4557.736900000018,
+      "parallelMs": 2242.4937999999966,
+      "reductionPct": 50.798085778053846,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 7,
+      "eligible": true,
+      "serialMs": 4616.210699999996,
+      "parallelMs": 1643.5576,
+      "reductionPct": 64.39595792280448,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 8,
+      "eligible": true,
+      "serialMs": 4554.105199999991,
+      "parallelMs": 1355.6079000000027,
+      "reductionPct": 70.23327656111226,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 9,
+      "eligible": true,
+      "serialMs": 5181.745700000029,
+      "parallelMs": 1394.1953999999678,
+      "reductionPct": 73.09409838464362,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "round": 10,
+      "eligible": true,
+      "serialMs": 4754.385899999994,
+      "parallelMs": 1386.6858000000357,
+      "reductionPct": 70.83354550584467,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 1,
+      "eligible": true,
+      "serialMs": 3567.1229999999996,
+      "parallelMs": 1269.1768999999986,
+      "reductionPct": 64.42015315984342,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 2,
+      "eligible": true,
+      "serialMs": 3655.652000000002,
+      "parallelMs": 1238.973100000003,
+      "reductionPct": 66.10801301655623,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 3,
+      "eligible": true,
+      "serialMs": 3628.739600000001,
+      "parallelMs": 1218.9438999999984,
+      "reductionPct": 66.40861471569913,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 4,
+      "eligible": true,
+      "serialMs": 3435.035999999993,
+      "parallelMs": 1217.5664000000106,
+      "reductionPct": 64.55447919614195,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 5,
+      "eligible": true,
+      "serialMs": 3422.9114999999874,
+      "parallelMs": 1384.6267999999982,
+      "reductionPct": 59.548273450832625,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 6,
+      "eligible": true,
+      "serialMs": 3337.5781000000134,
+      "parallelMs": 1230.7159000000102,
+      "reductionPct": 63.12548011985082,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 7,
+      "eligible": true,
+      "serialMs": 3510.4874999999884,
+      "parallelMs": 1466.8953000000038,
+      "reductionPct": 58.21391473406447,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 8,
+      "eligible": true,
+      "serialMs": 3266.6540000000095,
+      "parallelMs": 1238.289999999979,
+      "reductionPct": 62.09301627904347,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 9,
+      "eligible": true,
+      "serialMs": 3387.052400000044,
+      "parallelMs": 1208.6934000000474,
+      "reductionPct": 64.31429876904085,
+      "fullPayloadMatch": true
+    },
+    {
+      "caseId": "growth-MSFT",
+      "round": 10,
+      "eligible": true,
+      "serialMs": 3180.60070000001,
+      "parallelMs": 1193.6149000000441,
+      "reductionPct": 62.47202926164104,
+      "fullPayloadMatch": true
+    }
+  ],
+  "perCase": [
+    {
+      "caseId": "value-AAPL",
+      "serial": {
+        "n": 10,
+        "medianMs": 4556.755100000009,
+        "meanMs": 4529.141199999997,
+        "minMs": 4204.586299999995,
+        "maxMs": 4874.042300000001
+      },
+      "parallel": {
+        "n": 10,
+        "medianMs": 1327.7363000000187,
+        "meanMs": 1323.3232600000015,
+        "minMs": 1195.3412000000098,
+        "maxMs": 1424.3169000000016
+      },
+      "reductionOfMediansPct": 70.86224142262954
+    },
+    {
+      "caseId": "risk-review-NVDA",
+      "serial": {
+        "n": 10,
+        "medianMs": 4820.792299999994,
+        "meanMs": 4847.240410000002,
+        "minMs": 4554.105199999991,
+        "maxMs": 5181.745700000029
+      },
+      "parallel": {
+        "n": 10,
+        "medianMs": 1475.4478499999932,
+        "meanMs": 1605.3220899999985,
+        "minMs": 1355.6079000000027,
+        "maxMs": 2242.4937999999966
+      },
+      "reductionOfMediansPct": 69.39407968271118
+    },
+    {
+      "caseId": "growth-MSFT",
+      "serial": {
+        "n": 10,
+        "medianMs": 3428.97374999999,
+        "meanMs": 3439.1834800000047,
+        "minMs": 3180.60070000001,
+        "maxMs": 3655.652000000002
+      },
+      "parallel": {
+        "n": 10,
+        "medianMs": 1234.5029499999946,
+        "meanMs": 1266.7496600000093,
+        "minMs": 1193.6149000000441,
+        "maxMs": 1466.8953000000038
+      },
+      "reductionOfMediansPct": 63.9978885810952
+    }
+  ]
+}
