@@ -148,6 +148,7 @@ export const AgentPanel: React.FC = () => {
 
     setInput('');
     setSendError(null);
+    shouldAutoScrollRef.current = true;
     // V9.1 §2: capture the ACTUAL context this live run starts with so the
     // run footer's trace can show it as 'Live' — never guessed later.
     setLastRun((previous) => ({
@@ -259,6 +260,11 @@ export const AgentPanel: React.FC = () => {
       <div
         ref={bodyRef}
         onScroll={handleBodyScroll}
+        onClickCapture={(event) => {
+          if (event.target instanceof Element && event.target.closest('[data-answer-toggle]')) {
+            shouldAutoScrollRef.current = false;
+          }
+        }}
         className="trail-agent-body min-h-0 flex-1 overflow-y-auto scrollbar-hover"
       >
         <div className="trail-agent-body-content flex min-h-full flex-col gap-3 p-3">
@@ -299,7 +305,7 @@ export const AgentPanel: React.FC = () => {
               )}
             </div>
           )}
-          <MessageList messages={messages} isLoading={isRunning} />
+          <MessageList messages={messages} isLoading={isRunning} sessionId={activeSessionId ?? ''} />
           {isRunning && <StreamingBlock answer={runView?.answer ?? ''} />}
           <RunFooter
             lastRun={lastRun}

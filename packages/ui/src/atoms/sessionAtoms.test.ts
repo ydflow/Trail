@@ -5,6 +5,7 @@ import type { Run, SessionMeta } from '@finagent/core';
 import {
   activeMessagesAtom,
   activeSessionIdAtom,
+  answerExpansionAtomFamily,
   createSessionAtom,
   hydrateSessionsAtom,
   loadMessagesAtom,
@@ -105,6 +106,7 @@ describe('session atoms', () => {
     const live = { id: 'live', role: 'assistant' as const, content: 'answer', timestamp: 2 };
     const saved = { ...live, id: 'saved' };
     store.set(messagesAtomFamily('completion'), [user, live]);
+    store.set(answerExpansionAtomFamily('completion'), { live: false });
     let reads = 0;
     client.kernel.getMessages = async () => {
       reads += 1;
@@ -114,6 +116,7 @@ describe('session atoms', () => {
     await store.set(loadMessagesAtom, client, 'completion', 2);
     expect(reads).toBe(3);
     expect(store.get(messagesAtomFamily('completion'))).toEqual([user, saved]);
+    expect(store.get(answerExpansionAtomFamily('completion'))).toEqual({ saved: false });
   });
 
   it('does not erase a complete answer if persistence stays behind the refresh deadline', async () => {

@@ -3,6 +3,7 @@ import { createStore } from 'jotai';
 import type { AgentEvent } from '@finagent/core';
 import {
   activeSessionIdAtom,
+  answerExpansionAtomFamily,
   messagesAtomFamily,
 } from './sessionAtoms';
 import { applyAgentEventAtom, runViewAtom } from './runAtoms';
@@ -34,6 +35,18 @@ function runStarted(sessionId: string): AgentEvent {
 }
 
 describe('agent event projection', () => {
+  it('keeps a just-completed answer expanded instead of folding when streaming ends', () => {
+    const store = createStore();
+    store.set(activeSessionIdAtom, 'visible-session');
+    store.set(applyAgentEventAtom, runStarted('visible-session'));
+    store.set(applyAgentEventAtom, {
+      id: 'completion', sessionId: 'visible-session', runId: 'run-visible-session',
+      type: 'run_completed', timestamp: 2, sequence: 2,
+      payload: { answer: 'A long answer.', toolCalls: [] },
+    } as AgentEvent);
+    expect(store.get(answerExpansionAtomFamily('visible-session'))['assistant-run-visible-session']).toBe(true);
+    expect(store.get(answerExpansionAtomFamily('other-session'))).toEqual({});
+  });
   it('keeps internal sessions out of the visible copilot', () => {
     const store = createStore();
     store.set(activeSessionIdAtom, 'visible-session');

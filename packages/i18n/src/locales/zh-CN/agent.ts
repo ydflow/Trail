@@ -130,6 +130,10 @@ export const agent = {
   },
   chat: {
     noMessages: '还没有消息，开始对话吧！',
+    expandFull: '展开全文',
+    collapseFull: '收起全文',
+    collapse: '收起',
+    longAnswer: '内容较长，展开查看完整回答。',
   },
   suggestions: {
     title: '试试问',

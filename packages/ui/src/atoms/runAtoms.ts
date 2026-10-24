@@ -2,7 +2,7 @@ import { atom } from 'jotai';
 import type { AgentEvent, ApiError, Message, ToolCall, WorkspaceContext } from '@finagent/core';
 import { isRuntimeInfraCode } from '@finagent/core';
 import type { FinagentClient } from '../client';
-import { activeSessionIdAtom, messagesAtomFamily, sessionsAtom } from './sessionAtoms';
+import { activeSessionIdAtom, answerExpansionAtomFamily, messagesAtomFamily, sessionsAtom } from './sessionAtoms';
 
 /** Live view of the currently executing run, streamed from kernel events. */
 export interface RunView {
@@ -177,6 +177,7 @@ export const applyAgentEventAtom = atom(
         })),
       };
       set(messages, [...get(messages), assistantMessage]);
+      set(answerExpansionAtomFamily(sessionId), (choices) => ({ ...choices, [assistantMessage.id]: true }));
       set(sessionsAtom, (sessions) => sessions.map((session) =>
         session.id === sessionId ? { ...session, status: 'idle' as const, messageCount: session.messageCount + 1 } : session
       ));
@@ -240,6 +241,7 @@ export const applyAgentEventAtom = atom(
         })),
       };
       set(messages, [...get(messages), assistantMessage]);
+      set(answerExpansionAtomFamily(sessionId), (choices) => ({ ...choices, [assistantMessage.id]: true }));
       set(sessionsAtom, (sessions) => sessions.map((session) =>
         session.id === sessionId
           ? { ...session, status: 'idle' as const, messageCount: session.messageCount + 1 }

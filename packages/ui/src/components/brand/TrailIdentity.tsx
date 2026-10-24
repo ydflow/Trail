@@ -8,7 +8,7 @@ export const TrailLogo: React.FC<{ className?: string }> = ({ className = '' }) 
 );
 
 /** Shared by live and persisted answers: one identity per assistant turn. */
-export const AssistantIdentity: React.FC<{ timestamp?: number; streaming?: boolean }> = ({ timestamp, streaming }) => {
+export const AssistantIdentity: React.FC<{ timestamp?: number; streaming?: boolean; action?: React.ReactNode }> = ({ timestamp, streaming, action }) => {
   const { t } = useTranslation();
   return (
     <div className="trail-answer-identity" data-testid="assistant-identity">
@@ -16,6 +16,7 @@ export const AssistantIdentity: React.FC<{ timestamp?: number; streaming?: boole
       <span className="trail-answer-name">{t('agent.panel.assistantName')}</span>
       {timestamp != null && <time dateTime={new Date(timestamp).toISOString()}>{new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>}
       {streaming && <span className="trail-answer-live">{t('agent.panel.thinking')}</span>}
+      {action}
     </div>
   );
 };

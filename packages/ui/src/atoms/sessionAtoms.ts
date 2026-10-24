@@ -19,6 +19,9 @@ export const activeSessionAtom = atom((get) => {
 // Per-session message cache, loaded lazily from the kernel.
 export const messagesAtomFamily = atomFamily((_sessionId: string) => atom<Message[]>([]));
 
+/** Presentation only; retained across panel/session switches, never saved in messages. */
+export const answerExpansionAtomFamily = atomFamily((_sessionId: string) => atom<Record<string, boolean>>({}));
+
 export const activeMessagesAtom = atom((get) => {
   const activeId = get(activeSessionIdAtom);
   if (!activeId) return [];
@@ -58,6 +61,21 @@ export const loadMessagesAtom = atom(
         ? Math.max(minimumCount, get(messagesAtomFamily(sessionId)).length)
         : 0;
       if (result.data.length >= requiredCount) {
+        // Transfer choices from temporary live ids to persisted message ids.
+        const previous = get(messagesAtomFamily(sessionId));
+        const expansion = get(answerExpansionAtomFamily(sessionId));
+        const nextExpansion = { ...expansion };
+        let changed = false;
+        result.data.forEach((message, index) => {
+          const old = previous[index];
+          if (old && old.id !== message.id && old.role === 'assistant' && message.role === 'assistant'
+            && old.content === message.content && Object.hasOwn(expansion, old.id)) {
+            nextExpansion[message.id] = expansion[old.id];
+            delete nextExpansion[old.id];
+            changed = true;
+          }
+        });
+        if (changed) set(answerExpansionAtomFamily(sessionId), nextExpansion);
         set(messagesAtomFamily(sessionId), result.data);
         set(loadedSessionIdsAtom, (loaded) => new Set([...loaded, sessionId]));
         return;
@@ -86,6 +104,7 @@ export const deleteSessionAtom = atom(
     if (!result.ok) return;
     set(sessionsAtom, (sessions) => sessions.filter((session) => session.id !== sessionId));
     messagesAtomFamily.remove(sessionId);
+    answerExpansionAtomFamily.remove(sessionId);
     if (_get(activeSessionIdAtom) === sessionId) {
       const remaining = _get(sessionsAtom);
       set(activeSessionIdAtom, remaining.length > 0 ? remaining[0].id : null);
