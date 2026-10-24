@@ -130,6 +130,10 @@ export const agent = {
   },
   chat: {
     noMessages: 'No messages yet. Start the conversation!',
+    expandFull: 'Expand full answer',
+    collapseFull: 'Collapse answer',
+    collapse: 'Collapse',
+    longAnswer: 'Expand to view the full answer.',
   },
   suggestions: {
     title: 'Try asking',

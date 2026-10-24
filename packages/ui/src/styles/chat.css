@@ -36,6 +36,18 @@
 .trail-answer-identity time, .trail-answer-live { color: var(--foreground-subtle); font-size: .73rem; font-variant-numeric: tabular-nums; }
 .trail-answer-live { border-left: 1px solid var(--border); padding-left: .65rem; }
 .trail-answer-body { min-width: 0; padding-left: 2.85rem; }
+.trail-answer-preview, .trail-answer-content { display: flow-root; min-width: 0; }
+.trail-answer-preview[data-collapsed] { overflow: hidden; overflow-anchor: none; }
+.trail-answer-collapse-top, .trail-answer-toggle-row button { display: inline-flex; align-items: center; gap: .35rem; border-radius: 6px; padding: .35rem .5rem; color: var(--accent); font-size: .82rem; line-height: 1.5; }
+.trail-answer-collapse-top { margin-left: auto; }
+.trail-answer-collapse-top:hover, .trail-answer-toggle-row button:hover { background: var(--surface-muted); }
+.trail-answer-collapse-top svg, .trail-answer-toggle-row button svg { width: .95rem; height: .95rem; flex-shrink: 0; }
+.trail-answer-toggle-row { margin-right: auto; }
+.trail-answer-sources .trail-answer-toggle-row button { color: var(--accent); padding: .35rem .5rem; }
+.trail-answer-sources { flex-wrap: wrap; }
+.trail-answer-toggle-row button { margin-left: -.5rem; }
+.trail-answer-preview-hint { margin-top: .5rem; color: var(--foreground-muted); font-size: .85rem; }
+@media (pointer: coarse) { .trail-answer-collapse-top, .trail-answer-toggle-row button { min-height: 44px; } }
 .trail-answer-body .markdown-content { min-width: 0; color: var(--foreground); font-size: 1rem; line-height: 1.9; overflow-wrap: anywhere; }
 .trail-answer-body .markdown-content p { margin-bottom: 1rem; }
 .trail-answer-body .markdown-content :is(h1, h2, h3) { position: relative; margin: 1.6rem 0 .65rem; padding-left: .9rem; font-size: 1rem; line-height: 1.6; letter-spacing: 0; }
