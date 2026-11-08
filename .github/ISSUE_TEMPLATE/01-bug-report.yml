@@ -1,0 +1,74 @@
+name: "缺陷反馈 / Bug report"
+description: "报告可复现的运行、会话、界面或恢复问题"
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先搜索已有 Issue。填写最小复现，日志和截图请去除 API Key、账户、个人持仓与私人内容。
+        数据价格、财报或来源异常请使用「数据质量」表单；长期规划请使用「功能建议」或「研究提案」。
+  - type: input
+    id: version
+    attributes:
+      label: "Trail 版本或 commit"
+      placeholder: "应用版本 / git rev-parse --short HEAD"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: "操作系统"
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - 其他（请在环境中说明）
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: "Runtime"
+      options:
+        - local
+        - Pi
+        - 不确定
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: "环境与运行方式"
+      description: "说明系统版本、打包应用或源码启动、Bun/Node（如适用）、模型与数据 provider、真实或模拟数据。不要填写密钥。"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "最小复现步骤"
+      placeholder: |
+        1. 从哪个页面或状态开始
+        2. 做了什么操作
+        3. 在哪一步出现问题，是否稳定复现
+    validations:
+      required: true
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: "期望与实际结果"
+      description: "说明对任务或数据的影响；恢复问题请注明是否涉及重启、取消或配置变更。"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "脱敏日志、截图或最小样例"
+      description: "可粘贴错误信息或上传已脱敏截图。没有日志也请保留清楚的复现步骤。"
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: "提交前检查"
+      options:
+        - label: "我已搜索已有 Issue，并移除凭证与不宜公开的个人数据。"
+          required: true

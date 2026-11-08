@@ -1,0 +1,52 @@
+name: "研究提案 / Research proposal"
+description: "讨论 Personal Agent、Memory、Harness²、RSI 与优化实验"
+title: "[Research] "
+labels: ["type:research", "status:research"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎宏大的方向，也请给出能被证伪的小实验。研究提案不是已实现能力或效果承诺。
+        请区分原论文、自己的适配设计与实际结果。没有结果时明确写「尚未运行」。
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: "问题、价值与可证伪假设"
+      description: "想改进什么？在什么条件下会认为假设不成立？"
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: "研究来源与创新边界"
+      description: "提供论文/代码版本链接，区分复现、工程适配和新增设计；无外部来源可写原创提案。"
+    validations:
+      required: true
+  - type: textarea
+    id: experiment
+    attributes:
+      label: "最小实验、基线与隔离评测"
+      description: "说明数据划分、任务/模型/工具权限、等预算对照、种子与重复次数，防止留出集泄漏。"
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: "指标、成本与停止条件"
+      description: "分别报告正确性、证据、恢复、费用、延迟和权限风险；定义无收益/退化时如何停止。"
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: "可修改对象、授权与回滚"
+      description: "说明 prompt/skill/配置等边界、沙箱限制、候选晋升方式和凭证/个人数据处理。"
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: "当前结果、失败案例与关联任务"
+      placeholder: "尚未运行 / 已运行的命令、样本数和结果 / 关联 Issue / 准备认领的最小范围"
+    validations:
+      required: true

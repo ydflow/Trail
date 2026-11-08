@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "使用与贡献入口"
+    url: "https://github.com/ydflow/Trail/issues/7"
+    about: "安装、反馈、任务认领与首次贡献说明"
+  - name: "Personal Agent Roadmap"
+    url: "https://github.com/ydflow/Trail/issues/8"
+    about: "Checkpoint × Memory、个人工作流与 Harness² × RSI 长期规划"
+  - name: "当前能力与验证边界"
+    url: "https://github.com/ydflow/Trail/issues/9"
+    about: "区分已有基础、验证范围与尚待实现的能力"
