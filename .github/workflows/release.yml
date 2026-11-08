@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   release:
+    # Windows artifacts are validated and uploaded by the Windows release recipe.
+    if: ${{ !endsWith(github.ref_name, '-windows') }}
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
