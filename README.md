@@ -271,11 +271,17 @@ start-trail.cmd
 
 感谢每一位为 Trail · 研迹贡献代码、文档、测试与反馈的参与者。
 
-<a href="https://github.com/ydflow/Trail/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=ydflow/Trail" alt="Trail · 研迹的 GitHub 贡献者" />
-</a>
+<p>
+  <a href="https://github.com/ydflow"><img src="https://avatars.githubusercontent.com/u/314143294?s=128&amp;v=4" width="64" height="64" alt="ydflow" title="ydflow" /></a>
+  <a href="https://github.com/kbkb628"><img src="https://avatars.githubusercontent.com/u/278338969?s=128&amp;v=4" width="64" height="64" alt="kbkb628" title="kbkb628" /></a>
+  <a href="https://github.com/yu1128-L"><img src="https://avatars.githubusercontent.com/u/296164533?s=128&amp;v=4" width="64" height="64" alt="yu1128-L" title="yu1128-L" /></a>
+  <a href="https://github.com/yjg-djb"><img src="https://avatars.githubusercontent.com/u/189134749?s=128&amp;v=4" width="64" height="64" alt="yjg-djb" title="yjg-djb" /></a>
+  <a href="https://github.com/daifu1016"><img src="https://avatars.githubusercontent.com/u/154257270?s=128&amp;v=4" width="64" height="64" alt="daifu1016" title="daifu1016" /></a>
+  <a href="https://github.com/cursoragent"><img src="https://avatars.githubusercontent.com/u/199161495?s=128&amp;v=4" width="64" height="64" alt="cursoragent" title="cursoragent" /></a>
+  <a href="https://github.com/qxr666-sga"><img src="https://avatars.githubusercontent.com/u/201861063?s=128&amp;v=4" width="64" height="64" alt="qxr666-sga" title="qxr666-sga" /></a>
+</p>
 
-[查看完整贡献记录](https://github.com/ydflow/Trail/graphs/contributors) · 头像墙由 [contrib.rocks](https://contrib.rocks/) 根据 GitHub 贡献记录生成。
+[查看完整贡献记录](https://github.com/ydflow/Trail/graphs/contributors) · 名单依据 GitHub 仓库侧栏的 Contributors 展示维护，包含自动化账号。
 
 ---
 
