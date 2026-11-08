@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: "使用问答与排错交流"
+    url: "https://github.com/ydflow/Trail/discussions/categories/q-a"
+    about: "安装、模型配置和使用提问；已可复现的缺陷请使用缺陷反馈表单"
+  - name: "产品构想与技术讨论"
+    url: "https://github.com/ydflow/Trail/discussions/38"
+    about: "Personal Agent 场景、架构取舍、研究实验与社区成果导航"
   - name: "使用与贡献入口"
     url: "https://github.com/ydflow/Trail/issues/7"
     about: "安装、反馈、任务认领与首次贡献说明"

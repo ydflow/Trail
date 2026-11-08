@@ -4,6 +4,8 @@
 
 ## 1. 开始开发前
 
+- 使用提问、需求场景与尚待确定的技术方案，先到 [Discussions](https://github.com/ydflow/Trail/discussions) 交流；[社区导航](https://github.com/ydflow/Trail/discussions/38) 汇总了问答、产品构想、研究与成果展示入口。
+- 可复现缺陷、数据错误及已有明确验收标准的开发工作，使用 [Issue 表单](https://github.com/ydflow/Trail/issues/new/choose)。讨论形成实施范围后，链接已有 Issue 或创建小任务，保留决策上下文。
 - 优先从已有 Issue 开始；准备处理某个 Issue 时，可在 Issue 下评论 `/claim` 或直接说明“我想认领/我来处理”。
 - 如果 Issue 已被其他贡献者认领，请先沟通，避免重复实现。
 - 大 Issue 可以拆成多个可独立合入的小 PR，不要求一次完成全部 roadmap。
