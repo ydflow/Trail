@@ -28,6 +28,7 @@ function createElectronClient(): FinagentClient {
     kernel: {
       hydrate: () => ipcResult(window.electronAPI.kernel.hydrate()),
       createSession: (title?: string) => ipcResult(window.electronAPI.kernel.createSession(title)),
+      renameSession: (sessionId: string, title: string) => ipcResult(window.electronAPI.kernel.renameSession(sessionId, title)),
       deleteSession: (sessionId: string) => ipcResult(window.electronAPI.kernel.deleteSession(sessionId)),
       getMessages: (sessionId: string) => ipcResult(window.electronAPI.kernel.getMessages(sessionId)),
       listRuns: (sessionId: string) => ipcResult(window.electronAPI.kernel.listRuns(sessionId)),

@@ -41,6 +41,23 @@ export class SessionRepository {
     });
   }
 
+  /** Read and rename under the same lock, so deletion cannot resurrect a session. */
+  async rename(id: string, title: string, updatedAt: number): Promise<SessionMeta | null> {
+    return this.update(id, { title, updatedAt });
+  }
+
+  /** Merge only changed fields, including when a run updates stats during a rename. */
+  async update(id: string, patch: Partial<SessionMeta>): Promise<SessionMeta | null> {
+    return withWriteLock(this.store.resolve(SessionRepository.FILE), async () => {
+      const file = await this.store.read<SessionsFile>(SessionRepository.FILE, { sessions: [] });
+      const session = file.sessions.find((item) => item.id === id);
+      if (!session) return null;
+      Object.assign(session, patch, { id });
+      await this.store.write(SessionRepository.FILE, file);
+      return session;
+    });
+  }
+
   /**
    * Removes the session from the shared index, then its per-session files.
    * The index update is serialized like `upsert`; the per-session removals

@@ -179,6 +179,7 @@ export interface FinagentClient {
   kernel: {
     hydrate: () => Promise<ApiResult<KernelHydrate>>;
     createSession: (title?: string) => Promise<ApiResult<SessionMeta>>;
+    renameSession: (sessionId: string, title: string) => Promise<ApiResult<SessionMeta>>;
     deleteSession: (sessionId: string) => Promise<ApiResult<void>>;
     getMessages: (sessionId: string) => Promise<ApiResult<Message[]>>;
     listRuns: (sessionId: string) => Promise<ApiResult<Run[]>>;
@@ -314,6 +315,7 @@ export const fallbackClient: FinagentClient = {
   kernel: {
     hydrate: missingClient('kernel.hydrate'),
     createSession: missingClient('kernel.createSession'),
+    renameSession: missingClient('kernel.renameSession'),
     deleteSession: missingClient('kernel.deleteSession'),
     getMessages: missingClient('kernel.getMessages'),
     listRuns: missingClient('kernel.listRuns'),

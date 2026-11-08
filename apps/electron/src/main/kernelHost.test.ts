@@ -59,6 +59,9 @@ const fakeSessions = {
     updatedAt: 1,
   }),
   deleteSession: async () => undefined,
+  renameSession: async (id: string, title: string) => id === 'missing' ? null : ({
+    id, title, status: 'idle', messageCount: 0, createdAt: 1, updatedAt: 2,
+  }),
   listMessages: async (sessionId: string) => [{ id: 'm1', role: 'user', content: sessionId, timestamp: 1 }],
   listRuns: async () => [],
 };
@@ -381,6 +384,16 @@ afterEach(() => {
 });
 
 describe('AgentKernelHost', () => {
+  it('trims session names and rejects invalid or missing sessions', async () => {
+    const host = new AgentKernelHost();
+    expect(await host.renameSession('s1', '  财报分析  ')).toMatchObject({ id: 's1', title: '财报分析' });
+    for (const title of ['', '   ', 'x'.repeat(101), 'Research', '__trail_internal_hidden', null]) {
+      await expect(host.renameSession('s1', title)).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
+    }
+    await expect(host.renameSession('missing', 'Valid')).rejects.toMatchObject({ code: 'SESSION_NOT_FOUND' });
+    await host.dispose();
+  });
+
   it('shows Connect after installation despite a persisted not-installed result', async () => {
     const host = new AgentKernelHost();
     storedConnection = {

@@ -15,17 +15,16 @@ import {
   FlaskConical,
   GitCompareArrows,
   House,
+  MessageSquare,
   Settings,
-  Trash2,
   UserRound,
   Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
-  sessionsAtom,
-  activeSessionIdAtom,
   createSessionAtom,
-  deleteSessionAtom,
+  openAssistantAtom,
+  sessionInteractionLockedAtom,
   navSectionAtom,
   watchlistAtom,
   type NavSection,
@@ -34,8 +33,9 @@ import { useFinagentClient } from '../../client';
 import { Watchlist } from '../stock/Watchlist';
 import { TrailLogo } from '../brand/TrailIdentity';
 import { SidebarWorkspaceSplit } from './SidebarWorkspaceSplit';
+import { SidebarSessions } from './SidebarSessions';
 
-type SidebarItem = { key: NavSection; labelKey: string; icon: LucideIcon };
+type SidebarItem = { key: NavSection | 'assistant'; labelKey: string; icon: LucideIcon };
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { key: 'today', labelKey: 'today', icon: House },
@@ -44,6 +44,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { key: 'portfolio', labelKey: 'portfolio', icon: BriefcaseBusiness },
   { key: 'compare', labelKey: 'compare', icon: GitCompareArrows },
   { key: 'alerts', labelKey: 'alerts', icon: Bell },
+  { key: 'assistant', labelKey: 'agentPanel', icon: MessageSquare },
   { key: 'research', labelKey: 'research', icon: BookOpen },
   { key: 'thesis', labelKey: 'thesis', icon: FileText },
   { key: 'skills', labelKey: 'skills', icon: Zap },
@@ -76,10 +77,9 @@ const SidebarNavButton: React.FC<{
 export const Sidebar: React.FC = () => {
   const { t } = useTranslation();
   const client = useFinagentClient();
-  const [sessions] = useAtom(sessionsAtom);
-  const [activeSessionId, setActiveSessionId] = useAtom(activeSessionIdAtom);
   const createSession = useSetAtom(createSessionAtom);
-  const deleteSession = useSetAtom(deleteSessionAtom);
+  const openAssistant = useSetAtom(openAssistantAtom);
+  const [sessionLocked] = useAtom(sessionInteractionLockedAtom);
   const [navSection, setNavSection] = useAtom(navSectionAtom);
   const [watchlist] = useAtom(watchlistAtom);
   const showWorkspaceContext = navSection === 'sessions' || navSection === 'watchlist';
@@ -99,6 +99,8 @@ export const Sidebar: React.FC = () => {
         <button
           type="button"
           aria-label={t('navigation.newSession')}
+          disabled={sessionLocked}
+          title={sessionLocked ? t('navigation.sessionSwitchLocked') : t('navigation.newSession')}
           onClick={() => void createSession(client)}
           className="trail-sidebar-new-analysis mb-6 flex h-9 w-full items-center justify-center gap-2 rounded-[4px] px-3 text-[12px] font-semibold"
         >
@@ -117,7 +119,7 @@ export const Sidebar: React.FC = () => {
                     item={item}
                     label={t(`navigation.${item.labelKey}`)}
                     active={navSection === item.key}
-                    onClick={() => setNavSection(item.key)}
+                    onClick={() => { if (item.key === 'assistant') void openAssistant(client); else setNavSection(item.key); }}
                   />
                 ))}
                 <SidebarNavButton
@@ -128,36 +130,7 @@ export const Sidebar: React.FC = () => {
                 />
               </nav>
 
-              {showWorkspaceContext && (
-                <section className="trail-sidebar-context min-h-0 border-t border-border pt-3">
-                  <div className="flex items-center justify-between px-2 pb-2">
-                    <span className="trail-sidebar-section-label">{t('navigation.sessions')}</span>
-                    <span className="tnum text-[10px] text-foreground/40">{sessions.length}</span>
-                  </div>
-                  <div className="trail-sidebar-sessions max-h-28 overflow-y-auto">
-                    {sessions.map((session) => (
-                      <div key={session.id} className="group relative">
-                        <button
-                          type="button"
-                          onClick={() => setActiveSessionId(session.id)}
-                          className={`flex w-full items-center rounded-[4px] px-2 py-1.5 pr-7 text-left text-[11px] ${session.id === activeSessionId ? 'bg-surface-muted text-foreground' : 'text-foreground/60 hover:bg-surface-muted'}`}
-                        >
-                          <span className="min-w-0 truncate">{session.title}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(event) => { event.stopPropagation(); void deleteSession(client, session.id); }}
-                          aria-label={t('navigation.deleteSession', { title: session.title })}
-                          className="absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-[4px] text-foreground/35 opacity-0 group-hover:opacity-100 hover:bg-negative/10 hover:text-negative"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                    {sessions.length === 0 && <div className="px-2 py-2 text-[11px] text-foreground/40">{t('navigation.noSessions')}</div>}
-                  </div>
-                </section>
-              )}
+              {showWorkspaceContext && <SidebarSessions />}
             </>
           }
         >

@@ -1,4 +1,42 @@
 /* Shared assistant surfaces. All colors inherit the light/dark workbench tokens. */
+.trail-assistant-layout-actions { display: flex; flex-shrink: 0; gap: 6px; }
+.trail-assistant-layout-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 32px; border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; background: var(--surface); color: var(--accent); font-size: 12px; white-space: nowrap; }
+.trail-assistant-layout-button:hover, .trail-assistant-layout-button[aria-pressed="true"] { background: var(--surface-muted); border-color: var(--accent); }
+.trail-assistant-layout-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.trail-assistant-focus { display: flex; flex: 1; min-height: 0; overflow: hidden; background: var(--surface); }
+.trail-assistant-session-rail { width: 260px; flex: 0 0 260px; padding: 22px 12px; border-right: 1px solid var(--border); }
+.trail-assistant-session-rail .trail-sidebar-context, .trail-assistant-drawer .trail-sidebar-context { height: 100%; max-height: none; margin: 0; padding: 0; border: 0; }
+.trail-assistant-focus-main { flex: 1; min-width: 0; min-height: 0; }
+.trail-assistant-focus .trail-agent-panel { border-left: 0; }
+.trail-assistant-focus .trail-agent-panel, .trail-assistant-focus-session-title, .trail-assistant-focus-main { background: var(--surface); }
+.trail-assistant-focus .trail-agent-header { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); }
+.trail-assistant-focus .trail-agent-controls { grid-template-columns: 180px 180px minmax(0, 1fr); align-items: start; }
+.trail-assistant-inline-context { padding-left: 8px; color: var(--accent); font-size: 13px; }
+.trail-assistant-inline-context > div { display: inline-flex; max-width: 100%; background: var(--surface-muted); border: 0; }
+.trail-assistant-focus-session-title { display: flex; align-items: center; gap: 12px; padding: 18px 28px 4px; }
+.trail-assistant-focus-session-title h1 { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 20px; font-weight: 650; color: var(--foreground); }
+.trail-assistant-focus .trail-agent-body-content { width: 100%; max-width: 856px; margin-inline: auto; padding: 24px 28px; }
+.trail-assistant-focus .trail-agent-composer { width: 100%; max-width: 856px; margin-inline: auto; padding: 12px 28px 20px; }
+.trail-assistant-focus .trail-chat-welcome { min-height: 200px; }
+.trail-assistant-drawer-trigger { display: none; }
+.trail-session-lock-hint { margin: 0 6px 8px; color: var(--foreground-muted); font-size: 12px; line-height: 1.5; }
+.trail-assistant-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: var(--z-index-modal); }
+.trail-assistant-drawer { position: fixed; left: 0; top: 0; bottom: 0; z-index: var(--z-index-modal); width: min(300px, calc(100vw - 40px)); padding: 60px 12px 20px; background: var(--surface); border-right: 1px solid var(--border); }
+.trail-assistant-drawer-close { position: absolute; top: 16px; right: 16px; padding: 5px; color: var(--foreground); }
+@media (max-width: 899px) {
+  .trail-assistant-drawer-trigger { display: inline-flex; }
+  .trail-assistant-drawer .trail-sidebar-context { display: flex; }
+  .trail-assistant-focus .trail-agent-header { padding: 14px 12px; }
+  .trail-assistant-focus .trail-agent-brand { gap: 8px; }
+  .trail-assistant-focus .trail-agent-brand > .trail-logo { width: 36px; height: 36px; }
+  .trail-assistant-focus .trail-agent-title { font-size: 16px; }
+  .trail-assistant-focus .trail-agent-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .trail-assistant-inline-context { grid-column: 1 / -1; padding: 0; }
+  .trail-assistant-focus-session-title { padding: 12px 14px 0; }
+  .trail-assistant-focus-session-title h1 { font-size: 16px; }
+  .trail-assistant-focus .trail-agent-body-content { padding: 18px 14px; }
+  .trail-assistant-focus .trail-agent-composer { padding: 10px 14px 14px; }
+}
 .trail-logo { display: block; flex-shrink: 0; object-fit: contain; border-radius: 10px; }
 .trail-agent-panel { container-type: inline-size; min-width: 0; background: var(--surface); }
 .trail-agent-panel .trail-agent-header { flex-shrink: 0; padding: 1.1rem 1.1rem 0; background: var(--surface); }
@@ -71,4 +109,55 @@
   .trail-agent-controls { gap: .5rem; }
   .trail-agent-controls button { font-size: .75rem; padding-inline: .6rem; }
   .trail-chat-welcome > .trail-logo { width: 5.2rem; height: 5.2rem; }
+}
+
+/* Focused research workspace: compact chrome and a single prompt surface. */
+.trail-assistant-session-rail { width: 252px; flex-basis: 252px; padding: 20px 14px 14px; background: color-mix(in srgb, var(--surface) 97%, var(--foreground) 3%); }
+.trail-assistant-rail-content { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.trail-assistant-back, .trail-assistant-rail-settings { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: 6px; color: var(--foreground-muted); font-size: 13px; text-align: left; }
+.trail-assistant-back:hover, .trail-assistant-rail-settings:hover { background: var(--surface-hover); color: var(--foreground); }
+.trail-assistant-rail-brand { display: flex; align-items: center; gap: 10px; padding: 20px 10px 24px; color: var(--accent); font-size: 17px; font-weight: 650; }
+.trail-assistant-rail-brand span { color: var(--foreground); }
+.trail-assistant-rail-content .trail-session-history { flex: 1; min-height: 0; height: auto; }
+.trail-session-history .trail-session-heading { display: contents; }
+.trail-session-history .trail-session-heading h2 { order: -1; display: flex; gap: 8px; align-items: center; margin: 0 0 10px; padding: 18px 8px 0; border-top: 1px solid var(--border); color: var(--foreground-muted); font-size: 12px; font-weight: 500; }
+.trail-session-history .trail-session-new { order: -2; justify-content: center; gap: 8px; min-height: 40px; margin-bottom: 22px; font-size: 13px; }
+.trail-session-history .trail-sidebar-sessions { flex: 1; }
+.trail-assistant-rail-settings { flex-shrink: 0; margin-top: 12px; }
+.trail-assistant-focus .trail-agent-header { flex-shrink: 0; padding: 16px 24px; min-height: 64px; }
+.trail-assistant-focus .trail-agent-brand { margin: 0; min-height: 32px; }
+.trail-assistant-focus .trail-agent-title { font-size: 16px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.trail-assistant-focus .trail-agent-body-content { max-width: 808px; padding: 28px 24px; }
+.trail-assistant-focus .trail-agent-composer { max-width: 808px; padding: 12px 24px 18px; }
+.trail-assistant-focus .trail-assistant-composer-box { border: 1px solid var(--border-strong, var(--border)); border-radius: 14px; background: var(--surface); box-shadow: 0 3px 12px rgba(0,0,0,.035); overflow: visible; }
+.trail-assistant-focus .trail-assistant-composer-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 12%, transparent); }
+.trail-assistant-focus .trail-agent-textarea { min-height: 92px; border: 0; border-radius: 14px; background: transparent; padding: 18px 18px 8px; box-shadow: none; font-size: 15px; }
+.trail-assistant-focus .trail-agent-textarea:focus { border: 0; box-shadow: none; outline: none; }
+.trail-assistant-composer-options { display: flex; align-items: flex-start; gap: 16px; min-height: 48px; padding: 4px 64px 12px 12px; border-top: 1px solid var(--border); }
+.trail-assistant-composer-options > div { min-width: 0; max-width: 48%; }
+.trail-assistant-composer-options button { max-width: 100%; border: 0; padding: 6px; min-height: 30px; background: transparent; font-size: 12px; }
+.trail-assistant-composer-options .trail-model-notice { max-width: 190px; padding-left: 6px; font-size: 10px; }
+.trail-assistant-focus .trail-agent-send { width: 34px; height: 34px; bottom: 12px; right: 12px; }
+.trail-assistant-focus .trail-agent-send svg { width: 19px; height: 19px; }
+.trail-assistant-composer-context { margin-top: 10px; font-size: 12px; color: var(--accent); }
+.trail-assistant-composer-context > div { background: var(--surface-muted); border: 0; max-width: 100%; }
+.trail-assistant-new .trail-agent-body { display: none; }
+.trail-assistant-start { flex: 1; min-height: 0; overflow-y: auto; padding: clamp(40px, 17vh, 174px) 24px 32px; text-align: center; }
+.trail-assistant-start h2 { margin: 0; color: var(--foreground); font-size: clamp(24px, 3vw, 30px); line-height: 1.4; font-weight: 600; letter-spacing: -.025em; }
+.trail-assistant-start > p { margin: 12px 0 0; color: var(--foreground-muted); font-size: 14px; }
+.trail-assistant-focus .trail-assistant-start .trail-agent-composer { max-width: 760px; padding: 0; margin: 26px auto 0; text-align: left; }
+.trail-assistant-starter-prompts { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.trail-assistant-starter-prompts button { border: 1px solid var(--border); border-radius: 9px; padding: 9px 16px; color: var(--foreground-muted); font-size: 13px; }
+.trail-assistant-starter-prompts button:hover { background: var(--surface-muted); color: var(--accent); border-color: var(--accent); }
+.trail-assistant-start .trail-agent-input-hint { margin-top: 18px; text-align: center; }
+@media (max-width: 899px) {
+  .trail-assistant-focus .trail-agent-header { padding: 12px 14px; min-height: 58px; }
+  .trail-assistant-focus .trail-agent-body-content { padding: 18px 14px; }
+  .trail-assistant-focus .trail-agent-composer { padding: 10px 14px 14px; }
+  .trail-assistant-start { padding: clamp(32px, 12vh, 90px) 18px 28px; }
+  .trail-assistant-start h2 { font-size: 25px; }
+  .trail-assistant-composer-options { gap: 6px; padding-left: 8px; }
+  .trail-assistant-starter-prompts { gap: 8px; }
+  .trail-assistant-starter-prompts button { padding: 8px 10px; font-size: 12px; }
+  .trail-assistant-drawer { background: color-mix(in srgb, var(--surface) 97%, var(--foreground) 3%); }
 }

@@ -1,10 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowUp, ChevronDown, ChevronRight, Square } from 'lucide-react';
+import { ArrowUp, ChevronRight, Maximize2, Minimize2, MessageSquare, PanelRightClose, Square } from 'lucide-react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import type { ApiError, TrailTrace, PortfolioSnapshot, Quote, ToolCall } from '@finagent/core';
 import {
   activeMessagesAtom,
+  activeSessionAtom,
+  agentPanelExpandedAtom,
+  agentSessionsDrawerAtom,
+  sessionDraftAtomFamily,
+  sessionInteractionLockedAtom,
+  sessionScrollAtomFamily,
   activeSessionIdAtom,
   agentPanelVisibleAtom,
   cancelRunAtom,
@@ -25,6 +31,7 @@ import { ModelSelector } from './ModelSelector';
 import { ThinkingSelector } from './ThinkingSelector';
 import { ToolActivity } from './ToolActivity';
 import { ContextChip } from './ContextChip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { TraceInspector } from '../trace/TraceInspector';
 import { loadSessionTraceSources, projectSessionTrace } from '../../lib/traceData';
 import { QuoteCard } from './structured/QuoteCard';
@@ -98,7 +105,12 @@ export const AgentPanel: React.FC = () => {
   const [lastRun, setLastRun] = useAtom(lastRunSummaryAtom);
   const workspaceContext = useAtomValue(workspaceContextAtom);
 
-  const [input, setInput] = useState('');
+  const [sessionLocked, setSessionLocked] = useAtom(sessionInteractionLockedAtom);
+  const [expanded, setExpanded] = useAtom(agentPanelExpandedAtom);
+  const setDrawer = useSetAtom(agentSessionsDrawerAtom);
+  const activeSession = useAtomValue(activeSessionAtom);
+  const [input, setInput] = useAtom(sessionDraftAtomFamily(activeSessionId ?? ''));
+  const [reading, setReading] = useAtom(sessionScrollAtomFamily(activeSessionId ?? ''));
   const [sendError, setSendError] = useState<string | null>(null);
   const [traceDialog, setTraceDialog] = useState<{ runId: string; trace: TrailTrace | null } | null>(null);
   const [traceLoading, setTraceLoading] = useState(false);
@@ -130,6 +142,13 @@ export const AgentPanel: React.FC = () => {
           ? 'thinking'
           : 'idle';
 
+  useLayoutEffect(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    shouldAutoScrollRef.current = reading.follow;
+    body.scrollTop = reading.follow ? body.scrollHeight : reading.top;
+  }, [activeSessionId]);
+
   useEffect(() => {
     if (!shouldAutoScrollRef.current) return;
     bodyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -140,11 +159,12 @@ export const AgentPanel: React.FC = () => {
     if (!body) return;
     const distanceFromBottom = body.scrollHeight - body.scrollTop - body.clientHeight;
     shouldAutoScrollRef.current = distanceFromBottom <= 24;
+    setReading({ top: body.scrollTop, follow: shouldAutoScrollRef.current });
   };
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || !activeSessionId || isRunning) return;
+    if (!text || !activeSessionId || isRunning || sessionLocked) return;
 
     setInput('');
     setSendError(null);
@@ -159,8 +179,10 @@ export const AgentPanel: React.FC = () => {
       toolCount: 0,
       workspaceContext,
     }));
-    const result = await client.kernel.startRun(activeSessionId, text, workspaceContext);
+    setSessionLocked(true);
+    const result = await client.kernel.startRun(activeSessionId, text, workspaceContext).catch((error: unknown) => ({ ok: false as const, error: { code: 'SEND_FAILED', message: error instanceof Error ? error.message : String(error) } }));
     if (!result.ok) {
+      setSessionLocked(false);
       setSendError(result.error.message);
       setInput(text);
     }
@@ -199,10 +221,12 @@ export const AgentPanel: React.FC = () => {
   /** V8.1 §38: retry the last user message after an infra failure. */
   const handleRetry = async () => {
     const lastUser = [...messages].reverse().find((message) => message.role === 'user');
-    if (!lastUser || !activeSessionId) return;
+    if (!lastUser || !activeSessionId || sessionLocked) return;
     setSendError(null);
-    const result = await client.kernel.startRun(activeSessionId, lastUser.content, workspaceContext);
+    setSessionLocked(true);
+    const result = await client.kernel.startRun(activeSessionId, lastUser.content, workspaceContext).catch((error: unknown) => ({ ok: false as const, error: { code: 'SEND_FAILED', message: error instanceof Error ? error.message : String(error) } }));
     if (!result.ok) {
+      setSessionLocked(false);
       setSendError(result.error.message);
     }
   };
@@ -212,6 +236,7 @@ export const AgentPanel: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       void handleSend();
@@ -221,40 +246,93 @@ export const AgentPanel: React.FC = () => {
   const toolCalls = runView?.toolCalls ?? [];
   const quote = extractQuote(toolCalls);
   const portfolio = extractPortfolio(toolCalls);
+  const newConversation = expanded && messages.length === 0 && !isRunning && !runView?.infraError;
+  const sessionTitle = activeSession?.title === 'New Session' ? t('navigation.untitledSession') : activeSession?.title ?? t('navigation.untitledSession');
+
+  const composer = (
+    <div className="trail-agent-composer border-t mac-section-divider bg-surface px-3 py-3">
+        <div className="relative trail-assistant-composer-box">
+          <textarea
+            data-testid="agent-input"
+            value={input}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={isRunning ? t('agent.panel.inputRunningPlaceholder') : expanded ? t(newConversation ? 'navigation.assistantStarterPlaceholder' : 'navigation.assistantContinuePlaceholder') : t('agent.panel.inputPlaceholder')}
+            disabled={isRunning || !activeSessionId}
+            rows={2}
+            className="mac-input trail-agent-textarea w-full resize-none px-3 py-2.5 pr-11 text-[13px] leading-relaxed text-foreground placeholder:text-foreground/38 focus:border-[rgba(var(--accent-rgb),0.34)] focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:opacity-50"
+          />
+          {expanded && <div className="trail-assistant-composer-options"><ModelSelector disabled={isRunning || sessionLocked} /><ThinkingSelector disabled={isRunning || sessionLocked} /></div>}
+          {!isRunning && (
+            <button
+              type="button"
+              onClick={() => void handleSend()}
+              disabled={!input.trim() || !activeSessionId}
+              className="mac-primary-button trail-agent-send absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full transition-smooth active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
+              aria-label={t('agent.panel.sendMessage')}
+            >
+              <ArrowUp className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+          )}
+        </div>
+        {expanded && <div className="trail-assistant-composer-context"><ContextChip /></div>}
+        {newConversation && <div className="trail-assistant-starter-prompts" data-testid="assistant-starter-prompts">{['assistantPromptFinancials', 'assistantPromptIndustry', 'assistantPromptPortfolio'].map((key) => <button key={key} type="button" onClick={() => { setInput(t('navigation.' + key)); document.querySelector<HTMLTextAreaElement>('[data-testid="agent-input"]')?.focus(); }}>{t('navigation.' + key)}</button>)}</div>}
+        <div className="trail-agent-input-hint">{t('agent.panel.inputHint')}</div>
+        {sendError && <div className="mt-1.5 text-[11px] text-destructive">{sendError}</div>}
+        {isRunning && (
+          <div className="mt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={() => void handleStop()}
+              className="flex items-center gap-1.5 rounded-full border border-destructive/30 px-3 py-1.5 text-[12px] font-semibold text-destructive transition-smooth hover:bg-destructive/10"
+            >
+              <Square className="h-3 w-3 fill-current" />
+              {t('agent.panel.stop')}
+            </button>
+          </div>
+        )}
+      </div>
+  );
 
   return (
     <aside
       data-testid="agent-panel"
-      className="trail-agent-panel mac-sidebar flex h-full w-full flex-col border-l mac-section-divider"
+      className={`trail-agent-panel mac-sidebar flex h-full w-full flex-col border-l mac-section-divider${newConversation ? ' trail-assistant-new' : ''}`}
     >
       {/* Header: model + thinking selectors and collapse affordance */}
       <div className="trail-agent-header">
         <div className="trail-agent-brand">
-          <TrailLogo />
+          {expanded ? <button className="trail-assistant-drawer-trigger trail-assistant-layout-button" aria-label={t('navigation.showSessions')} onClick={() => setDrawer(true)}><MessageSquare size={16} /></button> : <TrailLogo />}
           <div className="min-w-0 flex-1">
-            <div className="trail-agent-title">{t('agent.panel.title')}</div>
-            <div className="trail-agent-wordmark">TRAIL</div>
+            <div className="trail-agent-title">{expanded ? sessionTitle : t('agent.panel.title')}</div>
+            {!expanded && <div className="trail-agent-wordmark">TRAIL</div>}
           </div>
-          <button
-            type="button"
-            onClick={() => setAgentPanelVisible(false)}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] text-foreground/44 transition-smooth hover:bg-[var(--mac-sidebar-hover)] hover:text-foreground"
-            aria-label={t('agent.panel.collapsePanel')}
-            title={t('agent.panel.collapsePanel')}
-          >
-            <ChevronDown className="h-4 w-4" strokeWidth={1.8} />
-          </button>
+          <div className="trail-assistant-layout-actions">
+            <Tooltip><TooltipTrigger asChild>
+              <button type="button" className="trail-assistant-layout-button" data-testid="assistant-expand" aria-pressed={expanded}
+                onClick={() => { setExpanded(!expanded); setDrawer(false); }} aria-label={t(expanded ? 'navigation.restoreAssistant' : 'navigation.expandAssistant')}>
+                {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}<span>{t(expanded ? 'navigation.restoreAssistant' : 'navigation.expandAssistant')}</span>
+              </button>
+            </TooltipTrigger><TooltipContent>{t(expanded ? 'navigation.restoreAssistantHint' : 'navigation.expandAssistantHint')}</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild>
+              <button type="button" className="trail-assistant-layout-button" data-testid="assistant-collapse" onClick={() => { setExpanded(false); setDrawer(false); setAgentPanelVisible(false); }} aria-label={t('navigation.collapseAssistant')}>
+                <PanelRightClose size={16} /><span>{t('navigation.collapseAssistant')}</span>
+              </button>
+            </TooltipTrigger><TooltipContent>{t('navigation.collapseAssistantHint')}</TooltipContent></Tooltip>
+          </div>
         </div>
-        <div className="trail-agent-controls">
+
+        {!expanded && <div className="trail-agent-controls">
           <ModelSelector disabled={isRunning} />
           <ThinkingSelector disabled={isRunning} />
-        </div>
+        </div>}
       </div>
 
       {/* Workspace context chip */}
-      <div className="trail-agent-context border-b mac-section-divider px-3 py-2">
+      {!expanded && <div className="trail-agent-context border-b mac-section-divider px-3 py-2">
         <ContextChip />
-      </div>
+      </div>}
+
 
       {/* Scrollable body: tool activity, structured results, messages, live answer */}
       <div
@@ -290,7 +368,7 @@ export const AgentPanel: React.FC = () => {
           )}
           {quote && <QuoteCard quote={quote} />}
           {portfolio && <PortfolioRiskCard portfolio={portfolio} />}
-          {messages.length === 0 && !isRunning && (
+          {!expanded && messages.length === 0 && !isRunning && (
             <div className="trail-chat-welcome">
               <TrailLogo />
               <span className="trail-brand-rule" aria-hidden="true" />
@@ -317,45 +395,11 @@ export const AgentPanel: React.FC = () => {
       </div>
 
       {/* Input / send / stop — send lives inline in the composer (Stitch design) */}
-      <div className="trail-agent-composer border-t mac-section-divider bg-surface px-3 py-3">
-        <div className="relative">
-          <textarea
-            data-testid="agent-input"
-            value={input}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={isRunning ? t('agent.panel.inputRunningPlaceholder') : t('agent.panel.inputPlaceholder')}
-            disabled={isRunning || !activeSessionId}
-            rows={2}
-            className="mac-input trail-agent-textarea w-full resize-none px-3 py-2.5 pr-11 text-[13px] leading-relaxed text-foreground placeholder:text-foreground/38 focus:border-[rgba(var(--accent-rgb),0.34)] focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:opacity-50"
-          />
-          {!isRunning && (
-            <button
-              type="button"
-              onClick={() => void handleSend()}
-              disabled={!input.trim() || !activeSessionId}
-              className="mac-primary-button trail-agent-send absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full transition-smooth active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
-              aria-label={t('agent.panel.sendMessage')}
-            >
-              <ArrowUp className="h-4 w-4" strokeWidth={1.8} />
-            </button>
-          )}
-        </div>
-        <div className="trail-agent-input-hint">{t('agent.panel.inputHint')}</div>
-        {sendError && <div className="mt-1.5 text-[11px] text-destructive">{sendError}</div>}
-        {isRunning && (
-          <div className="mt-2 flex justify-end">
-            <button
-              type="button"
-              onClick={() => void handleStop()}
-              className="flex items-center gap-1.5 rounded-full border border-destructive/30 px-3 py-1.5 text-[12px] font-semibold text-destructive transition-smooth hover:bg-destructive/10"
-            >
-              <Square className="h-3 w-3 fill-current" />
-              {t('agent.panel.stop')}
-            </button>
-          </div>
-        )}
-      </div>
+      {newConversation ? <div className="trail-assistant-start" data-testid="assistant-start">
+        <h2>{t('navigation.assistantStarterHeading')}</h2>
+        <p>{t('navigation.assistantStarterSubtitle')}</p>
+        {composer}
+      </div> : composer}
       {/* Trace Inspector (progressive disclosure — only from the footer) */}
       {traceDialog && (
         <TraceInspector

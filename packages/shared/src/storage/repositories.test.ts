@@ -71,6 +71,36 @@ describe('JsonFileStore', () => {
 });
 
 describe('SessionRepository', () => {
+  it('persists a rename without changing messages or runtime identity', async () => {
+    const sessions = new SessionRepository(store);
+    const original = { ...makeSession('s1'), messageCount: 8, lastMessageAt: 1500 };
+    await sessions.upsert(original);
+    const messages = new MessageRepository(store);
+    await messages.append('s1', makeMessage('m1', 'Keep this message'));
+    expect(await sessions.rename('s1', '财报分析', 2000)).toEqual({ ...original, title: '财报分析', updatedAt: 2000 });
+    const reloaded = new SessionRepository(new JsonFileStore(dir));
+    expect(await reloaded.get('s1')).toEqual({ ...original, title: '财报分析', updatedAt: 2000 });
+    expect(await messages.list('s1')).toEqual([makeMessage('m1', 'Keep this message')]);
+  });
+
+  it('does not resurrect a deleted session when a queued rename arrives', async () => {
+    const sessions = new SessionRepository(store);
+    await sessions.upsert(makeSession('s1'));
+    const [, renamed] = await Promise.all([sessions.remove('s1'), sessions.rename('s1', 'Renamed', 2000)]);
+    expect(renamed).toBeNull();
+    expect(await sessions.list()).toEqual([]);
+  });
+
+  it('retains a rename while run status and message stats are updated concurrently', async () => {
+    const sessions = new SessionRepository(new SlowReadJsonFileStore(dir, 10));
+    await sessions.upsert(makeSession('s1'));
+    await Promise.all([
+      sessions.rename('s1', 'Research notes', 2000),
+      sessions.update('s1', { status: 'running', messageCount: 4, lastMessageAt: 2001 }),
+    ]);
+    expect(await sessions.get('s1')).toMatchObject({ title: 'Research notes', status: 'running', messageCount: 4, lastMessageAt: 2001 });
+  });
+
   it('persists sessions across store instances (reload)', async () => {
     const first = new SessionRepository(store);
     await first.upsert(makeSession('s1'));

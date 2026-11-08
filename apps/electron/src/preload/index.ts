@@ -18,6 +18,7 @@ export interface ElectronAPI {
   kernel: {
     hydrate: () => Promise<unknown>;
     createSession: (title?: string) => Promise<unknown>;
+    renameSession: (sessionId: string, title: string) => Promise<unknown>;
     deleteSession: (sessionId: string) => Promise<unknown>;
     getMessages: (sessionId: string) => Promise<unknown>;
     listRuns: (sessionId: string) => Promise<unknown>;
@@ -200,6 +201,7 @@ const electronAPI: ElectronAPI = {
   kernel: {
     hydrate: () => ipcRenderer.invoke('kernel:hydrate'),
     createSession: (title?: string) => ipcRenderer.invoke('sessions:create', title),
+    renameSession: (sessionId: string, title: string) => ipcRenderer.invoke('sessions:rename', sessionId, title),
     deleteSession: (sessionId: string) => ipcRenderer.invoke('sessions:delete', sessionId),
     getMessages: (sessionId: string) => ipcRenderer.invoke('sessions:getMessages', sessionId),
     listRuns: (sessionId: string) => ipcRenderer.invoke('sessions:listRuns', sessionId),
