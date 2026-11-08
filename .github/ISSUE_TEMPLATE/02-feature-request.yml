@@ -1,0 +1,54 @@
+name: "功能建议 / Feature request"
+description: "描述真实场景、预期价值与最小可交付范围"
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先查看置顶 Roadmap。欢迎补充场景与取舍；被记录为计划不等于承诺上线日期。
+  - type: dropdown
+    id: area
+    attributes:
+      label: "建议方向"
+      options:
+        - 投研工作台与数据
+        - 独立助手与会话体验
+        - 个人目标与长期任务
+        - 记忆与任务恢复
+        - 连接器与自动化
+        - 开发体验与文档
+        - 其他方向
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: "谁在什么场景遇到了什么问题"
+      description: "请说明现在如何完成这件事、哪里费时或容易出错。"
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: "期望结果与项目价值"
+      description: "描述用户能完成什么，以及怎样判断比现状更好。"
+    validations:
+      required: true
+  - type: textarea
+    id: minimal-scope
+    attributes:
+      label: "最小实现与替代方案"
+      description: "哪些是第一步必须有的？哪些可以留到后续？如有示意图可附上。"
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: "依赖、授权与数据边界"
+      description: "是否需要新 provider、个人资料、外部写操作、付费服务或长期后台运行？不确定可写待讨论。"
+  - type: textarea
+    id: related
+    attributes:
+      label: "关联 Issue 与参与意愿"
+      description: "链接已有规划，说明是否愿意补充场景、设计、实现或验证。"

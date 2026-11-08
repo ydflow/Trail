@@ -1,0 +1,50 @@
+name: "数据质量 / Data quality"
+description: "报告行情、财报、新闻、时间戳、来源与引用异常"
+title: "[Data] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        数据问题需要对齐标的、时间与来源。请使用可公开的最小样例，避免上传账户和私人持仓。
+        尚未核实原因时，我们会先区分 provider 原始数据、适配计算、展示与模型解释。
+  - type: input
+    id: version-provider
+    attributes:
+      label: "Trail 版本与数据 provider"
+      placeholder: "版本 / provider / 真实或模拟数据 / runtime（如涉及助手）"
+    validations:
+      required: true
+  - type: input
+    id: symbol
+    attributes:
+      label: "标的、市场与数据项"
+      placeholder: "例如 AAPL.US；日线收盘价、财报字段、新闻引用"
+    validations:
+      required: true
+  - type: input
+    id: time
+    attributes:
+      label: "发生时间、数据时间与时区"
+      placeholder: "分别注明观察时间与行情/财报时间；不确定的时间请标记"
+    validations:
+      required: true
+  - type: textarea
+    id: mismatch
+    attributes:
+      label: "实际值、期望值与核对依据"
+      description: "列出单位、币种、复权/周期等口径，以及可公开来源链接；不要仅写“数据不对”。"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "复现步骤与脱敏样例"
+      description: "从哪个页面或工具获得？是否刷新后仍发生？原始响应可只保留最小相关字段。"
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: "影响范围与证据"
+      description: "是展示、计算还是助手结论受影响？可附已脱敏截图或日志。"
