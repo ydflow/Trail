@@ -29,6 +29,12 @@
 
 ## 产品预览
 
+### 产品介绍视频
+
+<p align="center"><a href="docs/media/trail-introduction.mp4"><img src="docs/media/trail-introduction-poster.png" alt="点击观看 Trail · 研迹产品介绍视频" width="1000" /></a></p>
+
+<p align="center"><a href="docs/media/trail-introduction.mp4">▶ 观看产品介绍视频</a> · 1 分钟</p>
+
 ### 深度研究：行情、证据与判断，在同一工作区
 
 <p align="center"><img src="docs/screenshots/ui-2026-10-16/research.png" alt="新版深度研究工作区：NVDA K线、依据表与判断侧栏" width="1200" /></p>
@@ -37,7 +43,7 @@
 
 ### 证券工作台与 AI 副驾驶
 
-<p align="center"><img src="docs/screenshots/ui-2026-10-16/workspace.png" alt="长桥真实行情和K线，右侧DeepSeek助手回答并附来源入口" width="1200" /></p>
+<p align="center"><img src="docs/screenshots/readme-2026-11-08/workspace.png" alt="长桥真实行情和K线，右侧DeepSeek助手回答并附来源入口" width="1200" /></p>
 
 自选、报价、财务、新闻与图表共享当前证券上下文。右侧助手可以读取结构化数据，以流式回答补充解释；来源入口保留在回答旁边。
 
@@ -46,6 +52,14 @@
 <p align="center"><img src="docs/screenshots/ui-2026-10-16/sources.png" alt="来源检查器：金融数值、提供商、获取时间、规范化链路与快照哈希" width="1000" /></p>
 
 从引用进入来源检查器，查看数值、提供商、获取时间、规范化链路与快照哈希。价格时间缺失、来源过期与数据不可用会保留在可见状态中。
+
+### 独立的投研助手界面
+
+<p align="center"><img src="docs/screenshots/readme-2026-11-08/assistant.png" alt="独立投研助手界面设计预览：历史会话、集中输入框与研究建议" width="1200" /></p>
+
+独立的专注会话空间，将历史会话、研究输入与模型选项集中呈现；支持从工作台进入助手，围绕当前研究上下文持续追问。
+
+> 本图为界面设计预览，不属于下方“截图说明”中的实机截图。
 
 ### 更多工作区
 
@@ -252,6 +266,16 @@ start-trail.cmd
 | [贡献指南](CONTRIBUTING.md) | 提交规范、测试报告与截图要求 |
 
 欢迎围绕提供商适配、研究质量、来源核验、桌面体验和可复现回归用例提交 Issue 或 PR。后续重点是更完整的提供商覆盖、研究报告阅读与比较、模型输出契约稳定性，以及跨平台分发。
+
+## 贡献者
+
+感谢每一位为 Trail · 研迹贡献代码、文档、测试与反馈的参与者。
+
+<a href="https://github.com/ydflow/Trail/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=ydflow/Trail" alt="Trail · 研迹的 GitHub 贡献者" />
+</a>
+
+[查看完整贡献记录](https://github.com/ydflow/Trail/graphs/contributors) · 头像墙由 [contrib.rocks](https://contrib.rocks/) 根据 GitHub 贡献记录生成。
 
 ---
 
