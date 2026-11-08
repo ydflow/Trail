@@ -264,8 +264,15 @@ start-trail.cmd
 | [Langfuse 追踪](docs/langfuse-tracing.zh-CN.md) | 可选追踪接线与隐私边界 |
 | [发布门槛](docs/release-gates.zh-CN.md) · [提供商覆盖](docs/provider-b-decision.zh-CN.md) | 发布检查与已知限制 |
 | [贡献指南](CONTRIBUTING.md) | 提交规范、测试报告与截图要求 |
+| [Personal Agent 路线图](docs/ROADMAP.zh-CN.md) | 持久执行、Checkpoint × Memory、个人工作流与 Harness² × RSI 研究 |
 
-欢迎围绕提供商适配、研究质量、来源核验、桌面体验和可复现回归用例提交 Issue 或 PR。后续重点是更完整的提供商覆盖、研究报告阅读与比较、模型输出契约稳定性，以及跨平台分发。
+欢迎围绕提供商适配、研究质量、来源核验、桌面体验和可复现回归用例提交 Issue 或 PR。长期方向是从投研工作台走向 Personal Agent，阶段目标与验收任务见 [Roadmap](https://github.com/ydflow/Trail/issues/8)。
+
+## 社区交流
+
+[社区导航](https://github.com/ydflow/Trail/discussions/38) · [项目愿景](https://github.com/ydflow/Trail/discussions/39) · [使用问答](https://github.com/ydflow/Trail/discussions/categories/q-a) · [需求与产品构想](https://github.com/ydflow/Trail/discussions/44) · [成果展示](https://github.com/ydflow/Trail/discussions/45)
+
+在 [Discussions](https://github.com/ydflow/Trail/discussions) 交流场景、技术方案和实验经验；可复现缺陷、明确功能任务与开发进度在 [Issues](https://github.com/ydflow/Trail/issues) 跟踪。研究讨论已覆盖 [Pi Durable](https://github.com/ydflow/Trail/discussions/40)、[Checkpoint × Memory](https://github.com/ydflow/Trail/discussions/41)、[Harness² × RSI](https://github.com/ydflow/Trail/discussions/42) 和 [组合评分与协方差适应](https://github.com/ydflow/Trail/discussions/43)，均明确标注规划与验证边界。
 
 ## 贡献者
 

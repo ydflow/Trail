@@ -1,6 +1,6 @@
 # Trail · Personal Agent Roadmap
 
-> 更新：2026-11-08。规划入口：[#8](https://github.com/ydflow/Trail/issues/8) · [贡献指南](../CONTRIBUTING.md) · [能力地图](https://github.com/ydflow/Trail/issues/9)
+> 更新：2026-11-08。规划入口：[#8](https://github.com/ydflow/Trail/issues/8) · [愿景讨论](https://github.com/ydflow/Trail/discussions/39) · [贡献指南](../CONTRIBUTING.md) · [能力地图](https://github.com/ydflow/Trail/issues/9)
 
 ## 愿景：从投研工作台走向真正的 Personal Agent
 
@@ -57,6 +57,8 @@ Checkpoint 回答“做到哪里、哪些结果已经提交”；Memory 回答�
 这是 Trail 的工程研究提案。我们不会把协方差更新等同于智能递归提升，也不会把论文结果当作本项目结果。模型权重训练、无限制自改写和自动生产晋升均不属于当前研究交付。
 
 ## 任务索引
+
+架构取舍与实验设计可先参与 [Pi Durable 讨论](https://github.com/ydflow/Trail/discussions/40)、[Checkpoint × Memory 讨论](https://github.com/ydflow/Trail/discussions/41)、[Harness² × RSI 讨论](https://github.com/ydflow/Trail/discussions/42) 和 [组合评分与协方差适应讨论](https://github.com/ydflow/Trail/discussions/43)。讨论结论回链到下列任务，实施与验收进度以 Issue/PR 为准。
 
 所有条目均为待验收工作。前置依赖、源码起点与最小贡献范围见各 Issue。
 
