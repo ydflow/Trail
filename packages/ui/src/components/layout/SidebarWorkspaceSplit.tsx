@@ -35,10 +35,10 @@ export const SidebarWorkspaceSplit: React.FC<{
   }, [enabled]);
 
   // On short windows both panes yield space; the fixed footer stays outside.
-  const minimum = Math.min(180, available * 0.6);
-  const maximum = Math.max(minimum, available - Math.min(120, available * 0.4));
+  const minimum = Math.min(140, available * 0.3);
+  const maximum = Math.max(minimum, available - Math.min(280, available * 0.55));
   const clamp = (value: number) => Math.min(maximum, Math.max(minimum, value));
-  const defaultHeight = clamp(Math.max(340, available * 0.4));
+  const defaultHeight = clamp(Math.max(120, available * 0.28));
   const height = clamp(preferred ?? defaultHeight);
 
   const save = (value: number | null) => {

@@ -2,7 +2,7 @@ import { atom } from 'jotai';
 import type { AgentEvent, ApiError, Message, ToolCall, WorkspaceContext } from '@finagent/core';
 import { isRuntimeInfraCode } from '@finagent/core';
 import type { FinagentClient } from '../client';
-import { activeSessionIdAtom, answerExpansionAtomFamily, messagesAtomFamily, sessionsAtom } from './sessionAtoms';
+import { sessionInteractionLockedAtom, activeSessionIdAtom, answerExpansionAtomFamily, messagesAtomFamily, sessionsAtom } from './sessionAtoms';
 
 /** Live view of the currently executing run, streamed from kernel events. */
 export interface RunView {
@@ -99,6 +99,7 @@ export const applyAgentEventAtom = atom(
     const messages = messagesAtomFamily(sessionId);
 
     if (event.type === 'run_started') {
+      set(sessionInteractionLockedAtom, true);
       // Kernel persists the user message; surface it in the UI here.
       set(messages, [...get(messages), event.payload.userMessage]);
       set(sessionsAtom, (sessions) => sessions.map((session) =>
@@ -160,6 +161,7 @@ export const applyAgentEventAtom = atom(
 
     // Terminal events: finalize the assistant message and clear the run view.
     if (event.type === 'run_completed') {
+      set(sessionInteractionLockedAtom, false);
       const assistantMessage: Message = {
         id: `assistant-${event.runId}`,
         role: 'assistant',
@@ -195,6 +197,7 @@ export const applyAgentEventAtom = atom(
     }
 
     if (event.type === 'run_failed') {
+      set(sessionInteractionLockedAtom, false);
       const cancelled = event.payload.error.code === 'RUN_CANCELLED';
       set(sessionsAtom, (sessions) => sessions.map((session) =>
         session.id === sessionId ? { ...session, status: 'idle' as const } : session

@@ -23,7 +23,7 @@ var __toCommonJS = (from) => {
 };
 var __moduleCache;
 
-// apps/electron/src/preload/index.ts
+// src/preload/index.ts
 var exports_preload = {};
 module.exports = __toCommonJS(exports_preload);
 var import_electron = require("electron");
@@ -37,6 +37,7 @@ var electronAPI = {
   kernel: {
     hydrate: () => import_electron.ipcRenderer.invoke("kernel:hydrate"),
     createSession: (title) => import_electron.ipcRenderer.invoke("sessions:create", title),
+    renameSession: (sessionId, title) => import_electron.ipcRenderer.invoke("sessions:rename", sessionId, title),
     deleteSession: (sessionId) => import_electron.ipcRenderer.invoke("sessions:delete", sessionId),
     getMessages: (sessionId) => import_electron.ipcRenderer.invoke("sessions:getMessages", sessionId),
     listRuns: (sessionId) => import_electron.ipcRenderer.invoke("sessions:listRuns", sessionId),

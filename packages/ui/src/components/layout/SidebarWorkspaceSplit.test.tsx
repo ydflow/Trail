@@ -62,82 +62,82 @@ async function pointer(type: string, y: number) {
 describe('Sidebar watchlist resizing', () => {
   it('saves a completed upward/downward drag, but never persists intermediate moves', async () => {
     await render();
-    expect(height()).toBe(340);
+    expect(height()).toBe(168);
     await pointer('pointerdown', 400);
     await pointer('pointermove', 300);
-    expect(height()).toBe(440);
+    expect(height()).toBe(268);
     expect(window.localStorage.getItem(KEY)).toBeNull();
     await pointer('pointerup', 300);
     await pointer('lostpointercapture', 300);
-    expect(JSON.parse(window.localStorage.getItem(KEY)!)).toBe(440);
+    expect(JSON.parse(window.localStorage.getItem(KEY)!)).toBe(268);
     await pointer('pointerdown', 300);
     await pointer('pointermove', 380);
     await pointer('pointerup', 380);
-    expect(height()).toBe(360);
-    expect(JSON.parse(window.localStorage.getItem(KEY)!)).toBe(360);
+    expect(height()).toBe(188);
+    expect(JSON.parse(window.localStorage.getItem(KEY)!)).toBe(188);
     await act(async () => root!.unmount());
     root = undefined;
     await render();
-    expect(height()).toBe(360);
+    expect(height()).toBe(188);
   });
 
   it('cancels interrupted drags and restores the prior preference', async () => {
-    window.localStorage.setItem(KEY, '340');
+    window.localStorage.setItem(KEY, '260');
     await render();
     await pointer('pointerdown', 400);
     await pointer('pointermove', 250);
     await key('Escape');
-    expect(height()).toBe(340);
-    expect(window.localStorage.getItem(KEY)).toBe('340');
+    expect(height()).toBe(260);
+    expect(window.localStorage.getItem(KEY)).toBe('260');
     await pointer('pointerdown', 400);
     await pointer('pointermove', 500);
     await pointer('pointercancel', 500);
-    expect(height()).toBe(340);
+    expect(height()).toBe(260);
   });
 
   it('supports keyboard bounds and resets, and double-click returns to the responsive default', async () => {
     await render();
     await key('ArrowUp');
-    expect(height()).toBe(356);
+    expect(height()).toBe(184);
     await key('ArrowDown');
-    expect(height()).toBe(340);
+    expect(height()).toBe(168);
     await key('End');
-    expect(height()).toBe(480);
+    expect(height()).toBe(320);
     await key('ArrowUp');
-    expect(height()).toBe(480);
+    expect(height()).toBe(320);
     await key('Home');
-    expect(height()).toBe(340);
+    expect(height()).toBe(168);
     expect(window.localStorage.getItem(KEY)).toBe('null');
     await pointer('pointerdown', 400);
     await pointer('pointermove', 1000);
     await pointer('pointerup', 1000);
-    expect(height()).toBe(180);
+    expect(height()).toBe(140);
     await act(async () => handle().dispatchEvent(new MouseEvent('dblclick', { bubbles: true })));
-    expect(height()).toBe(340);
+    expect(height()).toBe(168);
   });
 
   it('clamps short-window layouts without overwriting the saved desktop height', async () => {
     window.localStorage.setItem(KEY, '450');
     await render();
-    expect(height()).toBe(450);
+    expect(height()).toBe(320);
     measuredHeight = 212;
     await act(async () => resize());
-    expect(height()).toBe(120);
+    expect(height()).toBe(90);
     expect(window.localStorage.getItem(KEY)).toBe('450');
     measuredHeight = 612;
     await act(async () => resize());
-    expect(height()).toBe(450);
+    expect(height()).toBe(320);
     await render(false);
     expect(handle()).toBeNull();
     expect(container.textContent).toBe('Navigation');
     expect(disconnects).toBe(1);
     await render();
-    expect(height()).toBe(450);
+    expect(height()).toBe(320);
   });
 
   it.each(['{"bad":1}', '"320"', '-10', 'null', 'broken'])('ignores invalid persisted height %s', async (value) => {
     window.localStorage.setItem(KEY, value);
     await render();
-    expect(height()).toBe(340);
+    expect(height()).toBe(168);
   });
 });

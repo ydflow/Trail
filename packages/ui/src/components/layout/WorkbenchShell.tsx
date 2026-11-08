@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Allotment } from 'allotment';
 import 'allotment/dist/style.css';
-import { useAtomValue } from 'jotai';
-import { agentPanelVisibleAtom } from '../../atoms';
+import { useAtom, useAtomValue } from 'jotai';
+import { agentPanelExpandedAtom, agentPanelVisibleAtom, agentSessionsDrawerAtom } from '../../atoms';
+import * as Dialog from '@radix-ui/react-dialog';
+import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { AssistantSessionRail } from './AssistantSessionRail';
 import { readPersisted, writePersisted } from '../../lib/persistedPrefs';
 import { ErrorBoundary } from '../primitives/ErrorBoundary';
 import { Sidebar } from './Sidebar';
@@ -15,9 +19,25 @@ const DEFAULT_SIZES = [240, 810, 390];
 
 export const WorkbenchShell: React.FC = () => {
   const agentPanelVisible = useAtomValue(agentPanelVisibleAtom);
+  const [expanded, setExpanded] = useAtom(agentPanelExpandedAtom);
+  const [drawer, setDrawer] = useAtom(agentSessionsDrawerAtom);
+  const { t } = useTranslation();
   const [sizes, setSizes] = useState<number[]>(() => readPersisted<number[]>(SIZES_KEY, DEFAULT_SIZES));
   const [windowWidth, setWindowWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1440);
   const isNarrow = windowWidth < 900;
+  useEffect(() => { if (!isNarrow) setDrawer(false); }, [isNarrow, setDrawer]);
+
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || !expanded || drawer) return;
+      if (document.querySelector('[role="dialog"], [role="alertdialog"], [role="menu"], .trail-session-editor')) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && target.matches('input, textarea, [contenteditable="true"]')) return;
+      setExpanded(false);
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [expanded, drawer, setExpanded]);
 
   useEffect(() => {
     const onResize = () => setWindowWidth(window.innerWidth);
@@ -45,6 +65,22 @@ export const WorkbenchShell: React.FC = () => {
   // When the agent panel toggles off and back on, Allotment restores its
   // remembered width automatically; no extra state required.
   const showAgent = agentPanelVisible && !isNarrow;
+
+  if (expanded && agentPanelVisible) return <div className="trail-assistant-focus" data-testid="assistant-focus">
+    {!isNarrow && <aside className="trail-assistant-session-rail"><AssistantSessionRail /></aside>}
+    {isNarrow && <Dialog.Root open={drawer} onOpenChange={setDrawer}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="trail-assistant-drawer-overlay" />
+        <Dialog.Content className="trail-assistant-drawer">
+          <Dialog.Title className="sr-only">{t('navigation.showSessions')}</Dialog.Title>
+          <Dialog.Description className="sr-only">{t('navigation.sessions')}</Dialog.Description>
+          <Dialog.Close className="trail-assistant-drawer-close" aria-label={t('navigation.closeSessions')}><X size={18} /></Dialog.Close>
+          <AssistantSessionRail />
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>}
+    <div className="trail-assistant-focus-main"><ErrorBoundary><AgentPanel /></ErrorBoundary></div>
+  </div>;
 
   return (
     <div className="relative h-full flex-1 overflow-hidden">

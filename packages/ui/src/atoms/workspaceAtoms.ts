@@ -1,6 +1,8 @@
 import { compareSymbolsAtom } from './compareAtoms';
 import { atom } from 'jotai';
 import type { WorkspaceContext, WorkspaceView } from '@finagent/core';
+import type { FinagentClient } from '../client';
+import { activeSessionIdAtom, createSessionAtom, sessionsAtom } from './sessionAtoms';
 import { persistedAtom } from '../lib/persistedPrefs';
 
 // ---------------------------------------------------------------------------
@@ -49,6 +51,22 @@ export const navSectionAtom = persistedAtom<NavSection>('navSection', 'sessions'
 
 /** Whether the Agent Panel is visible (collapse/expand in the shell). */
 export const agentPanelVisibleAtom = persistedAtom<boolean>('agentPanelVisible', true);
+/** Temporary layout state; opening the assistant always starts in the normal panel. */
+export const agentPanelExpandedAtom = atom(false);
+export const agentSessionsDrawerAtom = atom(false);
+
+/** Open the same focused assistant from any workspace section. */
+export const openAssistantAtom = atom(null, async (get, set, client: FinagentClient) => {
+  if (!get(activeSessionIdAtom)) {
+    const first = get(sessionsAtom)[0];
+    if (first) set(activeSessionIdAtom, first.id);
+    else await set(createSessionAtom, client);
+  }
+  set(agentSessionsDrawerAtom, false);
+  set(agentPanelVisibleAtom, true);
+  set(agentPanelExpandedAtom, true);
+});
+
 /** Active tab within the Settings section. */
 export type SettingsTab =
   | 'general'

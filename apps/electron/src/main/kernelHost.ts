@@ -514,6 +514,18 @@ export class AgentKernelHost {
     await this.kernel.deleteSession(requireString(sessionId, 'sessionId'));
   }
 
+  async renameSession(sessionId: unknown, title: unknown): Promise<SessionMeta> {
+    const id = requireString(sessionId, 'sessionId');
+    const name = requireString(title, 'title').trim();
+    // These names are reserved for hidden, internal research sessions.
+    if (!name || name.length > 100 || name === 'Research' || name.startsWith('__trail_internal_')) {
+      throw createCodeError('INVALID_ARGUMENT', 'Use a session name of 1–100 characters that is not reserved.');
+    }
+    const session = await this.kernel.sessions.renameSession(id, name);
+    if (!session) throw createCodeError('SESSION_NOT_FOUND', 'Session no longer exists.');
+    return session;
+  }
+
   async getMessages(sessionId: unknown): Promise<Message[]> {
     return this.kernel.sessions.listMessages(requireString(sessionId, 'sessionId'));
   }

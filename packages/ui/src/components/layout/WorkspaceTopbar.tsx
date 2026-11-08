@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Moon, RefreshCw, Sun } from 'lucide-react';
+import { MessageSquare, Moon, RefreshCw, Sun } from 'lucide-react';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
-import { activeSymbolAtom, activeViewAtom, navSectionAtom, agentPanelVisibleAtom, fetchQuoteAtom, fetchPortfolioAtom, loadAlertsAtom, watchlistAtom, workspaceRefreshAtom } from '../../atoms';
+import { activeSymbolAtom, activeViewAtom, navSectionAtom, agentPanelExpandedAtom, agentPanelVisibleAtom, fetchQuoteAtom, fetchPortfolioAtom, loadAlertsAtom, watchlistAtom, workspaceRefreshAtom } from '../../atoms';
 import { loadPulseAtom } from '../../atoms/pulseAtoms';
 import { loadBriefAtom } from '../../atoms/automationAtoms';
 import { useFinagentClient } from '../../client';
@@ -25,6 +25,7 @@ export const WorkspaceTopbar: React.FC = () => {
   const [activeView, setActiveView] = useAtom(activeViewAtom);
   const client = useFinagentClient();
   const { setMode } = useTheme();
+  const setExpanded = useSetAtom(agentPanelExpandedAtom);
   const [panelVisible, setPanelVisible] = useAtom(agentPanelVisibleAtom);
   const watchlist = useAtomValue(watchlistAtom);
   const fetchQuote = useSetAtom(fetchQuoteAtom);
@@ -91,7 +92,7 @@ export const WorkspaceTopbar: React.FC = () => {
         <button type="button" data-testid="workspace-theme-toggle" onClick={() => setMode(document.documentElement.classList.contains('dark') ? 'light' : 'dark')} aria-label={t('navigation.toggleTheme')} title={t('navigation.toggleTheme')} className="trail-toolbar-icon">
           <Moon className="trail-theme-moon h-4 w-4" aria-hidden="true" /><Sun className="trail-theme-sun h-4 w-4" aria-hidden="true" />
         </button>
-        <button type="button" data-testid="workspace-agent-toggle" onClick={() => setPanelVisible(!panelVisible)} aria-pressed={panelVisible} className="trail-workspace-status trail-toolbar-agent"><span />{t('navigation.agentPanel')}</button>
+        <button type="button" data-testid="workspace-agent-toggle" onClick={() => { setExpanded(window.innerWidth < 900); setPanelVisible(window.innerWidth < 900 || !panelVisible); }} aria-pressed={panelVisible} className="trail-workspace-status trail-toolbar-agent"><MessageSquare size={15} />{t(panelVisible && window.innerWidth >= 900 ? 'navigation.hideAssistant' : 'navigation.openAssistant')}</button>
         <span className="sr-only" role="status">{refreshResult}</span>
       </div>
     </header>

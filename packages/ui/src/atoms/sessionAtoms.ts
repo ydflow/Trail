@@ -8,7 +8,16 @@ import type { FinagentClient } from '../client';
 
 export const sessionsAtom = atom<SessionMeta[]>([]);
 
-export const activeSessionIdAtom = atom<string | null>(null);
+export const sessionInteractionLockedAtom = atom(false);
+const selectedSessionIdAtom = atom<string | null>(null);
+export const activeSessionIdAtom = atom(
+  (get) => get(selectedSessionIdAtom),
+  (get, set, id: string | null) => {
+    if (!get(sessionInteractionLockedAtom) || id === get(selectedSessionIdAtom)) set(selectedSessionIdAtom, id);
+  }
+);
+export const sessionDraftAtomFamily = atomFamily((_id: string) => atom(''));
+export const sessionScrollAtomFamily = atomFamily((_id: string) => atom<{ top: number; follow: boolean }>({ top: 0, follow: true }));
 
 export const activeSessionAtom = atom((get) => {
   const activeId = get(activeSessionIdAtom);
@@ -88,6 +97,7 @@ export const loadMessagesAtom = atom(
 export const createSessionAtom = atom(
   null,
   async (_get, set, client: FinagentClient, title?: string) => {
+    if (_get(sessionInteractionLockedAtom)) return null;
     const result = await client.kernel.createSession(title);
     if (!result.ok) return null;
     set(sessionsAtom, (sessions) => [...sessions, result.data]);
@@ -97,17 +107,33 @@ export const createSessionAtom = atom(
   }
 );
 
+export const renameSessionAtom = atom(
+  null,
+  async (_get, set, client: FinagentClient, sessionId: string, title: string) => {
+    const result = await client.kernel.renameSession(sessionId, title.trim());
+    if (!result.ok) return false;
+    // Keep live run/message metadata that may have arrived while the request was in flight.
+    set(sessionsAtom, (sessions) => sessions.map((session) => session.id === sessionId
+      ? { ...session, title: result.data.title, updatedAt: result.data.updatedAt }
+      : session));
+    return true;
+  }
+);
+
 export const deleteSessionAtom = atom(
   null,
   async (_get, set, client: FinagentClient, sessionId: string) => {
     const result = await client.kernel.deleteSession(sessionId);
-    if (!result.ok) return;
+    if (!result.ok) return false;
     set(sessionsAtom, (sessions) => sessions.filter((session) => session.id !== sessionId));
+    sessionDraftAtomFamily.remove(sessionId);
+    sessionScrollAtomFamily.remove(sessionId);
     messagesAtomFamily.remove(sessionId);
     answerExpansionAtomFamily.remove(sessionId);
     if (_get(activeSessionIdAtom) === sessionId) {
       const remaining = _get(sessionsAtom);
       set(activeSessionIdAtom, remaining.length > 0 ? remaining[0].id : null);
     }
+    return true;
   }
 );

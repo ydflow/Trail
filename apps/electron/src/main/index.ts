@@ -124,6 +124,10 @@ ipcMain.handle('sessions:delete', async (_event, sessionId: unknown) =>
   toIpcResult(() => agentKernelHost.deleteSession(sessionId))
 );
 
+ipcMain.handle('sessions:rename', async (_event, sessionId: unknown, title: unknown) =>
+  toIpcResult(() => agentKernelHost.renameSession(sessionId, title))
+);
+
 ipcMain.handle('sessions:getMessages', async (_event, sessionId: unknown) =>
   toIpcResult(() => agentKernelHost.getMessages(sessionId))
 );

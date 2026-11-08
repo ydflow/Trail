@@ -7,6 +7,9 @@ import {
   activeSessionIdAtom,
   answerExpansionAtomFamily,
   createSessionAtom,
+  sessionInteractionLockedAtom,
+  sessionDraftAtomFamily,
+  renameSessionAtom,
   hydrateSessionsAtom,
   loadMessagesAtom,
   messagesAtomFamily,
@@ -37,6 +40,12 @@ function makeClient(): FinagentClient {
         const session = makeSession(title ?? 'New Session');
         savedSessions = [...savedSessions, session];
         return { ok: true as const, data: session };
+      },
+      renameSession: async (id: string, title: string) => {
+        const session = savedSessions.find((item) => item.id === id)!;
+        const renamed = { ...session, title, updatedAt: 2000 };
+        savedSessions = savedSessions.map((item) => item.id === id ? renamed : item);
+        return { ok: true as const, data: renamed };
       },
       deleteSession: async (id: string) => {
         savedSessions = savedSessions.filter((session) => session.id !== id);
@@ -165,6 +174,53 @@ describe('session atoms', () => {
     expect(store.get(sessionsAtom)).toHaveLength(1);
     expect(store.get(activeSessionIdAtom)).toBe('s1');
     expect(store.get(sessionsAtom)[0].title).toBe('Portfolio Review');
+  });
+
+  it('blocks session changes and creation while a response is generating', async () => {
+    const store = createStore();
+    const client = makeClient();
+    await store.set(createSessionAtom, client, 'First');
+    store.set(sessionInteractionLockedAtom, true);
+    store.set(activeSessionIdAtom, 'other');
+    expect(store.get(activeSessionIdAtom)).toBe('s1');
+    expect(await store.set(createSessionAtom, client, 'Second')).toBeNull();
+    expect(savedSessions).toHaveLength(1);
+    store.set(sessionInteractionLockedAtom, false);
+    await store.set(createSessionAtom, client, 'Second');
+    expect(store.get(activeSessionIdAtom)).toBe('s2');
+  });
+
+  it('keeps drafts separate while switching conversations', () => {
+    const store = createStore();
+    store.set(sessionDraftAtomFamily('first'), 'My draft');
+    store.set(sessionDraftAtomFamily('second'), 'Another draft');
+    store.set(activeSessionIdAtom, 'second');
+    expect(store.get(sessionDraftAtomFamily('first'))).toBe('My draft');
+    expect(store.get(sessionDraftAtomFamily('second'))).toBe('Another draft');
+  });
+
+  it('renames without switching conversations or replacing live message metadata', async () => {
+    const store = createStore();
+    const client = makeClient();
+    await store.set(createSessionAtom, client, 'Original');
+    await store.set(createSessionAtom, client, 'Other');
+    store.set(sessionsAtom, (sessions) => sessions.map((session) => session.id === 's1'
+      ? { ...session, status: 'running', messageCount: 7 } : session));
+    expect(await store.set(renameSessionAtom, client, 's1', '  财报分析  ')).toBe(true);
+    expect(store.get(activeSessionIdAtom)).toBe('s2');
+    expect(store.get(sessionsAtom)[0]).toMatchObject({ title: '财报分析', messageCount: 7, status: 'running' });
+    const restarted = createStore();
+    await restarted.set(hydrateSessionsAtom, client);
+    expect(restarted.get(sessionsAtom)[0].title).toBe('财报分析');
+  });
+
+  it('keeps the existing name when persistence fails', async () => {
+    const store = createStore();
+    const client = makeClient();
+    await store.set(createSessionAtom, client, 'Original');
+    client.kernel.renameSession = async () => ({ ok: false, error: { code: 'TEST', message: 'write failed' } });
+    expect(await store.set(renameSessionAtom, client, 's1', 'Changed')).toBe(false);
+    expect(store.get(sessionsAtom)[0].title).toBe('Original');
   });
 
   it('loads messages for the active session lazily from the kernel', async () => {

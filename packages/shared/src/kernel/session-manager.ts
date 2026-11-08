@@ -60,17 +60,13 @@ export class SessionManager {
     await this.sessions.remove(id);
   }
 
+  async renameSession(id: string, title: string): Promise<SessionMeta | null> {
+    return this.sessions.rename(id, title, this.now());
+  }
+
   /** Persist a session field update and refresh `updatedAt`. */
   async updateSession(id: string, patch: Partial<Session>): Promise<SessionMeta | null> {
-    const current = await this.sessions.get(id);
-    if (!current) return null;
-    const updated: SessionMeta = {
-      ...current,
-      ...patch,
-      updatedAt: this.now(),
-    };
-    await this.sessions.upsert(updated);
-    return updated;
+    return this.sessions.update(id, { ...patch, updatedAt: this.now() });
   }
 
   async listMessages(sessionId: string): Promise<Message[]> {
@@ -80,15 +76,11 @@ export class SessionManager {
   /** Persist a message and keep the session index stats in sync. */
   async appendMessage(sessionId: string, message: Message): Promise<Message[]> {
     const messages = await this.messages.append(sessionId, message);
-    const session = await this.sessions.get(sessionId);
-    if (session) {
-      await this.sessions.upsert({
-        ...session,
-        messageCount: messages.length,
-        lastMessageAt: message.timestamp,
-        updatedAt: this.now(),
-      });
-    }
+    await this.sessions.update(sessionId, {
+      messageCount: messages.length,
+      lastMessageAt: message.timestamp,
+      updatedAt: this.now(),
+    });
     return messages;
   }
 
