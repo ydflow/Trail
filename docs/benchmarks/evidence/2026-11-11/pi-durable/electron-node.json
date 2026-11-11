@@ -1,0 +1,125 @@
+{
+  "status": "passed",
+  "runtime": {
+    "node": "22.22.1",
+    "acorn": "8.15.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.5",
+    "ares": "1.34.6",
+    "brotli": "1.0.9",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "44.1",
+    "icu": "74.2",
+    "llhttp": "9.3.0",
+    "modules": "140",
+    "napi": "10",
+    "nbytes": "0.1.1",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.64.0",
+    "openssl": "0.0.0",
+    "simdjson": "4.2.4",
+    "simdutf": "7.3.3",
+    "sqlite": "3.51.2",
+    "tz": "2025b",
+    "undici": "6.23.0",
+    "unicode": "15.1",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "14.2.231.22-electron.0",
+    "zlib": "1.3.1",
+    "zstd": "1.5.8",
+    "electron": "39.8.9",
+    "chrome": "142.0.7444.265"
+  },
+  "taskId": 7,
+  "sourceSha256": "7db78e0963c28c5b5dbf72f09c7d5e080e2cbcade7e83a3dbb84dded06303a37",
+  "packageLockSha256": "a779baf19e49023ced797e6dfd32655b825cde543b6705816be851b8c1b06837",
+  "conversationId": 1,
+  "killPoint": {
+    "event": "kill-ready",
+    "taskId": 7,
+    "first": {
+      "symbol": "NVDA.US",
+      "source": "local-fixture",
+      "value": 1
+    }
+  },
+  "killed": {
+    "code": null,
+    "signal": "SIGKILL",
+    "stderr": ""
+  },
+  "before": {
+    "status": "pending",
+    "checkpoint": {
+      "phase": "second",
+      "first": {
+        "symbol": "NVDA.US",
+        "source": "local-fixture",
+        "value": 1
+      }
+    }
+  },
+  "after": {
+    "taskId": 7,
+    "conversationId": 1,
+    "state": {
+      "status": "terminal",
+      "outcome": {
+        "status": "completed",
+        "result": {
+          "first": {
+            "symbol": "NVDA.US",
+            "source": "local-fixture",
+            "value": 1
+          },
+          "second": {
+            "symbol": "AAPL.US",
+            "source": "local-fixture",
+            "value": 2
+          }
+        }
+      }
+    },
+    "pid": 13096
+  },
+  "settled": {
+    "taskId": 7,
+    "conversationId": 1,
+    "state": {
+      "status": "terminal",
+      "outcome": {
+        "status": "completed",
+        "result": {
+          "first": {
+            "symbol": "NVDA.US",
+            "source": "local-fixture",
+            "value": 1
+          },
+          "second": {
+            "symbol": "AAPL.US",
+            "source": "local-fixture",
+            "value": 2
+          }
+        }
+      }
+    },
+    "pid": 50852
+  },
+  "attempts": [
+    {
+      "name": "first",
+      "pid": 50552
+    },
+    {
+      "name": "second",
+      "pid": 50552
+    },
+    {
+      "name": "second",
+      "pid": 13096
+    }
+  ],
+  "completedReadAttempts": 1,
+  "uncommittedReadAttempts": 2
+}

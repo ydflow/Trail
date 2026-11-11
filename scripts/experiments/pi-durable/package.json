@@ -1,0 +1,13 @@
+{
+  "name": "trail-pi-durable-experiment",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node recovery.mjs"
+  },
+  "dependencies": {
+    "@earendil-works/chord": "1.5.2",
+    "@earendil-works/pi-ai": "1.5.2",
+    "@earendil-works/pi-durable": "1.5.2"
+  }
+}
