@@ -64,7 +64,7 @@ Checkpoint 回答“做到哪里、哪些结果已经提交”；Memory 回答�
 
 ### M1 · Durable Personal Core
 
-- [ ] [#10 · Pi Durable 适配：为 Personal Agent 建立持久执行内核](https://github.com/ydflow/Trail/issues/10)
+- [ ] [#10 · Pi Durable 适配：为 Personal Agent 建立持久执行内核](https://github.com/ydflow/Trail/issues/10)，已完成[隔离恢复实验与初步评估](adr/0002-pi-durable-feasibility.md)，桌面集成待验收。
 - [ ] [#11 · 统一 Goal / Project / Task / Run / Step 状态与任务图](https://github.com/ydflow/Trail/issues/11)
 - [ ] [#12 · 将 Checkpoint 扩展到普通助手与长任务](https://github.com/ydflow/Trail/issues/12)
 - [ ] [#13 · 工具副作用日志与重放策略：区分读取、幂等写入和人工确认](https://github.com/ydflow/Trail/issues/13)
