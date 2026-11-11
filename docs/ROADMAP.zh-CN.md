@@ -1,6 +1,6 @@
 # Trail · Personal Agent Roadmap
 
-> 更新：2026-11-08。规划入口：[#8](https://github.com/ydflow/Trail/issues/8) · [愿景讨论](https://github.com/ydflow/Trail/discussions/39) · [贡献指南](../CONTRIBUTING.md) · [能力地图](https://github.com/ydflow/Trail/issues/9)
+> 更新：2026-11-11。规划入口：[#8](https://github.com/ydflow/Trail/issues/8) · [愿景讨论](https://github.com/ydflow/Trail/discussions/39) · [贡献指南](../CONTRIBUTING.md) · [能力地图](https://github.com/ydflow/Trail/issues/9)
 
 ## 愿景：从投研工作台走向真正的 Personal Agent
 
@@ -60,7 +60,7 @@ Checkpoint 回答“做到哪里、哪些结果已经提交”；Memory 回答�
 
 架构取舍与实验设计可先参与 [Pi Durable 讨论](https://github.com/ydflow/Trail/discussions/40)、[Checkpoint × Memory 讨论](https://github.com/ydflow/Trail/discussions/41)、[Harness² × RSI 讨论](https://github.com/ydflow/Trail/discussions/42) 和 [组合评分与协方差适应讨论](https://github.com/ydflow/Trail/discussions/43)。讨论结论回链到下列任务，实施与验收进度以 Issue/PR 为准。
 
-所有条目均为待验收工作。前置依赖、源码起点与最小贡献范围见各 Issue。
+勾选项已按对应 Issue 验收，未勾选项仍待推进。前置依赖、源码起点与最小贡献范围见各 Issue。
 
 ### M1 · Durable Personal Core
 
@@ -72,7 +72,7 @@ Checkpoint 回答“做到哪里、哪些结果已经提交”；Memory 回答�
 - [ ] [#15 · 会话导入导出与重启后草稿恢复](https://github.com/ydflow/Trail/issues/15)
 - [ ] [#34 · 补充开发启动与常见问题排查手册](https://github.com/ydflow/Trail/issues/34)
 - [ ] [#35 · 研迹助手键盘操作、可访问性与窄窗口审计](https://github.com/ydflow/Trail/issues/35)
-- [ ] [#36 · 建立能力与 Provider 覆盖矩阵：让项目价值有证据可查](https://github.com/ydflow/Trail/issues/36)
+- [x] [#36 · 建立能力与 Provider 覆盖矩阵：让项目价值有证据可查](https://github.com/ydflow/Trail/issues/36)，已由 [PR #48](https://github.com/ydflow/Trail/pull/48) 交付，见[覆盖矩阵](provider-coverage-matrix.md)。
 
 ### M2 · Memory × Checkpoint
 

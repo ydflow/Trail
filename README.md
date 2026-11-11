@@ -13,7 +13,7 @@
 </p>
 <p align="center">
   <a href="https://github.com/ydflow/Trail/actions/workflows/pr.yml"><img src="https://github.com/ydflow/Trail/actions/workflows/pr.yml/badge.svg?branch=main" alt="Main checks" /></a>
-  <img src="https://img.shields.io/badge/channel-0.4.0--beta.2-0f5749" alt="0.4.0-beta.3 source channel" />
+  <img src="https://img.shields.io/badge/channel-0.4.0--beta.3-0f5749" alt="0.4.0-beta.3 source channel" />
   <img src="https://img.shields.io/badge/Electron-React%20%2B%20TypeScript-477b74" alt="Electron, React and TypeScript" />
 </p>
 
