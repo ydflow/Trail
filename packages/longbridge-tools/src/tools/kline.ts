@@ -31,5 +31,5 @@ export interface GetIntradayOptions {
 export async function getIntraday(symbol: string): Promise<IntradayData[]> {
   validateSymbolOrThrow(symbol);
   const output = await executeLongBridge(['intraday', symbol, '--format', 'json']);
-  return parseIntradayResponse(output);
+  return parseIntradayResponse(output, symbol);
 }

@@ -13,7 +13,7 @@ export type CalendarEventType =
   | 'closed';
 
 export interface GetCalendarEventsOptions {
-  /** Event type (positional argument; no default). */
+  /** Event type. The legacy `financial` value aliases earnings `report`. */
   eventType: CalendarEventType;
   /** Optional symbol filter (repeatable, max 10). */
   symbols?: string[];
@@ -49,7 +49,8 @@ export async function getCalendarEvents(
     );
   }
 
-  const args = ['finance-calendar', options.eventType];
+  const eventType = options.eventType === 'financial' ? 'report' : options.eventType;
+  const args = ['finance-calendar', eventType];
   for (const symbol of options.symbols ?? []) {
     args.push('--symbol', symbol);
   }

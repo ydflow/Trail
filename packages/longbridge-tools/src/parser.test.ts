@@ -4,6 +4,7 @@ import {
   parseCapitalFlowResponse,
   parseDepthResponse,
   parseInstitutionRatingResponse,
+  parseIntradayResponse,
   parseKlineResponse,
   parseMarketTemperatureResponse,
   parseNewsResponse,
@@ -121,6 +122,38 @@ describe('parseQuoteResponse empty-value markers', () => {
 });
 
 describe('other parsers with empty-value markers', () => {
+  it('normalizes CLI intraday strings and ISO times with the requested symbol', () => {
+    expect(parseIntradayResponse(JSON.stringify([{
+      time: '2026-11-13T14:30:00Z', price: '358.700', volume: '396688',
+    }]), 'AAPL.US')).toEqual([{
+      symbol: 'AAPL.US', timestamp: Date.parse('2026-11-13T14:30:00Z') / 1000,
+      price: 358.7, volume: 396688,
+    }]);
+  });
+
+  it('preserves normalized intraday payloads', () => {
+    const tick = { symbol: 'NVDA.US', timestamp: 1786492800, price: 224, volume: 100 };
+    expect(parseIntradayResponse(JSON.stringify([tick]), 'AAPL.US')).toEqual([tick]);
+  });
+
+  it('rejects intraday data with missing time or unusable numeric fields', () => {
+    const tick = { timestamp: 1786492800, price: '224', volume: '100' };
+    for (const invalid of [{ timestamp: undefined }, { price: '' }, { volume: null }]) {
+      expect(() => parseIntradayResponse(JSON.stringify([{ ...tick, ...invalid }]))).toThrow(LongBridgeError);
+    }
+  });
+
+  it('omits empty closed-market depth placeholders while retaining real quotes', () => {
+    const placeholder = { position: 1, price: '', volume: '0', order_num: 0 };
+    const real = { position: 2, price: '356.27', volume: 100, order_num: 1 };
+    expect(parseDepthResponse(JSON.stringify({
+      symbol: 'AAPL.US', bids: [placeholder, real], asks: [placeholder],
+    }))).toEqual({
+      symbol: 'AAPL.US',
+      bids: [{ position: 2, price: 356.27, volume: 100, orderNum: 1 }], asks: [],
+    });
+  });
+
   it('fails blank depth prices instead of reporting 0-price levels', () => {
     const payload = JSON.stringify({
       symbol: 'AAPL.US',

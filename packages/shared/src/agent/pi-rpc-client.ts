@@ -37,6 +37,8 @@ export interface PiRpcClientOptions {
   env?: NodeJS.ProcessEnv | (() => NodeJS.ProcessEnv | Promise<NodeJS.ProcessEnv>);
   requestTimeoutMs?: number;
   healthTimeoutMs?: number;
+  /** Cold runtime startup, including bunx resolution and extension loading. */
+  startupTimeoutMs?: number;
   controlTimeoutMs?: number;
   singleToolTimeoutMs?: number;
   maxToolCalls?: number;
@@ -108,6 +110,7 @@ export class PiRpcClient {
   private readonly sessionDir?: string;
   private readonly requestTimeoutMs: number;
   private readonly healthTimeoutMs: number;
+  private readonly startupTimeoutMs: number;
   private readonly controlTimeoutMs: number;
   private readonly singleToolTimeoutMs: number;
   private readonly maxToolCalls: number;
@@ -116,6 +119,7 @@ export class PiRpcClient {
   private readonly spawnProcess: SpawnFn;
   private readonly onLog: (log: PiRuntimeLog) => void;
   private process: SpawnProcess | null = null;
+  private runtimeReady = false;
   private stdoutBuffer = '';
   /** Line-splitting accumulator for stderr; holds only the unterminated tail. */
   private stderrBuffer = '';
@@ -144,9 +148,10 @@ export class PiRpcClient {
     this.sessionDir = options.sessionDir;
     this.requestTimeoutMs = options.requestTimeoutMs ?? 60_000;
     this.healthTimeoutMs = options.healthTimeoutMs ?? 5_000;
+    this.startupTimeoutMs = options.startupTimeoutMs ?? options.healthTimeoutMs ?? 120_000;
     this.controlTimeoutMs = options.controlTimeoutMs ?? 90_000;
     this.singleToolTimeoutMs = options.singleToolTimeoutMs ?? 30_000;
-    this.maxToolCalls = options.maxToolCalls ?? 8;
+    this.maxToolCalls = options.maxToolCalls ?? 32;
     this.requiredEnvKeys = options.requiredEnvKeys ?? [];
     this.now = options.now ?? Date.now;
     this.spawnProcess = options.spawnProcess ?? ((command, args, spawnOptions) =>
@@ -311,20 +316,7 @@ export class PiRpcClient {
     });
 
     const timeout = setTimeout(() => {
-      // Settle the stream; clear per-tool timers so no late tool-timeout
-      // callback fires after the stream has already terminated.
-      const timedOut = this.pendingPrompts.get(id);
-      this.pendingPrompts.delete(id);
-      if (timedOut) {
-        for (const toolTimeout of timedOut.toolTimeouts.values()) {
-          clearTimeout(toolTimeout);
-        }
-        timedOut.toolTimeouts.clear();
-      }
-      push({
-        kind: 'error',
-        error: createCodeError('PI_REQUEST_TIMEOUT', `Pi request timed out after ${this.requestTimeoutMs}ms.`),
-      });
+      this.finishPrompt(pending, createCodeError('PI_REQUEST_TIMEOUT', `Pi request timed out after ${this.requestTimeoutMs}ms.`));
     }, this.requestTimeoutMs);
 
     const pending: PendingPrompt = {
@@ -359,7 +351,9 @@ export class PiRpcClient {
         self.finishPrompt(pending, error);
         throw error;
       }
-      self.writeJson(proc, { type: 'prompt', id, message: content }, pending);
+      if (self.pendingPrompts.has(id)) {
+        self.writeJson(proc, { type: 'prompt', id, message: content }, pending);
+      }
       while (true) {
         const event = await next();
         if (event.kind === 'error') {
@@ -385,8 +379,7 @@ export class PiRpcClient {
 
     return new Promise<PiPromptResult>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        this.pendingPrompts.delete(id);
-        reject(createCodeError('PI_REQUEST_TIMEOUT', `Pi request timed out after ${this.requestTimeoutMs}ms.`));
+        this.finishPrompt(pending, createCodeError('PI_REQUEST_TIMEOUT', `Pi request timed out after ${this.requestTimeoutMs}ms.`));
       }, this.requestTimeoutMs);
 
       const pending: PendingPrompt = {
@@ -436,8 +429,9 @@ export class PiRpcClient {
     this.exited = true;
   }
 
-  private async sendControl<T>(payload: Record<string, unknown>, timeoutMs: number): Promise<T> {
+  private async sendControl<T>(payload: Record<string, unknown>, responseTimeoutMs: number): Promise<T> {
     const proc = await this.ensureStarted();
+    const timeoutMs = this.runtimeReady ? responseTimeoutMs : Math.max(responseTimeoutMs, this.startupTimeoutMs);
     const id = randomUUID();
 
     return new Promise<T>((resolve, reject) => {
@@ -479,7 +473,11 @@ export class PiRpcClient {
       );
     }
 
+    // Another caller may have spawned while this one awaited credentials.
+    if (this.process && !this.exited) return this.process;
+
     this.exited = false;
+    this.runtimeReady = false;
     this.lastExitInfo = null;
     let proc: SpawnProcess;
     try {
@@ -587,6 +585,7 @@ export class PiRpcClient {
       event = JSON.parse(line) as Record<string, unknown>;
     } catch (error) {
       this.rejectAll(createCodeError('PI_PROTOCOL_ERROR', `Pi emitted malformed JSONL: ${line}`));
+      void this.dispose();
       return;
     }
 
@@ -600,6 +599,7 @@ export class PiRpcClient {
           String(event.error ?? event.message ?? 'Pi runtime error.')
         ));
       } else {
+        this.runtimeReady = true;
         control.resolve(event.data);
       }
       return;
@@ -647,6 +647,7 @@ export class PiRpcClient {
     }
 
     this.recordToolEvent(pending, event);
+    if (!this.pendingPrompts.has(pending.id)) return;
 
     if (pending.onEvent) {
       pending.onEvent(event);
@@ -727,14 +728,17 @@ export class PiRpcClient {
   }
 
   private finishPrompt(pending: PendingPrompt, error?: unknown) {
+    if (!this.pendingPrompts.delete(pending.id)) return;
     clearTimeout(pending.timeout);
     for (const timeout of pending.toolTimeouts.values()) {
       clearTimeout(timeout);
     }
     pending.toolTimeouts.clear();
-    this.pendingPrompts.delete(pending.id);
     if (error) {
       pending.reject(error);
+      // Pi emits id-less events. Retiring the process prevents failed work
+      // from continuing and its late events from being attributed to a retry.
+      void this.dispose();
       return;
     }
     pending.resolve({

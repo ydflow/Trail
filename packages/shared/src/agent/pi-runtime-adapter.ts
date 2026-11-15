@@ -132,7 +132,7 @@ export class PiRuntimeAdapter implements AgentRuntime {
       setModel: (provider, modelId) => this.applySetModel(provider, modelId),
       listThinkingLevels: () => this.listThinkingLevels(),
       setThinkingLevel: (level) => this.applySetThinkingLevel(level),
-      restart: () => this.rpcClient.restart(),
+      restart: () => this.restart(),
       testProvider: (provider, modelId) => this.testProvider(provider, modelId),
     };
   }
@@ -232,6 +232,7 @@ export class PiRuntimeAdapter implements AgentRuntime {
     try {
       await this.activate(state);
     } catch (error) {
+      this.activePath = null;
       const emit = yieldInfraFailure || !(await this.isOptionalExtensionFailure(error));
       yield* fail(error, emit);
       return;
@@ -260,6 +261,7 @@ export class PiRuntimeAdapter implements AgentRuntime {
     }
 
     if (runError !== undefined) {
+      this.activePath = null;
       const emitTerminal =
         yieldInfraFailure || !(await this.isOptionalExtensionFailure(runError));
       yield* fail(runError, emitTerminal);
@@ -318,6 +320,7 @@ export class PiRuntimeAdapter implements AgentRuntime {
 
   /** Restart the runtime process (Diagnostics / settings). Best-effort. */
   async restart(): Promise<void> {
+    this.activePath = null;
     await this.rpcClient.restart();
   }
 
@@ -335,7 +338,7 @@ export class PiRuntimeAdapter implements AgentRuntime {
 
   /** Ensure the Pi runtime has the session's conversation file loaded. */
   private async activate(state: RuntimeSessionState): Promise<void> {
-    if (this.activePath === state.sessionPath && state.runtimeSessionId) {
+    if (this.activePath === state.sessionPath && state.runtimeSessionId && this.rpcClient.isRuntimeAlive()) {
       return;
     }
     const piState = await this.rpcClient.switchSession(state.sessionPath);
