@@ -295,7 +295,7 @@ const CalendarEventType = Type.Union([
   Type.Literal('ipo'),
   Type.Literal('macrodata'),
   Type.Literal('closed'),
-]);
+], { description: 'Use report for earnings. financial is a legacy alias for report.' });
 
 export type CalendarEventsInput = {
   eventType: 'financial' | 'report' | 'dividend' | 'ipo' | 'macrodata' | 'closed';

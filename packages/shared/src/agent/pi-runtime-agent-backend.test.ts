@@ -83,6 +83,146 @@ async function readFileOrNull(path: string) {
 }
 
 describe('PiRpcClient', () => {
+  it('allows a normal research turn with twelve tool calls by default', async () => {
+    const client = new PiRpcClient({
+      spawnProcess: createSpawn(() => new FakePiProcess((line, proc) => {
+        if (line.type !== 'prompt') return;
+        for (let index = 0; index < 12; index += 1) {
+          proc.writeEvent({ type: 'tool_execution_start', toolCallId: `tool-${index}`, toolName: 'get_quote' });
+          proc.writeEvent({ type: 'tool_execution_end', toolCallId: `tool-${index}`, result: 'data' });
+        }
+        proc.writeEvent({
+          type: 'agent_end',
+          messages: [{ role: 'assistant', content: [{ type: 'text', text: 'research completed' }] }],
+        });
+      })),
+    });
+    try {
+      const result = await client.prompt('research');
+      expect(result.answer).toBe('research completed');
+      expect(result.toolCalls).toHaveLength(12);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  it('stops an over-budget process and rejects its late events during a retry', async () => {
+    const processes: FakePiProcess[] = [];
+    const client = new PiRpcClient({
+      maxToolCalls: 1,
+      spawnProcess: createSpawn(() => {
+        const proc = new FakePiProcess((line, active) => {
+          if (line.type !== 'prompt') return;
+          if (processes.length === 1) {
+            active.writeEvent({ type: 'tool_execution_start', toolCallId: 'first', toolName: 'get_quote' });
+            active.writeEvent({ type: 'tool_execution_start', toolCallId: 'second', toolName: 'get_news' });
+          } else {
+            processes[0].writeEvent({
+              type: 'agent_end',
+              messages: [{ role: 'assistant', content: [{ type: 'text', text: 'stale answer' }] }],
+            });
+            active.writeEvent({
+              type: 'agent_end',
+              messages: [{ role: 'assistant', content: [{ type: 'text', text: 'fresh answer' }] }],
+            });
+          }
+        });
+        processes.push(proc);
+        return proc;
+      }),
+    });
+    try {
+      const stream = client.promptStreaming('first');
+      const consume = async () => {
+        for await (const item of stream) { void item; }
+      };
+      await expect(consume()).rejects.toMatchObject({ code: 'PI_TOOL_LIMIT_EXCEEDED' });
+      expect(processes[0].killed).toBe(true);
+      await expect(client.prompt('retry')).resolves.toMatchObject({ answer: 'fresh answer' });
+      expect(processes).toHaveLength(2);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  for (const streaming of [false, true]) {
+    it(`stops the process after a ${streaming ? 'streaming' : 'non-streaming'} request timeout`, async () => {
+      const proc = new FakePiProcess(() => undefined);
+      const client = new PiRpcClient({ requestTimeoutMs: 5, spawnProcess: createSpawn(() => proc) });
+      try {
+        const consume = async () => {
+          for await (const item of client.promptStreaming('wait')) { void item; }
+        };
+        await expect(streaming ? consume() : client.prompt('wait')).rejects.toMatchObject({ code: 'PI_REQUEST_TIMEOUT' });
+        expect(proc.killed).toBe(true);
+      } finally {
+        await client.dispose();
+      }
+    });
+  }
+
+  it('shares one spawn when concurrent control requests await dynamic credentials', async () => {
+    let spawns = 0;
+    const client = new PiRpcClient({
+      healthTimeoutMs: 50,
+      env: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return {};
+      },
+      spawnProcess: createSpawn(() => {
+        spawns += 1;
+        return new FakePiProcess((line, proc) => {
+          setTimeout(() => proc.writeEvent({ type: 'response', id: line.id, success: true, data: {} }), 5);
+        });
+      }),
+    });
+    try {
+      await Promise.all([client.getState(), client.getState()]);
+      expect(spawns).toBe(1);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  it('keeps the timeout error when credentials resolve after a stream expires', async () => {
+    let prompts = 0;
+    const client = new PiRpcClient({
+      requestTimeoutMs: 5,
+      env: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        return {};
+      },
+      spawnProcess: createSpawn(() => new FakePiProcess((line) => {
+        if (line.type === 'prompt') prompts += 1;
+      })),
+    });
+    try {
+      const consume = async () => {
+        for await (const item of client.promptStreaming('expired')) { void item; }
+      };
+      await expect(consume()).rejects.toMatchObject({ code: 'PI_REQUEST_TIMEOUT' });
+      expect(prompts).toBe(0);
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  it('allows cold-start grace while preserving the warm health deadline', async () => {
+    const client = new PiRpcClient({
+      healthTimeoutMs: 5,
+      startupTimeoutMs: 100,
+      spawnProcess: createSpawn(() => new FakePiProcess((line, proc) => {
+        setTimeout(() => proc.writeEvent({ type: 'response', id: line.id, success: true, data: {} }), 20);
+      })),
+    });
+    try {
+      await expect(client.getState()).resolves.toEqual({});
+      await expect(client.getState()).rejects.toMatchObject({ code: 'PI_HEALTH_TIMEOUT' });
+    } finally {
+      await client.dispose();
+    }
+  });
+
   for (const eventType of ['message_end', 'agent_end']) {
     it(`rejects a model error inside ${eventType} instead of completing an empty answer`, async () => {
       const client = new PiRpcClient({ spawnProcess: createSpawn(() => new FakePiProcess((line, proc) => {
@@ -516,6 +656,42 @@ describe('PiRpcClient', () => {
 });
 
 describe('PiRuntimeAdapter', () => {
+  it('reactivates the same conversation after a failed runtime is retired', async () => {
+    const switched: string[] = [];
+    let starts = 0;
+    const client = new PiRpcClient({
+      maxToolCalls: 1,
+      spawnProcess: createSpawn(() => {
+        const attempt = ++starts;
+        return new FakePiProcess((line, proc) => {
+          if (line.type === 'switch_session') {
+            switched.push(String(line.sessionPath));
+            proc.writeEvent({ type: 'response', id: line.id, success: true });
+          } else if (line.type === 'get_state') {
+            proc.writeEvent({ type: 'response', id: line.id, success: true, data: { sessionId: 'pi-session' } });
+          } else if (line.type === 'prompt' && attempt === 1) {
+            for (const id of ['one', 'two']) proc.writeEvent({ type: 'tool_execution_start', toolCallId: id, toolName: 'get_quote' });
+          } else if (line.type === 'prompt') {
+            proc.writeEvent({ type: 'agent_end', messages: [{ role: 'assistant', content: [{ type: 'text', text: 'recovered' }] }] });
+          }
+        });
+      }),
+    });
+    const adapter = new PiRuntimeAdapter({ rpcClient: client });
+    try {
+      const events: string[] = [];
+      for (const runId of ['failed', 'retried']) {
+        for await (const event of adapter.run({ sessionId: 'same', runId, content: 'research' })) events.push(event.type);
+        // The settings panel can warm the replacement process before retry.
+        if (runId === 'failed') await adapter.getLlmApi().getState();
+      }
+      expect(events).toContain('run_failed');
+      expect(events.at(-1)).toBe('run_completed');
+      expect(switched).toHaveLength(2);
+      expect(switched[1]).toBe(switched[0]);
+    } finally { await adapter.dispose(); }
+  });
+
   it('maps a Pi run into the Trail AgentEvent sequence', async () => {
     const client = new PiRpcClient({
       spawnProcess: createSpawn(() =>

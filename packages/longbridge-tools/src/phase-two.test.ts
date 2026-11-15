@@ -235,6 +235,15 @@ describe('phase-2 argv construction', () => {
     );
   });
 
+  it('maps the legacy financial calendar type to the CLI report command', async () => {
+    execaHandler = async () => ({ stdout: JSON.stringify(loadFixture('finance-calendar-events')) });
+    await getCalendarEvents({ eventType: 'financial', symbols: ['AAPL.US'] });
+    expect(execaMock).toHaveBeenCalledWith(
+      'longbridge', ['finance-calendar', 'report', '--symbol', 'AAPL.US', '--format', 'json'],
+      expect.any(Object)
+    );
+  });
+
   it.skipIf(!hasAccountFixture('positions'))('getAccountPositions takes no symbol', async () => {
     execaHandler = async () => ({ stdout: JSON.stringify(loadFixture('positions')) });
     await getAccountPositions();

@@ -144,14 +144,20 @@ export function parseKlineResponse(output: string, fallbackSymbol = ''): Kline[]
   }
 }
 
-export function parseIntradayResponse(output: string): IntradayData[] {
+export function parseIntradayResponse(output: string, fallbackSymbol = ''): IntradayData[] {
   try {
-    const data = JSON.parse(output);
-    return data.map((d: { symbol: string; timestamp: number; price: number; volume: number }) => ({
-      symbol: d.symbol,
-      timestamp: d.timestamp,
-      price: d.price,
-      volume: d.volume,
+    const data: Array<{
+      symbol?: string;
+      timestamp?: number | string;
+      time?: string;
+      price: number | string;
+      volume: number | string;
+    }> = JSON.parse(output);
+    return data.map((d) => ({
+      symbol: d.symbol ?? fallbackSymbol,
+      timestamp: toTimestamp(d.timestamp ?? d.time),
+      price: toNumber(d.price, 'price'),
+      volume: toNumber(d.volume, 'volume'),
     }));
   } catch (e) {
     throw parseFailure('intraday', output);
@@ -355,6 +361,10 @@ export function parseDepthResponse(output: string): Depth {
     if (!data || typeof data !== 'object') {
       throw new Error('Depth response is empty');
     }
+    // Closed markets can return a placeholder with no price and zero volume.
+    const hasQuote = (l: RawDepthLevel) => !(
+      typeof l.price === 'string' && l.price.trim() === '' && toOptionalNumber(l.volume) === 0
+    );
     const level = (l: RawDepthLevel): DepthLevel => ({
       position: toNumber(l.position, 'position'),
       price: toNumber(l.price, 'price'),
@@ -363,8 +373,8 @@ export function parseDepthResponse(output: string): Depth {
     });
     return {
       symbol: data.symbol,
-      bids: (data.bids ?? []).map(level),
-      asks: (data.asks ?? []).map(level),
+      bids: (data.bids ?? []).filter(hasQuote).map(level),
+      asks: (data.asks ?? []).filter(hasQuote).map(level),
     };
   } catch (e) {
     throw parseFailure('depth', output);
