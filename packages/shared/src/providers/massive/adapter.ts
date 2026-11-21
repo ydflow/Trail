@@ -227,7 +227,10 @@ export class MassiveFinancialDataProvider implements FinancialDataProvider {
         const payload = await getJson(path, apiKey, signal, endpoint)
         const quote = mapQuote(symbol, payload)
         // Repo convention: Quote.timestamp is epoch SECONDS; provenance.marketTime is MS.
-        return { ok: true, data: quote, provenance: provenance(quote.timestamp * 1000) }
+        // A non-positive timestamp means the provider gave no market time; keep
+        // marketTime undefined so the fetch time is not mistaken for a quote time.
+        const marketTime = quote.timestamp > 0 ? quote.timestamp * 1000 : undefined
+        return { ok: true, data: quote, provenance: provenance(marketTime) }
       }
       case 'market.kline': {
         const { count, timespan } = readKlineOptions(input)
@@ -447,7 +450,10 @@ function mapQuote(symbol: string, payload: unknown): Quote {
   const updatedNs = toFinite(ticker.updated)
   const marketTimeMs =
     tradeTimeMs ?? minTimeMs ?? (updatedNs !== undefined ? updatedNs / 1_000_000 : undefined)
-  const timestamp = marketTimeMs !== undefined ? Math.floor(marketTimeMs / 1000) : Math.floor(Date.now() / 1000)
+  // Trail uses timestamp <= 0 to mean "market time unknown". When the free-tier
+  // snapshot omits every time field, do not substitute the fetch time here —
+  // that would make provenance.marketTime look like a real quote time below.
+  const timestamp = marketTimeMs !== undefined ? Math.floor(marketTimeMs / 1000) : 0
 
   return { symbol, lastPrice, change, changePercent, volume, timestamp, high, low, open, prevClose }
 }
