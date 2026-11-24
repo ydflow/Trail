@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
@@ -17,6 +17,17 @@ beforeAll(() => {
 
 afterAll(() => {
   restoreDom?.();
+});
+
+const mountedRoots: Array<{ root: ReturnType<typeof createRoot>; container: HTMLElement }> = [];
+
+afterEach(async () => {
+  for (const { root, container } of mountedRoots.splice(0)) {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+  }
 });
 
 const MESSAGE: Message = {
@@ -54,11 +65,13 @@ const FABRICATED = `Claim.⟦cite:made-up-id⟧`;
 
 async function renderElement(element: React.ReactElement): Promise<HTMLElement> {
   const container = document.createElement('div');
+  document.body.appendChild(container);
   const root = createRoot(container);
   const i18n = makeAnswerBlockTestI18n('en-US');
   await act(async () => {
     root.render(<I18nextProvider i18n={i18n}>{element}</I18nextProvider>);
   });
+  mountedRoots.push({ root, container });
   return container;
 }
 
