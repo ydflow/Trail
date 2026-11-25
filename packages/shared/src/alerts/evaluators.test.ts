@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { spawnSync } from 'node:child_process';
 import type { AlertRule, AlertRuleBase, Quote } from '@finagent/core';
 import { evaluateRule } from './evaluators.ts';
 import { base, makeRegistry, makeSnapshotContext } from './testing.ts';
@@ -186,6 +187,107 @@ describe('dividend', () => {
     const registry = makeRegistry({ 'company.dividends': [] });
     const r = rule({}, { symbol: 'NVDA.US', type: 'dividend' });
     expect(await evaluateRule(r, registry, { now })).toBeNull();
+  });
+
+  /**
+   * Regression: date-only records must not slide a day west of UTC.
+   *
+   * `ex_date: "2026.06.04"` is a CALENDAR DATE. The parser stores it as UTC
+   * midnight (2026-06-04T00:00:00Z); the alert used to render it with the LOCAL
+   * zone, so a host in America/Los_Angeles read 6/3 while a host in UTC read 6/4
+   * — same record, two different dates, purely from TZ.
+   *
+   * Each zone runs in its own process because a timezone is process-global; the
+   * assertion is that BOTH report June 4 in the UI's own format.
+   */
+  describe('date-only ex-date rendering', () => {
+    const EX_DATE = '2026.06.04';
+    // Fixed "now" from the report: 2026-06-01T12:00:00Z, three days before ex-date.
+    const FIXED_NOW_MS = Date.UTC(2026, 5, 1, 12, 0, 0);
+    const FIXED_NOW_S = FIXED_NOW_MS / 1000;
+
+    for (const zone of ['America/Los_Angeles', 'Etc/UTC']) {
+      it(`renders 2026-06-04 under TZ=${zone}`, () => {
+        const script = `
+          import { parseDividendResponse } from ${JSON.stringify(
+            new URL('../../../longbridge-tools/src/parser.ts', import.meta.url).href
+          )};
+          import { evaluateRule } from ${JSON.stringify(
+            new URL('./evaluators.ts', import.meta.url).href
+          )};
+          import { makeRegistry } from ${JSON.stringify(
+            new URL('./testing.ts', import.meta.url).href
+          )};
+
+          // Parse a real date-only payload, exactly as the CLI would return it.
+          const records = parseDividendResponse(JSON.stringify({
+            list: [{ id: 'd1', desc: 'cash dividend', ex_date: '2026.06.04' }],
+          }));
+
+          const registry = makeRegistry({ 'company.dividends': records });
+          const rule = {
+            id: 'div-tz',
+            createdAt: 0,
+            enabled: true,
+            cooldownMinutes: 0,
+            symbol: 'NVDA.US',
+            type: 'dividend',
+          };
+          const event = await evaluateRule(rule, registry, { now: () => ${FIXED_NOW_S} * 1000 });
+          console.log(JSON.stringify({
+            tz: process.env.TZ,
+            exDate: records[0].exDate,
+            message: event === null ? null : event.message,
+          }));
+        `;
+        const result = spawnSync(process.execPath, ['-e', script], {
+          env: { ...process.env, TZ: zone },
+          encoding: 'utf8',
+          timeout: 20_000,
+        });
+        expect(result.error).toBeUndefined();
+        expect(result.status).toBe(0);
+
+        const parsed = JSON.parse(result.stdout) as {
+          tz: string;
+          exDate: number;
+          message: string | null;
+        };
+        // Same stored instant in both processes: UTC midnight of June 4.
+        expect(parsed.exDate).toBe(Date.UTC(2026, 5, 4) / 1000);
+        expect(parsed.tz).toBe(zone);
+        expect(parsed.message).not.toBeNull();
+
+        // The alert names June 4 in BOTH zones. This is the regression: the old
+        // local-zone formatting printed June 3 under America/Los_Angeles.
+        const expected = `Ex-dividend date ${new Date(Date.UTC(2026, 5, 4)).toLocaleDateString(undefined, {
+          timeZone: 'UTC',
+        })}.`;
+        expect(parsed.message).toBe(expected);
+
+        // Spelled out independently of the host locale, so a locale change cannot
+        // silently make the assertion vacuous.
+        expect(parsed.message).not.toMatch(/6\/3\/|\/6\/3\b|年6月3日|June 3|Jun 3/);
+        expect(parsed.message).toMatch(/6\/4|6月4日|June 4|Jun 4/);
+      });
+    }
+
+    it('keeps the host date format, changing only the day', () => {
+      // A correctness fix must not piggyback a format change. The rendered string
+      // keeps whatever format the host locale produced before, so a reviewer sees
+      // the day move and nothing else.
+      const utcMidnight = Date.UTC(2026, 5, 4);
+
+      // Same options as the alert, minus the UTC pin: this is the OLD wording.
+      const unpinned = new Date(utcMidnight).toLocaleDateString(undefined);
+      // The alert's wording: identical except for the pinned zone.
+      const pinned = new Date(utcMidnight).toLocaleDateString(undefined, { timeZone: 'UTC' });
+
+      // Format is preserved: both are the same shape, only the digits differ when
+      // the host sits west of UTC. Comparing the non-digit skeleton keeps this
+      // assertion independent of the host locale.
+      expect(pinned.replace(/\d/g, '#')).toBe(unpinned.replace(/\d/g, '#'));
+    });
   });
 });
 

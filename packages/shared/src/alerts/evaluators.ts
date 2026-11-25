@@ -106,6 +106,28 @@ function secondsToMs(seconds: number): number {
   return seconds * SECOND_MS;
 }
 
+/**
+ * Epoch seconds → the calendar-date string for a date-only field.
+ *
+ * Date-only fields (an ex-dividend date, a payment date) are CALENDAR DATES, not
+ * instants: `ex_date: "2026.06.04"` means "the 4th of June", with no time of day
+ * and no zone. The parser stores it as UTC midnight (2026-06-04T00:00:00Z), so
+ * formatting it with the LOCAL zone is only correct east of UTC. West of UTC the
+ * local wall clock is still the previous day, and the alert rendered 6/3 for a
+ * record every process agrees says 6/4.
+ *
+ * Pinning `timeZone: 'UTC'` formats the same UTC calendar the value was parsed
+ * into, so the displayed date matches the source record in every process,
+ * whatever TZ says. Everything else is deliberately left alone: no locale and no
+ * format options means the rendered wording is byte-identical to what this alert
+ * printed before, so the only visible change is the corrected day.
+ */
+function formatCalendarDate(epochSeconds: number): string {
+  return new Date(secondsToMs(epochSeconds)).toLocaleDateString(undefined, {
+    timeZone: 'UTC',
+  });
+}
+
 function ruleSymbol(rule: AlertRule): string | undefined {
   if (rule.type === 'portfolio_drawdown') return undefined;
   return (rule as SymbolAlertRuleBase).symbol;
@@ -290,7 +312,7 @@ async function evaluateDividend(
   const next = upcoming[0];
   return makeEvent(rule, now, {
     title: `${rule.symbol} ex-dividend upcoming`,
-    message: `Ex-dividend date ${new Date(secondsToMs(next.exDate)).toLocaleDateString()}.`,
+    message: `Ex-dividend date ${formatCalendarDate(next.exDate)}.`,
     payload: { exDate: secondsToMs(next.exDate) },
   });
 }
