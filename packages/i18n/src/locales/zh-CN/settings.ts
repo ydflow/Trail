@@ -175,5 +175,7 @@ export const settings = {
     version: '版本',
     channel: '渠道',
     build: '构建',
+    loading: '读取中…',
+    unavailable: '无法读取',
   },
 } satisfies SameKeysAs<typeof enSettings>;
