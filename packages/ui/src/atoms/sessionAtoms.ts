@@ -63,15 +63,14 @@ export const loadMessagesAtom = atom(
     // The terminal event can precede transcript persistence. Keep the complete
     // live turn until the saved answer (including its evidence) is available.
     // Ordinary hydration remains a single read; only completion refreshes poll.
-    for (let attempt = 0; attempt < (minimumCount > 0 ? 8 : 1); attempt += 1) {
+    const attempts = minimumCount > 0 ? 8 : 1;
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
       const result = await client.kernel.getMessages(sessionId);
       if (!result.ok) return;
-      const requiredCount = minimumCount > 0
-        ? Math.max(minimumCount, get(messagesAtomFamily(sessionId)).length)
-        : 0;
+      const previous = get(messagesAtomFamily(sessionId));
+      const requiredCount = Math.max(minimumCount, previous.length);
       if (result.data.length >= requiredCount) {
         // Transfer choices from temporary live ids to persisted message ids.
-        const previous = get(messagesAtomFamily(sessionId));
         const expansion = get(answerExpansionAtomFamily(sessionId));
         const nextExpansion = { ...expansion };
         let changed = false;
@@ -89,7 +88,7 @@ export const loadMessagesAtom = atom(
         set(loadedSessionIdsAtom, (loaded) => new Set([...loaded, sessionId]));
         return;
       }
-      if (attempt < 7) await new Promise((resolve) => setTimeout(resolve, 75));
+      if (attempt + 1 < attempts) await new Promise((resolve) => setTimeout(resolve, 75));
     }
   }
 );

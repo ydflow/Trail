@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { createStore } from 'jotai';
 import type { FinagentClient } from '../client';
-import type { Run, SessionMeta } from '@finagent/core';
+import type { AgentEvent, Message, Run, SessionMeta } from '@finagent/core';
+import { applyAgentEventAtom } from './runAtoms';
 import {
   activeMessagesAtom,
   activeSessionIdAtom,
@@ -108,6 +109,45 @@ function makeClient(): FinagentClient {
 }
 
 describe('session atoms', () => {
+  it.each([false, true])('preserves the new turn when the initial read returns first: %s', async (initialFirst) => {
+    const store = createStore();
+    const client = makeClient();
+    const sessionId = 'concurrent-load';
+    const previous: Message = { id: 'previous', role: 'assistant', content: 'previous answer', timestamp: 1 };
+    const user: Message = { id: 'question', role: 'user', content: 'question', timestamp: 2 };
+    const saved: Message = { id: 'saved', role: 'assistant', content: 'new answer', timestamp: 3 };
+    const initial = Promise.withResolvers<Awaited<ReturnType<typeof client.kernel.getMessages>>>();
+    let reads = 0;
+    client.kernel.getMessages = () => ++reads === 1
+      ? initial.promise
+      : Promise.resolve({ ok: true, data: [previous, user, saved] });
+    store.set(activeSessionIdAtom, sessionId);
+    store.set(messagesAtomFamily(sessionId), [previous]);
+
+    const opening = store.set(loadMessagesAtom, client, sessionId);
+    store.set(applyAgentEventAtom, {
+      id: 'started', sessionId, runId: 'run', sequence: 1, timestamp: 2, type: 'run_started',
+      payload: { userMessage: user, run: { id: 'run', sessionId, status: 'running', input: 'question', startedAt: 2 } },
+    } satisfies AgentEvent);
+    store.set(applyAgentEventAtom, {
+      id: 'completed', sessionId, runId: 'run', sequence: 2, timestamp: 3, type: 'run_completed',
+      payload: { answer: 'new answer', toolCalls: [] },
+    } satisfies AgentEvent);
+
+    if (initialFirst) {
+      initial.resolve({ ok: true, data: [previous] });
+      await opening;
+      expect(store.get(messagesAtomFamily(sessionId)).map((message) => message.id))
+        .toEqual(['previous', 'question', 'assistant-run']);
+      await store.set(loadMessagesAtom, client, sessionId, 3);
+    } else {
+      await store.set(loadMessagesAtom, client, sessionId, 3);
+      initial.resolve({ ok: true, data: [previous] });
+      await opening;
+    }
+    expect(store.get(messagesAtomFamily(sessionId))).toEqual([previous, user, saved]);
+  });
+
   it('retains a complete live answer until its persisted replacement is ready', async () => {
     const store = createStore();
     const client = makeClient();
