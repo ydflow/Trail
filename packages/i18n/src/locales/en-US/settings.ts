@@ -184,5 +184,7 @@ export const settings = {
     version: 'Version',
     channel: 'Channel',
     build: 'Build',
+    loading: 'Loading…',
+    unavailable: 'Unavailable',
   },
 } satisfies NamespaceResource;
