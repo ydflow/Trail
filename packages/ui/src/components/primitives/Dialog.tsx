@@ -1,6 +1,7 @@
 import React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 
 export interface DialogProps {
@@ -18,6 +19,8 @@ export const Dialog: React.FC<DialogProps> = ({
   children,
   className,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <DialogPrimitive.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <DialogPrimitive.Overlay className="fixed inset-0 z-(--z-index-modal) bg-black/32 backdrop-blur-[2px]" />
@@ -35,7 +38,7 @@ export const Dialog: React.FC<DialogProps> = ({
             <button
               type="button"
               className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-[7px] text-foreground/48 transition-colors hover:bg-surface-hover hover:text-foreground"
-              aria-label="Close dialog"
+              aria-label={t('common.closeDialog')}
             >
               <X className="h-4 w-4" />
             </button>
