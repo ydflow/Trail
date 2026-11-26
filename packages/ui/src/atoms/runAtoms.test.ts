@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { createStore } from 'jotai';
-import type { AgentEvent } from '@finagent/core';
+import type { AgentEvent, ToolCall } from '@finagent/core';
+import { collectCitationSources } from '../lib/citations';
 import {
   activeSessionIdAtom,
   answerExpansionAtomFamily,
@@ -35,6 +36,36 @@ function runStarted(sessionId: string): AgentEvent {
 }
 
 describe('agent event projection', () => {
+  it('only cites completed tools when a run is cancelled', () => {
+    const store = createStore();
+    const sessionId = 'cancelled-with-tools';
+    const runId = `run-${sessionId}`;
+    const quote: ToolCall = { id: 'quote', toolName: 'get_quote', args: {}, startedAt: 2, status: 'running' };
+    const news: ToolCall = { id: 'news', toolName: 'get_news', args: {}, startedAt: 4, status: 'running' };
+    store.set(activeSessionIdAtom, sessionId);
+    store.set(applyAgentEventAtom, runStarted(sessionId));
+    store.set(applyAgentEventAtom, {
+      id: 'quote-started', sessionId, runId, timestamp: 2, sequence: 2,
+      type: 'tool_started', payload: { toolCall: quote },
+    });
+    store.set(applyAgentEventAtom, {
+      id: 'quote-completed', sessionId, runId, timestamp: 3, sequence: 3,
+      type: 'tool_completed', payload: { toolCall: { ...quote, status: 'success', completedAt: 3, result: { price: 42 } } },
+    });
+    store.set(applyAgentEventAtom, {
+      id: 'news-started', sessionId, runId, timestamp: 4, sequence: 4,
+      type: 'tool_started', payload: { toolCall: news },
+    });
+    store.set(applyAgentEventAtom, runStopped(sessionId, 'RUN_CANCELLED', 'Run cancelled.'));
+
+    const assistant = store.get(messagesAtomFamily(sessionId)).at(-1)!;
+    expect(assistant.toolCalls).toMatchObject([
+      { id: 'quote', status: 'success', completedAt: 3, result: { price: 42 } },
+      { id: 'news', status: 'error', completedAt: 9, error: { code: 'RUN_CANCELLED' } },
+    ]);
+    expect(collectCitationSources(assistant).sources.map((source) => source.id)).toEqual(['quote']);
+  });
+
   it('keeps a just-completed answer expanded instead of folding when streaming ends', () => {
     const store = createStore();
     store.set(activeSessionIdAtom, 'visible-session');
