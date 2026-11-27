@@ -237,10 +237,10 @@ export const applyAgentEventAtom = atom(
           toolName: toolCall.toolName,
           args: toolCall.args,
           startedAt: toolCall.startedAt,
-          completedAt: toolCall.completedAt,
-          status: toolCall.status === 'error' ? 'error' : 'success',
+          completedAt: toolCall.status === 'running' ? event.timestamp : toolCall.completedAt,
+          status: toolCall.status === 'running' ? 'error' : toolCall.status,
           result: toolCall.result,
-          error: toolCall.error,
+          error: toolCall.status === 'running' ? error : toolCall.error,
         })),
       };
       set(messages, [...get(messages), assistantMessage]);
