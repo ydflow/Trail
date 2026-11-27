@@ -140,6 +140,11 @@ export interface ScreeningServiceOptions {
   now?: () => number
 }
 
+export interface RunScreeningOptions {
+  /** Skip saving the run into the Discover history repository (e.g. dashboard background snapshots). */
+  persist?: boolean
+}
+
 export class ScreeningService {
   private readonly registry: CapabilityRegistry
   private readonly repository: ScreeningRunRepository
@@ -156,7 +161,8 @@ export class ScreeningService {
     this.executor = options.executor ?? new CapabilityExecutor({ now: this.now })
   }
 
-  async runScreening(query: ScreeningQuery): Promise<ScreeningRun> {
+  async runScreening(query: ScreeningQuery, options: RunScreeningOptions = {}): Promise<ScreeningRun> {
+    const persist = options.persist ?? true
     const strategy = getScreeningStrategy(query.strategy)
     if (!strategy) {
       throw new Error(`Unknown screening strategy "${query.strategy}"`)
@@ -166,7 +172,9 @@ export class ScreeningService {
     const universe = await this.resolveUniverse(query)
     if (universe.length === 0) {
       const run = this.emptyRun(strategy, query, limit, 'Universe is empty; nothing to screen.')
-      await this.repository.saveRun(run)
+      if (persist) {
+        await this.repository.saveRun(run)
+      }
       return run
     }
 
@@ -217,7 +225,9 @@ export class ScreeningService {
       candidates: candidates.slice(0, limit),
       failures,
     }
-    await this.repository.saveRun(run)
+    if (persist) {
+      await this.repository.saveRun(run)
+    }
     return run
   }
 

@@ -459,4 +459,27 @@ describe('PulseService.snapshot', () => {
     expect(snapshot.personalImpact).toBeNull()
     expect(snapshot.failures.length).toBeGreaterThanOrEqual(3)
   })
+
+  it('does not record dashboard mover snapshots in Discover screening history, while explicit screening runs still persist', async () => {
+    const fixture = makeFixture({ quotes: QUOTES_WITH_INDICES })
+    const repo = new ScreeningRunRepository(new JsonFileStore(join(dir, 'runs.json')))
+    const screening = new ScreeningService({
+      registry: fixture.registry,
+      repository: repo,
+      universeProvider: async () => DEFAULT_UNIVERSE,
+      now: () => NOW_MS,
+    })
+    const service = await makeService(fixture, dir, { screening })
+
+    const first = await service.snapshot({ watchlist: [] })
+    const second = await service.snapshot({ watchlist: [] })
+    expect(first.movers.length).toBeGreaterThan(0)
+    expect(second.movers.length).toBeGreaterThan(0)
+    expect(await screening.listRuns()).toEqual([])
+
+    const explicitRun = await screening.runScreening({ strategy: 'top-gainers', limit: 2 })
+    const savedRuns = await screening.listRuns()
+    expect(savedRuns).toHaveLength(1)
+    expect(savedRuns[0]?.id).toBe(explicitRun.id)
+  })
 })
