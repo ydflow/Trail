@@ -559,6 +559,10 @@ export class RunManager {
     // 自产事件且各自计数（run_started 与 runtime 首事件会同时为 1），在
     // 协议唯一汇聚点统一重排，保证 replay 游标与幂等键（runId+sequence）。
     const stamped: AgentEvent = { ...event, sequence: (protocol.sequence += 1) };
+    if (stamped.type === 'run_completed'
+      || (stamped.type === 'run_failed' && !isRuntimeInfraCode(stamped.payload.error.code))) {
+      stamped.payload = { ...stamped.payload, messageId: protocol.messageId };
+    }
     for (const listener of this.listeners) {
       listener(stamped);
     }
