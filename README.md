@@ -1,7 +1,7 @@
 <h1 align="center">Trail · 研迹</h1>
 
 <p align="center"><img src="packages/ui/src/assets/trail-logo.png" alt="Trail · 研迹" width="104" /></p>
-<p align="center"><a href="README.en.md">English</a> · 简体中文</p>
+<p align="center"><a href="README.en.md">English</a> · 简体中文 · <a href="README.tr.md">Türkçe</a></p>
 <p align="center">
   <strong>从市场线索到投资判断，让每一次研究都有迹可循。</strong><br />
   本地优先的 AI 投资研究桌面工作台，连接行情、图表、Agent、证据与持续复核。
