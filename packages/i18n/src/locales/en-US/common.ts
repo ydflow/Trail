@@ -6,6 +6,7 @@ export const common = {
   edit: 'Edit',
   retry: 'Retry',
   close: 'Close',
+  closeDialog: 'Close dialog',
   search: 'Search',
   refresh: 'Refresh',
   loading: 'Loading…',

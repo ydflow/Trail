@@ -9,6 +9,7 @@ export const common = {
   edit: '编辑',
   retry: '重试',
   close: '关闭',
+  closeDialog: '关闭弹窗',
   search: '搜索',
   refresh: '刷新',
   loading: '加载中…',
