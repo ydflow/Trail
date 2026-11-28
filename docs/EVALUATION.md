@@ -138,7 +138,7 @@ history stays comparable — spec §81).
 
 ## 8. Experiments (spec §42–45, §79)
 
-`bun run eval:smoke` (10–20 high-value regression/golden cases, PR gate) and
+`bun run eval:smoke` (10–20 high-value regression/golden cases, run manually) and
 `bun run eval:full` (entire benchmark). Modes: `fixture` (deterministic,
 CI-safe) and `live` (real providers). Every experiment records metadata:
 gitSha, trail/runtime/Pi versions, model, provider, thinking level, strategy,
@@ -155,9 +155,10 @@ meaningful improvement.
 
 ## 10. CI (spec §72–75)
 
-- PR: `eval:smoke` with fixtures + deterministic evaluators (no market-data
-  flakiness).
-- Main/nightly (manual): full benchmark.
+- PR: `pr.yml` runs type-check, unit tests and secret scanning; it does not run
+  the evaluation suites.
+- Manual: trigger `eval-smoke.yml` (`workflow_dispatch`) for the deterministic
+  fixture suite, or `eval-nightly.yml` for the full live benchmark.
 - Release (manual): model/strategy experiments.
 - Expensive cloud eval never runs on every commit.
 
