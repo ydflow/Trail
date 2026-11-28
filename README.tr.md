@@ -13,7 +13,7 @@
 </p>
 <p align="center">
   <a href="https://github.com/ydflow/Trail/actions/workflows/pr.yml"><img src="https://github.com/ydflow/Trail/actions/workflows/pr.yml/badge.svg?branch=main" alt="Main checks" /></a>
-  <img src="https://img.shields.io/badge/channel-0.4.0--beta.2-0f5749" alt="0.4.0-beta.2 source channel" />
+  <img src="https://img.shields.io/badge/channel-0.4.0--beta.3-0f5749" alt="0.4.0-beta.3 source channel" />
   <img src="https://img.shields.io/badge/Electron-React%20%2B%20TypeScript-477b74" alt="Electron, React and TypeScript" />
 </p>
 
@@ -164,13 +164,13 @@ flowchart TB
 
 ### Windows indirmeleri
 
-**v0.4.0-beta.2** sürümünü edinin: [Yükleyici](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.2/Trail-0.4.0-beta.2-windows-x64-setup.exe) · [Taşınabilir](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.2/Trail-0.4.0-beta.2-windows-x64-portable.exe) · [Sürüm notları ve SHA-256](https://github.com/ydflow/Trail/releases/tag/v0.4.0-beta.2).
+**v0.4.0-beta.3** sürümünü edinin: [Yükleyici](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.3-windows/Trail-0.4.0-beta.3-windows-x64-setup.exe) · [Taşınabilir](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.3-windows/Trail-0.4.0-beta.3-windows-x64-portable.exe) · [Sürüm notları](https://github.com/ydflow/Trail/releases/tag/v0.4.0-beta.3-windows) · [SHA-256](https://github.com/ydflow/Trail/releases/download/v0.4.0-beta.3-windows/SHA256SUMS.txt).
 
-Bu Windows paketleri imzasızdır; Windows bilinmeyen bir yayıncı bildirebilir. [Bun](https://bun.sh) kurun ve yapay zeka özellikleri için bir model yapılandırın; piyasa verileri için Longbridge CLI'yı ayrı olarak kurup yetkilendirin. Masaüstü uygulaması, 13 yetenek ve Pi uzantıları dahildir. Pi ilk kullanımda çalışma zamanını indirebilir. [Windows sürüm kaydına](docs/releases/v0.4.0-beta.2-windows.md) bakın.
+Bu Windows paketleri imzasızdır; Windows bilinmeyen bir yayıncı bildirebilir. [Bun](https://bun.sh) kurun ve yapay zeka özellikleri için bir model yapılandırın; piyasa verileri için Longbridge CLI'yı ayrı olarak kurup yetkilendirin. Masaüstü uygulaması, 13 yetenek ve Pi uzantıları dahildir. Pi ilk kullanımda çalışma zamanını indirebilir. [Windows sürüm kaydına](docs/releases/v0.4.0-beta.3-windows.md) bakın.
 
 ### Kaynaktan çalıştırma
 
-Git, [Bun](https://bun.sh) ve Node.js (Electron E2E betikleri tarafından kullanılır) kurun. Mevcut sürüm `0.4.0-beta.2` olup kaynak ve Windows paketleri olarak sunulmaktadır.
+Git, [Bun](https://bun.sh) ve Node.js (Electron E2E betikleri tarafından kullanılır) kurun. Mevcut sürüm `0.4.0-beta.3` olup kaynak ve Windows paketleri olarak sunulmaktadır.
 
 ```bash
 git clone https://github.com/ydflow/Trail.git
@@ -236,7 +236,7 @@ Gerçek sağlayıcılar kullanılamadığında yetenek düzeyinde örnek geri d�
 - **Kurtarılabilir yürütme:** sağlama toplamlı kontrol noktaları, atomik yazmalar, kaydedilmiş kanıt yeniden kullanımı, yapılandırma kimliği denetimleri ve kalıcı bütçeler. Uzak okumalar yeniden denenebilir; ne tam bir kez yürütme ne de her güç kaybı senaryosu garanti edilir.
 - **İncelenebilir çıktı:** araç ilerlemesi, kaynak incelemesi, rapor dışa aktarma ve isteğe bağlı izleme. İzleme varsayılan olarak kapalıdır ve ayrı gizlilik ile kimlik bilgisi ayarlarına sahiptir.
 - **Görünür boşluklar:** canlı araştırma kısmi olabilir. Piyasa öncesi, gecikmeli ve zaman damgasız fiyatlar kaynak bağlamı gerektirir. Model çıktısı yapılandırılmış blok geri dönüşünü tetikleyebilir ve rapor dili model yanıtına bağlıdır.
-- **Teslimat kapsamı:** Windows x64 Beta yükleyici ve taşınabilir derlemeleri; depo dışı kurulum, canlı model fiyat yanıtı ve kalıcı kayıtlar açısından kontrol edilmiştir; [Windows sürüm kaydına](docs/releases/v0.4.0-beta.2-windows.md) bakın. Windows paketleri imzasızdır. macOS arm64 paketlemesi yapılandırılmıştır ancak bu sürüm için kabul edilmiş bir yükleyici yoktur. Ürün ekran görüntülerinin ayrı bir [doğrulama kaydı](docs/screenshots/README.md) vardır.
+- **Teslimat kapsamı:** Windows x64 Beta yükleyici ve taşınabilir derlemeleri; depo dışı kurulum, canlı model fiyat yanıtı ve kalıcı kayıtlar açısından kontrol edilmiştir; [Windows sürüm kaydına](docs/releases/v0.4.0-beta.3-windows.md) bakın. Windows paketleri imzasızdır. macOS arm64 paketlemesi yapılandırılmıştır ancak bu sürüm için kabul edilmiş bir yükleyici yoktur. Ürün ekran görüntülerinin ayrı bir [doğrulama kaydı](docs/screenshots/README.md) vardır.
 
 ## Dokümantasyon ve katkıda bulunma
 
