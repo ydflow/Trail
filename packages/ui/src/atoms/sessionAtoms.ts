@@ -68,26 +68,46 @@ export const loadMessagesAtom = atom(
       const result = await client.kernel.getMessages(sessionId);
       if (!result.ok) return;
       const previous = get(messagesAtomFamily(sessionId));
-      const requiredCount = Math.max(minimumCount, previous.length);
-      if (result.data.length >= requiredCount) {
-        // Transfer choices from temporary live ids to persisted message ids.
-        const expansion = get(answerExpansionAtomFamily(sessionId));
-        const nextExpansion = { ...expansion };
-        let changed = false;
-        result.data.forEach((message, index) => {
-          const old = previous[index];
-          if (old && old.id !== message.id && old.role === 'assistant' && message.role === 'assistant'
-            && old.content === message.content && Object.hasOwn(expansion, old.id)) {
-            nextExpansion[message.id] = expansion[old.id];
-            delete nextExpansion[old.id];
-            changed = true;
-          }
-        });
-        if (changed) set(answerExpansionAtomFamily(sessionId), nextExpansion);
-        set(messagesAtomFamily(sessionId), result.data);
-        set(loadedSessionIdsAtom, (loaded) => new Set([...loaded, sessionId]));
-        return;
-      }
+      const persisted = result.data;
+      const persistedIds = new Set(persisted.map(({ id }) => id));
+      const savedAnswers = new Map<string, Message>();
+      let savedQuestionId: string | undefined;
+      let firstSavedQuestion = persisted.length;
+      persisted.forEach((message, index) => {
+        if (message.role === 'user') {
+          savedQuestionId = message.id;
+          firstSavedQuestion = Math.min(firstSavedQuestion, index);
+        } else if (message.role === 'assistant' && savedQuestionId) {
+          savedAnswers.set(savedQuestionId, message);
+        }
+      });
+
+      // A long first read can still be missing the entire live turn. Match
+      // temporary replies within their own turn, where even repeated answers
+      // have a unique persisted question ID.
+      const expansion = get(answerExpansionAtomFamily(sessionId));
+      const nextExpansion = { ...expansion };
+      let expansionChanged = false;
+      let questionId: string | undefined;
+      const pending = previous.filter((message, index) => {
+        if (message.role === 'user') questionId = message.id;
+        if (persistedIds.has(message.id)) return false;
+        if (message.role !== 'assistant') return true;
+        const saved = questionId
+          ? savedAnswers.get(questionId)
+          : index < firstSavedQuestion ? persisted[index] : undefined;
+        if (saved?.role !== 'assistant' || saved.content !== message.content) return true;
+        if (Object.hasOwn(expansion, message.id)) {
+          nextExpansion[saved.id] = expansion[message.id];
+          delete nextExpansion[message.id];
+          expansionChanged = true;
+        }
+        return false;
+      });
+      if (expansionChanged) set(answerExpansionAtomFamily(sessionId), nextExpansion);
+      set(messagesAtomFamily(sessionId), [...persisted, ...pending]);
+      set(loadedSessionIdsAtom, (loaded) => loaded.has(sessionId) ? loaded : new Set([...loaded, sessionId]));
+      if (pending.length === 0 && persisted.length >= minimumCount) return;
       if (attempt + 1 < attempts) await new Promise((resolve) => setTimeout(resolve, 75));
     }
   }

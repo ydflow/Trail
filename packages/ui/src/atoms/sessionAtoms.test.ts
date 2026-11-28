@@ -109,6 +109,48 @@ function makeClient(): FinagentClient {
 }
 
 describe('session atoms', () => {
+  it('merges an older first read with a live turn and replaces its temporary answer after persistence', async () => {
+    const store = createStore();
+    const client = makeClient();
+    const sessionId = 'uncached-history';
+    const history: Message[] = [
+      { id: 'old-question-1', role: 'user', content: 'question', timestamp: 1 },
+      { id: 'old-answer-1', role: 'assistant', content: 'answer', timestamp: 2 },
+      { id: 'old-question-2', role: 'user', content: 'question', timestamp: 3 },
+      { id: 'old-answer-2', role: 'assistant', content: 'answer', timestamp: 4 },
+    ];
+    const user: Message = { id: 'new-question', role: 'user', content: 'question', timestamp: 5 };
+    const saved: Message = { id: 'saved-answer', role: 'assistant', content: 'answer', timestamp: 7 };
+    const initial = Promise.withResolvers<Awaited<ReturnType<typeof client.kernel.getMessages>>>();
+    let reads = 0;
+    client.kernel.getMessages = () => {
+      reads += 1;
+      if (reads === 1) return initial.promise;
+      return Promise.resolve({ ok: true, data: reads === 2 ? [...history, user] : [...history, user, saved] });
+    };
+    store.set(activeSessionIdAtom, sessionId);
+    const opening = store.set(loadMessagesAtom, client, sessionId);
+
+    store.set(applyAgentEventAtom, {
+      id: 'started', sessionId, runId: 'new', sequence: 1, timestamp: 5, type: 'run_started',
+      payload: { userMessage: user, run: { id: 'new', sessionId, status: 'running', input: 'question', startedAt: 5 } },
+    } satisfies AgentEvent);
+    store.set(applyAgentEventAtom, {
+      id: 'completed', sessionId, runId: 'new', sequence: 2, timestamp: 6, type: 'run_completed',
+      payload: { answer: 'answer', toolCalls: [] },
+    } satisfies AgentEvent);
+
+    initial.resolve({ ok: true, data: history });
+    await opening;
+    expect(store.get(messagesAtomFamily(sessionId)).map(({ id }) => id))
+      .toEqual([...history.map(({ id }) => id), 'new-question', 'assistant-new']);
+
+    await store.set(loadMessagesAtom, client, sessionId, 2);
+    expect(reads).toBe(3);
+    expect(store.get(messagesAtomFamily(sessionId))).toEqual([...history, user, saved]);
+    expect(store.get(answerExpansionAtomFamily(sessionId))).toEqual({ 'saved-answer': true });
+  });
+
   it.each([false, true])('preserves the new turn when the initial read returns first: %s', async (initialFirst) => {
     const store = createStore();
     const client = makeClient();
