@@ -86,6 +86,30 @@ describe('aggregateSkillPerformance', () => {
     expect(result[0].insufficientData).toBe(true)
   })
 
+  it('computes directionHitRate over outcomes with a directional verdict only', () => {
+    const opinions = [opinion('a'), opinion('b'), opinion('c')]
+    const outcomes = [
+      outcome('a', { directionCorrect: true }),
+      outcome('b', { directionCorrect: false }),
+      outcome('c', { directionCorrect: undefined }),
+    ]
+    const result = aggregateSkillPerformance(opinions, outcomes, '1m')
+    expect(result[0].directionHitRate).toBeCloseTo(1 / 2)
+    expect(result[0].samples).toBe(3)
+  })
+
+  it('leaves directionHitRate unknown when no outcome has a directional verdict', () => {
+    const opinions = [opinion('a'), opinion('b')]
+    const outcomes = [
+      outcome('a', { directionCorrect: undefined }),
+      outcome('b', { directionCorrect: undefined }),
+    ]
+    const result = aggregateSkillPerformance(opinions, outcomes, '1m')
+    expect(result[0].directionHitRate).toBeUndefined()
+    expect(result[0].avgReturn).toBeCloseTo(2)
+    expect(result[0].samples).toBe(2)
+  })
+
   it('computes avgReturn as the mean of evaluated returnPercent only', () => {
     const opinions = [opinion('a'), opinion('b'), opinion('c')]
     const outcomes = [
@@ -243,5 +267,32 @@ describe('aggregateStrategyPerformance', () => {
     const result = aggregateStrategyPerformance(opinions, outcomes, '1m')
     expect(result[0].hitRate).toBeCloseTo(1)
     expect(result[0].samples).toBe(1)
+  })
+
+  it('computes hitRate over outcomes with a directional verdict only', () => {
+    const opinions = [
+      opinion('a', { strategyId: 'value' }),
+      opinion('b', { strategyId: 'value' }),
+      opinion('c', { strategyId: 'value' }),
+    ]
+    const outcomes = [
+      outcome('a', { directionCorrect: true }),
+      outcome('b', { directionCorrect: false }),
+      outcome('c', { directionCorrect: undefined }),
+    ]
+    const result = aggregateStrategyPerformance(opinions, outcomes, '1m')
+    expect(result[0].hitRate).toBeCloseTo(1 / 2)
+    expect(result[0].samples).toBe(3)
+  })
+
+  it('leaves hitRate unknown when no outcome has a directional verdict', () => {
+    const opinions = [opinion('a', { strategyId: 'value' }), opinion('b', { strategyId: 'value' })]
+    const outcomes = [
+      outcome('a', { directionCorrect: undefined }),
+      outcome('b', { directionCorrect: undefined }),
+    ]
+    const result = aggregateStrategyPerformance(opinions, outcomes, '1m')
+    expect(result[0].hitRate).toBeUndefined()
+    expect(result[0].samples).toBe(2)
   })
 })

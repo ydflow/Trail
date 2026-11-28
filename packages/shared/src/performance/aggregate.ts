@@ -20,6 +20,7 @@ import {
  *   contribute — mixed-horizon histories never leak into a tab.
  * - `samples` counts evaluated outcomes. `unable` outcomes count toward the
  *   unable rate but never toward the directional hit rate or average return.
+ *   The hit rate only counts outcomes with a directional verdict.
  * - Below MIN_EVALUATED_SAMPLES (30) a group is Observational Only
  *   (`insufficientData: true`), matching spec §38 — never tuned on a
  *   handful of samples.
@@ -42,6 +43,7 @@ interface Pair {
 interface GroupStats {
   total: number
   evaluated: number
+  directional: number
   correct: number
   returns: number[]
   excessReturns: number[]
@@ -49,7 +51,7 @@ interface GroupStats {
 }
 
 function emptyStats(): GroupStats {
-  return { total: 0, evaluated: 0, correct: 0, returns: [], excessReturns: [], unable: 0 }
+  return { total: 0, evaluated: 0, directional: 0, correct: 0, returns: [], excessReturns: [], unable: 0 }
 }
 
 /** Join outcomes to their opinions; drop orphans and off-horizon pairs. */
@@ -81,6 +83,7 @@ function accumulate(stats: Map<string, GroupStats>, key: string, pair: Pair): vo
     return
   }
   group.evaluated += 1
+  if (typeof outcome.directionCorrect === 'boolean') group.directional += 1
   if (outcome.directionCorrect === true) group.correct += 1
   if (typeof outcome.returnPercent === 'number' && Number.isFinite(outcome.returnPercent)) {
     group.returns.push(outcome.returnPercent)
@@ -131,7 +134,7 @@ export function aggregateSkillPerformance(
       skillId,
       horizon,
       samples: group.evaluated,
-      directionHitRate: group.evaluated > 0 ? group.correct / group.evaluated : undefined,
+      directionHitRate: group.directional > 0 ? group.correct / group.directional : undefined,
       avgReturn: mean(group.returns),
       unableRate: group.total > 0 ? group.unable / group.total : undefined,
       insufficientData: group.evaluated < minSamples,
@@ -161,7 +164,7 @@ export function aggregateStrategyPerformance(
       strategyId,
       horizon,
       samples: group.evaluated,
-      hitRate: group.evaluated > 0 ? group.correct / group.evaluated : undefined,
+      hitRate: group.directional > 0 ? group.correct / group.directional : undefined,
       medianExcessReturn: median(group.excessReturns),
       insufficientData: group.evaluated < minSamples,
     })
