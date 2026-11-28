@@ -219,7 +219,7 @@ export class PulseService {
     const movers: ScreeningCandidate[] = []
     for (const strategy of ['top-gainers', 'top-losers'] as const) {
       try {
-        const run = await this.screening.runScreening({ strategy, limit: MOVER_LIMIT })
+        const run = await this.screening.runScreening({ strategy, limit: MOVER_LIMIT }, { persist: false })
         movers.push(...run.candidates)
       } catch (error) {
         failures.push(`screening: ${errorMessage(error)}`)
