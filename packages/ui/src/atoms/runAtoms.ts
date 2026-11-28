@@ -86,6 +86,10 @@ function describeGuardDetail(detail: Record<string, unknown> | undefined): strin
 // pure projections of the `agent:event` stream.
 // ---------------------------------------------------------------------------
 
+function appendMessageIfMissing(messages: Message[], message: Message): Message[] {
+  return messages.some(({ id }) => id === message.id) ? messages : [...messages, message];
+}
+
 export const applyAgentEventAtom = atom(
   null,
   (get, set, event: AgentEvent) => {
@@ -101,7 +105,7 @@ export const applyAgentEventAtom = atom(
     if (event.type === 'run_started') {
       set(sessionInteractionLockedAtom, true);
       // Kernel persists the user message; surface it in the UI here.
-      set(messages, [...get(messages), event.payload.userMessage]);
+      set(messages, appendMessageIfMissing(get(messages), event.payload.userMessage));
       set(sessionsAtom, (sessions) => sessions.map((session) =>
         session.id === sessionId ? { ...session, status: 'running' as const, messageCount: session.messageCount + 1 } : session
       ));
@@ -163,7 +167,7 @@ export const applyAgentEventAtom = atom(
     if (event.type === 'run_completed') {
       set(sessionInteractionLockedAtom, false);
       const assistantMessage: Message = {
-        id: `assistant-${event.runId}`,
+        id: event.payload.messageId ?? `assistant-${event.runId}`,
         role: 'assistant',
         content: event.payload.answer,
         timestamp: event.timestamp,
@@ -178,7 +182,7 @@ export const applyAgentEventAtom = atom(
           error: toolCall.error,
         })),
       };
-      set(messages, [...get(messages), assistantMessage]);
+      set(messages, appendMessageIfMissing(get(messages), assistantMessage));
       set(answerExpansionAtomFamily(sessionId), (choices) => ({ ...choices, [assistantMessage.id]: true }));
       set(sessionsAtom, (sessions) => sessions.map((session) =>
         session.id === sessionId ? { ...session, status: 'idle' as const, messageCount: session.messageCount + 1 } : session
@@ -224,7 +228,7 @@ export const applyAgentEventAtom = atom(
 
       const guardStop = describeGuardStop(error);
       const assistantMessage: Message = {
-        id: `assistant-${event.runId}`,
+        id: event.payload.messageId ?? `assistant-${event.runId}`,
         role: 'assistant',
         content: cancelled
           ? (run.answer || '(run stopped)')
@@ -243,7 +247,7 @@ export const applyAgentEventAtom = atom(
           error: toolCall.status === 'running' ? error : toolCall.error,
         })),
       };
-      set(messages, [...get(messages), assistantMessage]);
+      set(messages, appendMessageIfMissing(get(messages), assistantMessage));
       set(answerExpansionAtomFamily(sessionId), (choices) => ({ ...choices, [assistantMessage.id]: true }));
       set(sessionsAtom, (sessions) => sessions.map((session) =>
         session.id === sessionId

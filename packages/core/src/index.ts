@@ -283,10 +283,14 @@ export interface MessageCompletedPayload {
 export interface RunCompletedPayload {
   answer: string;
   toolCalls: ToolCall[];
+  /** Assistant message ID assigned by the kernel when it publishes the event. */
+  messageId?: string;
 }
 
 export interface RunFailedPayload {
   error: ApiError;
+  /** Assistant message ID assigned by the kernel for failures shown in chat. */
+  messageId?: string;
 }
 
 export type AgentEventPayload =

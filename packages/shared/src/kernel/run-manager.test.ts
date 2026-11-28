@@ -217,6 +217,10 @@ describe('RunManager', () => {
   it('runs a full loop: run_started → tools → deltas → run_completed, persisted', async () => {
     const { sessions, runs, runtime, store } = makeKernel(completedScript('Portfolio risk is moderate.'));
     const session = await sessions.createSession('Portfolio Review');
+    const emittedIds: string[] = [];
+    runs.subscribe((event) => {
+      if (event.type === 'run_completed' && event.payload.messageId) emittedIds.push(event.payload.messageId);
+    });
 
     const run = await runs.startRun(session.id, '分析一下我当前持仓最大的风险');
 
@@ -232,6 +236,7 @@ describe('RunManager', () => {
     expect(messages.map((message) => message.role)).toEqual(['user', 'assistant']);
     expect(messages[0]).toMatchObject({ content: '分析一下我当前持仓最大的风险' });
     expect(messages[1]).toMatchObject({ content: 'Portfolio risk is moderate.' });
+    expect(emittedIds).toEqual([messages[1].id]);
     expect(messages[1].financialEvidence?.[0]).toMatchObject({
       toolCallId: 't1',
       capabilityId: 'portfolio.summary',
@@ -298,11 +303,16 @@ describe('RunManager', () => {
       });
     });
     const session = await sessions.createSession('A');
+    const emittedIds: string[] = [];
+    runs.subscribe((event) => {
+      if (event.type === 'run_failed' && event.payload.messageId) emittedIds.push(event.payload.messageId);
+    });
     await runs.startRun(session.id, 'check NVDA');
     await waitFor(async () => !runs.isRunning());
     const messages = await sessions.listMessages(session.id);
     expect(messages.map((m) => m.role)).toEqual(['user', 'assistant']);
     expect(messages[1].content).toContain('get_quote failed');
+    expect(emittedIds).toEqual([messages[1].id]);
   });
 
   it('cancels a running run and marks it cancelled', async () => {
@@ -320,6 +330,10 @@ describe('RunManager', () => {
     });
     const session = await sessions.createSession('A');
 
+    const emittedIds: string[] = [];
+    runs.subscribe((event) => {
+      if (event.type === 'run_failed' && event.payload.messageId) emittedIds.push(event.payload.messageId);
+    });
     const run = await runs.startRun(session.id, 'long task');
     await waitFor(async () => runtime.ensureSessionCalls.length === 1);
     await runs.cancelRun(session.id, run.id);
@@ -331,6 +345,8 @@ describe('RunManager', () => {
     expect(persistedRun?.status).toBe('cancelled');
     expect(persistedRun?.answer).toBe('partial');
     expect((await sessions.getSession(session.id))?.status).toBe('idle');
+    const messages = await sessions.listMessages(session.id);
+    expect(emittedIds).toEqual([messages[1].id]);
   });
 
   it('rejects a second run while one is in progress', async () => {

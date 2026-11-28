@@ -63,33 +63,20 @@ export const loadMessagesAtom = atom(
     // The terminal event can precede transcript persistence. Keep the complete
     // live turn until the saved answer (including its evidence) is available.
     // Ordinary hydration remains a single read; only completion refreshes poll.
-    for (let attempt = 0; attempt < (minimumCount > 0 ? 8 : 1); attempt += 1) {
+    const attempts = minimumCount > 0 ? 8 : 1;
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
       const result = await client.kernel.getMessages(sessionId);
       if (!result.ok) return;
-      const requiredCount = minimumCount > 0
-        ? Math.max(minimumCount, get(messagesAtomFamily(sessionId)).length)
-        : 0;
-      if (result.data.length >= requiredCount) {
-        // Transfer choices from temporary live ids to persisted message ids.
-        const previous = get(messagesAtomFamily(sessionId));
-        const expansion = get(answerExpansionAtomFamily(sessionId));
-        const nextExpansion = { ...expansion };
-        let changed = false;
-        result.data.forEach((message, index) => {
-          const old = previous[index];
-          if (old && old.id !== message.id && old.role === 'assistant' && message.role === 'assistant'
-            && old.content === message.content && Object.hasOwn(expansion, old.id)) {
-            nextExpansion[message.id] = expansion[old.id];
-            delete nextExpansion[old.id];
-            changed = true;
-          }
-        });
-        if (changed) set(answerExpansionAtomFamily(sessionId), nextExpansion);
-        set(messagesAtomFamily(sessionId), result.data);
-        set(loadedSessionIdsAtom, (loaded) => new Set([...loaded, sessionId]));
-        return;
-      }
-      if (attempt < 7) await new Promise((resolve) => setTimeout(resolve, 75));
+      const previous = get(messagesAtomFamily(sessionId));
+      const persisted = result.data;
+      const persistedIds = new Set(persisted.map(({ id }) => id));
+      // The kernel publishes the saved message's ID with the live answer.
+      // A persisted entry supersedes its live copy even if their text differs.
+      const pending = previous.filter(({ id }) => !persistedIds.has(id));
+      set(messagesAtomFamily(sessionId), [...persisted, ...pending]);
+      set(loadedSessionIdsAtom, (loaded) => loaded.has(sessionId) ? loaded : new Set([...loaded, sessionId]));
+      if (pending.length === 0 && persisted.length >= minimumCount) return;
+      if (attempt + 1 < attempts) await new Promise((resolve) => setTimeout(resolve, 75));
     }
   }
 );

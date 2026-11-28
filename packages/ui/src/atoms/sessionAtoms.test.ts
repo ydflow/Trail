@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { createStore } from 'jotai';
 import type { FinagentClient } from '../client';
-import type { Run, SessionMeta } from '@finagent/core';
+import type { AgentEvent, Message, Run, SessionMeta } from '@finagent/core';
+import { applyAgentEventAtom } from './runAtoms';
 import {
   activeMessagesAtom,
   activeSessionIdAtom,
@@ -108,12 +109,134 @@ function makeClient(): FinagentClient {
 }
 
 describe('session atoms', () => {
+  it.each([
+    ['TOOL_ERROR', 'Provider failed', 'Error: Provider failed', 'Provider failed'],
+    ['RUN_CANCELLED', 'Run cancelled by user.', '(run stopped)', ''],
+  ])('keeps exactly one assistant message for %s, even after the next turn', async (code, message, liveText, savedText) => {
+    const store = createStore();
+    const client = makeClient();
+    const sessionId = 'terminal-refresh';
+    const firstQuestion: Message = { id: 'first-question', role: 'user', content: 'first question', timestamp: 1 };
+    const firstAnswer: Message = { id: 'first-answer', role: 'assistant', content: savedText, timestamp: 3 };
+    const secondQuestion: Message = { id: 'second-question', role: 'user', content: 'second question', timestamp: 4 };
+    const secondAnswer: Message = { id: 'second-answer', role: 'assistant', content: 'success', timestamp: 6 };
+    const start = (runId: string, userMessage: Message) => store.set(applyAgentEventAtom, {
+      id: `start-${runId}`, type: 'run_started', sessionId, runId, sequence: 1, timestamp: userMessage.timestamp,
+      payload: {
+        userMessage,
+        run: { id: runId, sessionId, status: 'running', input: userMessage.content, startedAt: userMessage.timestamp },
+      },
+    });
+
+    store.set(activeSessionIdAtom, sessionId);
+    start('first', firstQuestion);
+    store.set(applyAgentEventAtom, {
+      id: 'failed', sessionId, runId: 'first', sequence: 2, timestamp: 2, type: 'run_failed',
+      payload: { error: { code, message }, messageId: firstAnswer.id },
+    } satisfies AgentEvent);
+    expect(store.get(messagesAtomFamily(sessionId)).map(({ content }) => content)).toEqual(['first question', liveText]);
+
+    savedMessages[sessionId] = [firstQuestion, firstAnswer];
+    await store.set(loadMessagesAtom, client, sessionId, 2);
+    expect(store.get(messagesAtomFamily(sessionId))).toEqual([firstQuestion, firstAnswer]);
+
+    start('second', secondQuestion);
+    store.set(applyAgentEventAtom, {
+      id: 'completed', sessionId, runId: 'second', sequence: 2, timestamp: 5, type: 'run_completed',
+      payload: { answer: 'success', toolCalls: [], messageId: secondAnswer.id },
+    } satisfies AgentEvent);
+    savedMessages[sessionId].push(secondQuestion, secondAnswer);
+    await store.set(loadMessagesAtom, client, sessionId, 4);
+    expect(store.get(messagesAtomFamily(sessionId))).toEqual([firstQuestion, firstAnswer, secondQuestion, secondAnswer]);
+  });
+
+  it('merges an older first read with a live turn and replaces its temporary answer after persistence', async () => {
+    const store = createStore();
+    const client = makeClient();
+    const sessionId = 'uncached-history';
+    const history: Message[] = [
+      { id: 'old-question-1', role: 'user', content: 'question', timestamp: 1 },
+      { id: 'old-answer-1', role: 'assistant', content: 'answer', timestamp: 2 },
+      { id: 'old-question-2', role: 'user', content: 'question', timestamp: 3 },
+      { id: 'old-answer-2', role: 'assistant', content: 'answer', timestamp: 4 },
+    ];
+    const user: Message = { id: 'new-question', role: 'user', content: 'question', timestamp: 5 };
+    const saved: Message = { id: 'saved-answer', role: 'assistant', content: 'answer', timestamp: 7 };
+    const initial = Promise.withResolvers<Awaited<ReturnType<typeof client.kernel.getMessages>>>();
+    let reads = 0;
+    client.kernel.getMessages = () => {
+      reads += 1;
+      if (reads === 1) return initial.promise;
+      return Promise.resolve({ ok: true, data: reads === 2 ? [...history, user] : [...history, user, saved] });
+    };
+    store.set(activeSessionIdAtom, sessionId);
+    const opening = store.set(loadMessagesAtom, client, sessionId);
+
+    store.set(applyAgentEventAtom, {
+      id: 'started', sessionId, runId: 'new', sequence: 1, timestamp: 5, type: 'run_started',
+      payload: { userMessage: user, run: { id: 'new', sessionId, status: 'running', input: 'question', startedAt: 5 } },
+    } satisfies AgentEvent);
+    store.set(applyAgentEventAtom, {
+      id: 'completed', sessionId, runId: 'new', sequence: 2, timestamp: 6, type: 'run_completed',
+      payload: { answer: 'answer', toolCalls: [], messageId: saved.id },
+    } satisfies AgentEvent);
+
+    initial.resolve({ ok: true, data: history });
+    await opening;
+    expect(store.get(messagesAtomFamily(sessionId)).map(({ id }) => id))
+      .toEqual([...history.map(({ id }) => id), user.id, saved.id]);
+
+    await store.set(loadMessagesAtom, client, sessionId, 2);
+    expect(reads).toBe(3);
+    expect(store.get(messagesAtomFamily(sessionId))).toEqual([...history, user, saved]);
+    expect(store.get(answerExpansionAtomFamily(sessionId))).toEqual({ 'saved-answer': true });
+  });
+
+  it.each([false, true])('preserves the new turn when the initial read returns first: %s', async (initialFirst) => {
+    const store = createStore();
+    const client = makeClient();
+    const sessionId = 'concurrent-load';
+    const previous: Message = { id: 'previous', role: 'assistant', content: 'previous answer', timestamp: 1 };
+    const user: Message = { id: 'question', role: 'user', content: 'question', timestamp: 2 };
+    const saved: Message = { id: 'saved', role: 'assistant', content: 'new answer', timestamp: 3 };
+    const initial = Promise.withResolvers<Awaited<ReturnType<typeof client.kernel.getMessages>>>();
+    let reads = 0;
+    client.kernel.getMessages = () => ++reads === 1
+      ? initial.promise
+      : Promise.resolve({ ok: true, data: [previous, user, saved] });
+    store.set(activeSessionIdAtom, sessionId);
+    store.set(messagesAtomFamily(sessionId), [previous]);
+
+    const opening = store.set(loadMessagesAtom, client, sessionId);
+    store.set(applyAgentEventAtom, {
+      id: 'started', sessionId, runId: 'run', sequence: 1, timestamp: 2, type: 'run_started',
+      payload: { userMessage: user, run: { id: 'run', sessionId, status: 'running', input: 'question', startedAt: 2 } },
+    } satisfies AgentEvent);
+    store.set(applyAgentEventAtom, {
+      id: 'completed', sessionId, runId: 'run', sequence: 2, timestamp: 3, type: 'run_completed',
+      payload: { answer: 'new answer', toolCalls: [], messageId: saved.id },
+    } satisfies AgentEvent);
+
+    if (initialFirst) {
+      initial.resolve({ ok: true, data: [previous] });
+      await opening;
+      expect(store.get(messagesAtomFamily(sessionId)).map((message) => message.id))
+        .toEqual([previous.id, user.id, saved.id]);
+      await store.set(loadMessagesAtom, client, sessionId, 3);
+    } else {
+      await store.set(loadMessagesAtom, client, sessionId, 3);
+      initial.resolve({ ok: true, data: [previous] });
+      await opening;
+    }
+    expect(store.get(messagesAtomFamily(sessionId))).toEqual([previous, user, saved]);
+  });
+
   it('retains a complete live answer until its persisted replacement is ready', async () => {
     const store = createStore();
     const client = makeClient();
     const user = { id: 'u', role: 'user' as const, content: 'question', timestamp: 1 };
     const live = { id: 'live', role: 'assistant' as const, content: 'answer', timestamp: 2 };
-    const saved = { ...live, id: 'saved' };
+    const saved = { ...live, timestamp: 3 };
     store.set(messagesAtomFamily('completion'), [user, live]);
     store.set(answerExpansionAtomFamily('completion'), { live: false });
     let reads = 0;
@@ -125,7 +248,7 @@ describe('session atoms', () => {
     await store.set(loadMessagesAtom, client, 'completion', 2);
     expect(reads).toBe(3);
     expect(store.get(messagesAtomFamily('completion'))).toEqual([user, saved]);
-    expect(store.get(answerExpansionAtomFamily('completion'))).toEqual({ saved: false });
+    expect(store.get(answerExpansionAtomFamily('completion'))).toEqual({ live: false });
   });
 
   it('does not erase a complete answer if persistence stays behind the refresh deadline', async () => {
