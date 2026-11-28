@@ -1,7 +1,7 @@
 <h1 align="center">Trail · 研迹</h1>
 
 <p align="center"><img src="packages/ui/src/assets/trail-logo.png" alt="Trail · 研迹" width="104" /></p>
-<p align="center">English · <a href="README.md">简体中文</a></p>
+<p align="center">English · <a href="README.md">简体中文</a> · <a href="README.tr.md">Türkçe</a></p>
 <p align="center">
   <strong>From market signals to investment theses. Keep the evidence behind every decision.</strong><br />
   A local-first AI research desktop connecting market data, charts, agents, evidence and ongoing review.
