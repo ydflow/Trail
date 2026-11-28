@@ -71,7 +71,6 @@ export const CommandPalette: React.FC = () => {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
-  const restoreFocusRef = useRef<HTMLElement | null>(null)
 
   useCommandPaletteHotkey()
 
@@ -110,11 +109,14 @@ export const CommandPalette: React.FC = () => {
   // then move focus into the input after the first paint.
   useEffect(() => {
     if (!open) return undefined
-    restoreFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     setQuery('')
     setSelected(0)
     const raf = requestAnimationFrame(() => inputRef.current?.focus())
-    return () => cancelAnimationFrame(raf)
+    return () => {
+      cancelAnimationFrame(raf)
+      if (opener?.isConnected) opener.focus()
+    }
   }, [open])
 
   // Keep the selection index within the result list as it changes.
@@ -126,7 +128,6 @@ export const CommandPalette: React.FC = () => {
 
   const close = (): void => {
     setOpen(false)
-    restoreFocusRef.current?.focus()
   }
 
   const execute = (command: PaletteCommand): void => {
