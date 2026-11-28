@@ -145,6 +145,45 @@ describe('MassiveFinancialDataProvider', () => {
     expect(result.data.change).toBeCloseTo(-0.02, 5)
   })
 
+  describe('when the snapshot has no market time', () => {
+    function payloadWithoutMarketTime() {
+      return {
+        status: 'OK',
+        ticker: {
+          day: { c: 188 },
+          prevDay: { c: 186 },
+        },
+      }
+    }
+
+    it('keeps the quote timestamp unknown instead of stamping fetch time', async () => {
+      installFetch(() => jsonResponse(payloadWithoutMarketTime()))
+      const result = await makeProvider('testkey').execute<Quote>('market.quote', { symbol: 'AAPL.US' })
+
+      expect(result.ok).toBe(true)
+      if (!result.ok) return
+      // No time field in the snapshot: lastTrade.t, min.t and updated are all absent.
+      // Trail uses timestamp <= 0 to mean "market time unknown" (see market.quote manifest).
+      expect(result.data.timestamp).toBe(0)
+      expect(result.provenance.marketTime).toBeUndefined()
+      // The fetch time is still recorded, and is not presented as the market time.
+      expect(result.provenance.fetchedAt).toBeGreaterThan(0)
+      // Price fields are still mapped normally.
+      expect(result.data.lastPrice).toBe(188)
+      expect(result.data.prevClose).toBe(186)
+    })
+
+    it('still uses a valid market time when the snapshot supplies one', async () => {
+      installFetch(() => jsonResponse(snapshotPayload()))
+      const result = await makeProvider('testkey').execute<Quote>('market.quote', { symbol: 'AAPL.US' })
+
+      expect(result.ok).toBe(true)
+      if (!result.ok) return
+      expect(result.data.timestamp).toBe(1699559040)
+      expect(result.provenance.marketTime).toBe(1699559040_000)
+    })
+  })
+
   it('maps daily aggregates to ascending Kline[]', async () => {
     installFetch(() =>
       jsonResponse({
